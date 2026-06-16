@@ -20,6 +20,7 @@
 - ADR-0010 corpus は repo-native（サービス repo の docs/ サブツリー）
 - ADR-0011 企画→ブリーフ段は多職種エージェント編成（ディレクター＋専門6＋評価1）。screen-specs は期待値として先行導出、moodboard 廃止、design-tokens を Claude Design に渡す。出力は `docs/discovery/`、完全性ガード（マニフェスト＋3状態＋ギャップレポート）
 - ADR-0012 ドキュメントは AI が書く（自律 or 対話駆動）。人間は書かない。アンカーは対話駆動で AI が書く。Obsidian vault 退役
+- ADR-0013 共通ステージ形（ディレクター＋職種＋評価／S2 除く全ステージ）。各ステージ＝自律＋枠組み対話の混合。feature-team/fleet 廃止し S5 を共通形で作り直す。ステージ間フィードバック（G2→S1 screen-specs 同期・S3→S1 価格/NFR/実現可否）
 
 ## ターゲット・パイプライン
 
@@ -38,7 +39,7 @@
 ## 着手順序
 
 1. **上流ループの実証**（最初の一手・下記）
-2. Claude Design ハンドオフ → **feature-team を停止ゼロ ticket→PR に**作り替え、1スライスで実証
+2. Claude Design ハンドオフ → **feature-team/fleet を廃止し S5 実装ステージを共通形（ディレクター＋実装/レビュー職種＋評価）で作り直す**（停止ゼロ ticket→PR）、1スライスで実証
 3. **tech-designer を自律 self-grill 導出**化（G3 corpus を人間に書かせない）
 4. **G4 分解リスト**ゲート＋自動起票（要否タグ＝旧 HITL/AFK の後継）
 5. 全ステージを繋ぐ**オーケストレーター**（＝このリポジトリの本体）
