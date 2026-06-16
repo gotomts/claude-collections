@@ -47,9 +47,13 @@ _Avoid_: ランナー、ドライバ
 **自走設計（Autonomous-by-design）**:
 エージェントが内部の曖昧点で停止して人間に聞くのではなく、根拠ある決定を**下し・記録し・進み**、設計されたゲートでのみ人間に晒す設計思想。対義は**補助設計**（停止して聞く co-pilot）。harness engineering の中核原則。
 
+**self-grill（自己 grill）**:
+エージェントが griller と answerer の両役を演じ、anchors／導出ドキュメント／プロトタイプ／コードを**答え合わせ材料（corpus）**に自答して要件を精緻化する自走精緻化。人間対話の grill を置き換える。「context から既約 **かつ** 不可逆/高ステークス」の決定だけをゲートで晒す（決定単位のランタイム判断＝ティアリング方式 Y を採用）。
+
 ## Flagged ambiguities
 
-- **精緻化のティアリング**: 要件精緻化（grill/brainstorm）を全要件で人間対話すると破綻する。自走の **self-grill**（エージェントが griller と answerer の両役を演じ、anchors/docs/code から自答し、既約な点だけゲートで晒す）を既定とし、人間 grill は高ステークスのタグ付き少数に限定する案。何がティアを選ぶか（誰が HITL タグを付けるか）が未確定。
+- **corpus の所在と transport**: self-grill の答え合わせ材料（design＝ハンドオフバンドル、tech/infra＝導出ドキュメント）を、feature-team（Claude Code）が Obsidian vault を直読するか、repo/チケットへスナップショットして読むか未確定。ハンドオフバンドルは design を repo へ運ぶ前例。
+- **corpus を誰が書くか**: tech/infra の導出ドキュメントが人間対話の tech-designer で書かれるなら 3 週間の罠が下流に移るだけ。自律導出であることの確認が必要（次の論点）。
 
 ## Findings
 
