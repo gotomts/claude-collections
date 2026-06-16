@@ -18,7 +18,8 @@
 - ADR-0008 適応 PR ゲート（要否は G4 でタグ、非根幹は自動 merge）
 - ADR-0009 agents＝ハーネスのホーム（fleet 廃止）
 - ADR-0010 corpus は repo-native（サービス repo の docs/ サブツリー）
-- ADR-0011 企画→ブリーフ段は多職種エージェント編成（ディレクター＋専門6＋評価1）。screen-specs は期待値として先行導出、moodboard 廃止、design-tokens を Claude Design に渡す
+- ADR-0011 企画→ブリーフ段は多職種エージェント編成（ディレクター＋専門6＋評価1）。screen-specs は期待値として先行導出、moodboard 廃止、design-tokens を Claude Design に渡す。出力は `docs/discovery/`、完全性ガード（マニフェスト＋3状態＋ギャップレポート）
+- ADR-0012 ドキュメントは AI が書く（自律 or 対話駆動）。人間は書かない。アンカーは対話駆動で AI が書く。Obsidian vault 退役
 
 ## ターゲット・パイプライン
 
