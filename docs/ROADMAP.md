@@ -18,6 +18,7 @@
 - ADR-0008 適応 PR ゲート（要否は G4 でタグ、非根幹は自動 merge）
 - ADR-0009 agents＝ハーネスのホーム（fleet 廃止）
 - ADR-0010 corpus は repo-native（サービス repo の docs/ サブツリー）
+- ADR-0011 企画→ブリーフ段は多職種エージェント編成（ディレクター＋専門6＋評価1）。screen-specs は期待値として先行導出、moodboard 廃止、design-tokens を Claude Design に渡す
 
 ## ターゲット・パイプライン
 
@@ -45,15 +46,18 @@
 
 ## 最初の一手：上流ループの実証
 
-**`service-derivation` スキルを作る**（現 service-designer の対話部分と prototype-designer〔廃止〕を置換）。
+**企画→ブリーフ段を「多職種エージェント編成」で作る**（ADR-0011）。当初の「`service-derivation` スキルを 1 つ作る」は誤り——この段は service-designer（固定 15 ページ）＋ prototype-designer（5 成果物・約 25 画面）が対話で作っていた corpus を、**対話なしの自律 self-grill** で同じ深さで生成する**多エージェントのチーム**である。
 
-- 入力：アンカー（PRFAQ／デザイン原則／提供形態／マネタイズ。Obsidian 執筆可）＋任意で参考リポ
-- 動作：**self-grill で**ペルソナ・使用シーン・機能スコープ・全画面仕様・デザインコンセプトを**完全に**導出（端折り禁止／一問一答なし／decide-record-proceed で決定を記録）→ **Claude Design 用ブリーフ**を生成
-- 出力：サービス repo の `docs/design/` に repo-native Markdown（ADR-0010）
+- 編成：**ディレクター（オーケストレーター＝スキル本体）＋ 専門 6 ＋ 評価 1＝8 体**（現実の職種に束ねる。ADR-0011 のロスター参照）。
+- 入力：アンカー4点（PRFAQ／デザイン原則／提供形態／マネタイズ。Obsidian 執筆可）＋任意で参考リポ。
+- 動作：各職種が **self-grill で**担当 corpus を導出（端折り禁止／一問一答なし／decide-record-proceed）→ 評価職種が答え合わせ・差し戻し → **画面一覧はドラフト後に人間が枠組みレビュー（軽い関所）** → 以降自律で **screen-specs（＝期待値）／design-system／design-tokens／ブリーフ** を生成。
+- 出力：サービス repo の `docs/design/` に repo-native Markdown（ADR-0010）。**画面の最終仕様は先行導出した screen-specs（期待値）を Claude Design に渡し、プロトタイプ往復で育てる**（ADR-0011／0003／0006）。moodboard は廃止。
 - 品質バー：**お粗末なプロトタイプは不可**。質は対話でなく self-grill の徹底度から出す。
 
-**実証**：socialcoffeenote の既存アンカー → 本スキル → ブリーフ → Claude Design → プロトタイプ。
+**実証**：socialcoffeenote の既存アンカー → 本編成 → ブリーフ＋トークン → Claude Design → プロトタイプ。
 **合否**：「既存アンカー → 触れるプロトタイプ」が数時間で、読める決定ログ付きで到達できるか。
+
+> 未確定（grill 継続中）：評価職種の差し戻し protocol、`docs/design/` のファイル構成、機能別詳細素材の置き場、マネタイズ境界＝G2 繰り越しの扱い。既存の薄い実装（`skills/service-derivation` ＋ `agents/service-deriver`）は ADR-0011 で作り直し対象。
 
 ## 残る実装レベルの論点
 
