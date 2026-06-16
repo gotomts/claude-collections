@@ -55,7 +55,7 @@ _Avoid_: ランナー、ドライバ
 
 ## Flagged ambiguities
 
-- **corpus の所在と transport**: self-grill の答え合わせ材料（design＝ハンドオフバンドル、tech/infra＝導出ドキュメント）を、Claude Code が Obsidian vault を直読/編集するか、repo/チケットへスナップショットして読むか未確定。ADR-0006 で「docs は Claude Code から編集可能であること」が要求され、repo-native か vault-via-MCP のいずれかに絞られた。ハンドオフバンドルは design を repo へ運ぶ前例。
+- 設計の幹（アンカーゲート〜5大枠ゲート〜自走設計〜self-grill〜Claude Design〜repo-native corpus）は **ADR-0001〜0010 で確定**。残るは実装レベルの論点（fleet 廃止の移行手順・オーケストレーターの実装・信頼度ダイヤルの運用基準）→ `docs/ROADMAP.md` 参照。
 
 ## Findings
 
@@ -66,3 +66,4 @@ _Avoid_: ランナー、ドライバ
 - **プロトタイプ品質バー（端折り禁止）**: 自律導出は完全な corpus（全画面仕様・デザインコンセプト等）を生成する。「minimal」は人間の入力・対話の最小化を指し、導出物の最小化ではない。お粗末なプロトタイプは許容しない。質は対話ではなく self-grill の徹底度から出る。
 - **G5 適応ゲート（ADR-0008）**: レビュー要否は G4 で人間がチケット単位にタグ付け。非根幹は green で自動 merge、根幹のみ人間レビュー＋merge。精度向上に応じ自動 merge ゾーンを手で広げる。
 - **agents＝ハーネスのホーム（ADR-0009）**: スキル・エージェント・オーケストレーター・設計を agents に集約。dotfiles の fleet は廃止。リポジトリ名は変更しうる。
+- **corpus は repo-native（ADR-0010）**: corpus of record は各サービス repo の `docs/` サブツリー。Obsidian はアンカーの人間執筆面（任意）。コミット履歴の混在は commit scope で分離可能にする。横断性と原子性が採用理由。
