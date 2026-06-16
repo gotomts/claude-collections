@@ -14,5 +14,5 @@ accepted
 
 - 個人常用スキル（`dotfiles/claude/skills`）と**ハーネス用スキル/エージェント（`agents`）は別管理**になる。ローカル/remote への配送（symlink / inject）方法は別途設計。
 - fleet の remote inject hook（`inject-fleet.sh`）の後継をどうするか要検討（agents リポジトリからの注入）。
-- リポジトリ改名時に、CONTEXT/ADR 内のパス参照等の更新が要る。
+- **リポジトリ名は未確定・改名前提**。参照は rename-robust に設計する：リポジトリ内は相対パスで参照し、repo 名をドキュメント・スキル・hook にハードコードしない。外部（dotfiles の配送設定等）から指すときも可変の1箇所に集約し、改名コストを単一の差し替えに抑える。
 - dotfiles 側 AGENTS.md の fleet 記述は、廃止時に棚卸しが必要。
