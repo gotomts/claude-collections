@@ -49,7 +49,7 @@ _Avoid_: ランナー、ドライバ
 
 ## Flagged ambiguities
 
-- **正当な mid-run 停止の境界**: 自走設計でも、不可逆・外部書き込み（Linear 起票・push・merge 等）はゲートとして残すべきか未確定。「決めて進む」と「止めて聞く」の線引き。
+- **精緻化のティアリング**: 要件精緻化（grill/brainstorm）を全要件で人間対話すると破綻する。自走の **self-grill**（エージェントが griller と answerer の両役を演じ、anchors/docs/code から自答し、既約な点だけゲートで晒す）を既定とし、人間 grill は高ステークスのタグ付き少数に限定する案。何がティアを選ぶか（誰が HITL タグを付けるか）が未確定。
 
 ## Findings
 
