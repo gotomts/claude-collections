@@ -52,11 +52,11 @@ _Avoid_: ランナー、ドライバ
 
 ## Flagged ambiguities
 
-- **corpus の所在と transport**: self-grill の答え合わせ材料（design＝ハンドオフバンドル、tech/infra＝導出ドキュメント）を、feature-team（Claude Code）が Obsidian vault を直読するか、repo/チケットへスナップショットして読むか未確定。ハンドオフバンドルは design を repo へ運ぶ前例。
-- **プロトタイプゲート修正の逆伝播（corpus 整合性）**: プロトタイプの認識齟齬は上流の導出ドキュメントの齟齬でもある。ゲートでの修正を上流 docs に反映しないと、feature-team が self-grill する corpus が陳腐化し間違ったものを作る。逆伝播の方式（origin 分類 → source を直し前方再導出／双方向パッチ／プロトタイプを真実源化）が未確定。
+- **corpus の所在と transport**: self-grill の答え合わせ材料（design＝ハンドオフバンドル、tech/infra＝導出ドキュメント）を、Claude Code が Obsidian vault を直読/編集するか、repo/チケットへスナップショットして読むか未確定。ADR-0006 で「docs は Claude Code から編集可能であること」が要求され、repo-native か vault-via-MCP のいずれかに絞られた。ハンドオフバンドルは design を repo へ運ぶ前例。
 
 ## Findings
 
 - **feature-team 失敗モード = (1) 入力欠乏 ＋ (2) 自走品質**。(3) 実行環境・(4) オーケストレーションは除外＝親の指揮と 12 体の並列起動そのものは回る。
 - **根本原因（ユーザー再フレーム）= そもそも自走するための設計で作っていない**。既存スキルは「曖昧点で停止して人間に聞く」補助設計（feature-team の Phase 0/3/3.5 escalation が証拠）。harness engineering の本質は全エージェントを自走設計に作り替えること。2a/2b の粒度論より上位の問題。
 - **上流フロー確定（ユーザー）**: アンカー（PRFAQ・デザインプリンシプルを人間対話）→ オーケストレーターが適切なエージェントを起動し service-designer/prototype-designer 出力を自律生成＋Claude Design 用ブリーフ生成 → Claude Design でプロトタイプ → **最初の HITL＝プロトタイプゲート**（人間が反復レビュー）。tech-designer も自律導出である点は原則上確定（明示確認は未）。
+- **逆伝播＝人間駆動の並列デュアル訂正（ADR-0006）**: プロトタイプゲートでは Claude Design と Claude Code を並列稼働させ、人間が docs 修正（Claude Code）とプロトタイプ修正（Claude Design）を同時に出す。システム自動同期ではない。
