@@ -50,7 +50,14 @@ ADR-0002 / 0015。4つの**別ドキュメント**：
 - 4アンカーだけを人間と対話で決める。**ペルソナ・使用シーン以降は対話しない**（自律導出）。
 - 確認質問は **1ターンに1つ・yes/no か番号**で（散文の開いた質問をしない）。
 - 決めるのは人間、**書くのは AI**。合意できたアンカーから `anchors/` に書き出す。
-- 提供形態が未確定なら S1 の画面導出に進めない（下流が前提にする）。ここで確定させる。
+- 既に `anchors/` にあれば読むだけ（決め直さない）。無いものだけ対話する。
+
+各アンカーで人間と固める中身：
+
+- **`prfaq.md`**：①サービスの性質〔公開 / 限定・社内 / 自分用〕（下流の省略可否の起点）②PR（一行説明・背景/問題・解決・ビジョン → 対外公式ストーリーの真実源）③ゴールライン（提供する/しない・価値が出る最小ライン＝思想）④FAQ（顧客向け＋社内向け実現可能性チェック）。
+- **`design-principles.md`**：核となるトレードオフを3〜5個。各原則は「X vs Y → X 優先：理由」＋「守る相手（試される横槍・誘惑）」。**優先順位の真実源**（下流はこれを参照し再定義しない）。
+- **`provider.md`**：提供形態〔iOS / Android / Web / デスクトップ / 複数〕＋理由。**PRFAQ とは別ドキュメント**（ADR-0015）。**未確定なら S1 の画面導出に進めない**＝ここで確定させる。
+- **`monetization-binary.md`**：マネタイズする / しない の**二値**＋理由1行。無料/有料の境界はここで決めず、後段で繰り越し決定として扱う（ADR-0019）。
 
 ## S1：ロスターと依存順
 
@@ -67,6 +74,12 @@ ADR-0002 / 0015。4つの**別ドキュメント**：
 依存順の目安：persona → feature-scope → （competition/pitch ほか並列）→ screens.md →〔画面一覧レビュー〕→ screen-specs。独立な成果物は並列起動してよい。
 
 ## ディレクター制御フロー
+
+**起動機構**：ディレクター（＝スキル本体のメインセッション）は各職種を **Agent tool**（`subagent_type` ＝ エージェントファイル名：`ux-researcher` / `product-manager` / `business-strategist` / `product-designer` / `reviewer`）で spawn する。プロンプトに mode/area・アンカーの所在・出力先・上流成果物のパスを渡す（各エージェントの入力契約参照）。差し戻しは**同じ職種を continuation で再起動**（findings を渡す・ADR-0018）。
+
+**期待マニフェスト**（完全性ガードの基準）：横断規約の省略可否で要否を判定した上で、「このサービスで揃うべき成果物の集合」を持つ。目安＝planning（01,02,05-14,99 のうち性質で要のもの）＋ design（screens.md ＋ 各 area の screen-specs 全画面）＋ brief.md。各成果物を ✅生成合格 / ➖省略(理由) / ⚠️未達(理由) で決着させる。
+
+**並列/直列**：依存の無い成果物は並列 spawn してよいが、**同一ファイル群へ書く職種は直列**（競合回避）。依存：persona → feature-scope →（competition/pitch/monetization/marketing/kpi/risks/nfr/legal は feature-scope 後に並列可）→ screens.md →〔画面一覧レビュー〕→ screen-specs（area ごと並列可）。
 
 1. **インクリメンタル＋依存順ゲーティング**（ADR-0018）：担当職種が成果物を出す → `reviewer` が即評価 → 合格してから依存下流を起動。バッチ評価しない。
 2. **評価ループ**（ADR-0018）：成果物ごとに最大3ラウンド差し戻し。round1 の `reviewer` は fresh で完全な findings マニフェスト、round2-3 は continuation で解消のみ検証（スコープ凍結）。担当職種は continuation 再起動。finding ごとに ✅解消／➖省略(理由)／⚠️未達(理由) を返す。
@@ -103,11 +116,38 @@ docs/discovery/
 - 機能軸の業務ルールは該当 screen-spec に inline で attach（feature-details は廃止・ADR-0021）。
 - 視覚デザイン（DESIGN.md）は repo-root・本スキルでは未実装（下記 TODO）。
 
+## 横断規約（全職種が従う）
+
+各職種は担当ページの内容要件を自分で持つ。以下の**横断規約だけ**はここ（ディレクター層）に1か所で置き、全職種がこれに従う（重複させない）。
+
+### 番号固定（planning）
+下流がファイル名を名指し参照できるよう番号を安定させる。03 PRFAQ・04 デザイン原則は `anchors/` へ、09 の二値は `anchors/monetization-binary` へ抜けている。
+`01-persona`/`02-usage-scenes`（UX）｜`05-competition`/`06-pitch`/`09-monetization`/`10-marketing`/`11-kpi`/`13-legal`（ビジネスストラテジスト）｜`07-feature-scope`/`08-roadmap`/`12-risks-assumptions`/`14-nfr-targets`/`99-specific-topics`（PM）。
+
+### 真実源を1つ（二重管理しない）
+- ターゲット/中核シナリオ → `anchors/prfaq`（PR）。06-pitch は語り直すだけ。
+- 優先順位（トレードオフ）→ `anchors/design-principles`。05 の差別化の核・デザイン判断はこれを参照。
+- 提供形態 → `anchors/provider`。
+- 機能採否 → `07-feature-scope`。08-roadmap・screens は参照。
+他ページは参照・語り直しに留め、書き写さない。
+
+### サービス性質ごとの省略可否
+PRFAQ 冒頭で宣言される性質〔公開サービス / 限定公開・社内 / 自分用〕に従い、**ディレクターが各ページの要否を判定**して職種起動を絞る。目安：自分用ならペルソナ・マーケ・KPI 省略可、競合・法務も多く省略可。**06-pitch は性質によらず全サービスで書く**。省略したページは完全性ガードで ➖省略(理由) として決着し、ゲートレポートに載せる。
+
 ## ブリーフ組み上げ
 
-- 導出 corpus（特に screen-specs＝先行導出した期待値・ADR-0011）から、Claude Design に渡す `brief.md` を組み上げる。
-- screen-specs は「無駄画面を作らせない」ための期待値。G2 でプロトタイプとの差を訂正して育てる（書き戻し・ADR-0006/0013）。
-- 完了時、人間に「次は claude.ai（Claude Design）でプロトタイプ」と案内してこのスキルを終える。
+導出 corpus から、Claude Design に渡す `brief.md`（プロトタイプブリーフ＝Claude Design への入力・CONTEXT）を組み上げる。載せるもの：
+
+- **サービス概要**：PRFAQ の PR 要約・性質・提供形態（claude.ai が前提を掴む）。
+- **画面一覧**：screens.md（作る画面の骨格）。
+- **各画面の期待仕様**：screen-specs の要約/参照（含む機能・全状態・遷移・エッジ）。これは「無駄画面を作らせない」ための**期待値**であり、G2 でプロト実体との差を訂正して育てる（書き戻し・ADR-0006/0013）。
+- **含む機能**：feature-scope の `[作る]`。
+- **繰り越し決定**：`⚠️繰り越し` 候補（特に課金境界）＝プロトで両側を見せて G2 で人間が決められるように。
+- **制約**：デザイン原則の安全要求・禁じ手（侵してはならない領域）。
+- **デザイン方向**：本来は repo-root `DESIGN.md`（デザイン憲法）を渡す（ADR-0020）。**現状 DESIGN.md は未実装（TODO）**なので、暫定で `anchors/design-principles` のトーン要求を参照する。DESIGN.md 実装後はそれを正とする。
+- **DoD / スタック**：Claude Design は HTML/CSS/JS（提供形態に応じた形）。
+
+完了時、人間に「次は claude.ai（Claude Design）でプロトタイプ」と案内してこのスキルを終える。
 
 ## 品質バー（端折り禁止）
 
