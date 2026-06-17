@@ -13,7 +13,7 @@ accepted
 ## S3 技術設計スキル
 
 - **入力**：S1 discovery corpus（feature-scope・nfr・screens.md・screen-specs・design-tokens 等）＋ S2 ハンドオフバンドル（プロトタイプ実体）＋ 参考リポジトリ（地図読み）。同 repo の `docs/discovery/` を直読み。
-- **出力**：repo-native（技術設計の置き場は別途確定）＋ 初期 ADR・CONTEXT.md を repo の `docs/adr/`・`CONTEXT.md` に種まき。成果物＝S3 ロスター担当物。
+- **出力**：技術設計は `docs/tech/`（ADR-0016）。＋ repo セットアップ＝`AGENTS.md`（正本）・`CLAUDE.md`（`@AGENTS.md` ポインタ）・`DESIGN.md`（Claude Design ハンドオフのデザインシステム）・初期 `docs/adr/`・`CONTEXT.md` を配置/種まき。成果物＝S3 ロスター担当物。
 - **手順**：ディレクターが依存順に職種起動（型→スタック→モジュール→ドメイン→運用基盤）→ プリンシパルエンジニア（評価）が設計レビュー・差し戻し（最大3R）→ 完全性ガード。2ステージ境界（コア技術判断→運用判断）で一拍。
 - **対話点**：技術スタック選定（与えられた提供形態のもとで・参照リポ確認）／モジュール分割案の確認／ステージ1→2 境界合意／G3。
 - **フィードバック**：S3→S1＝技術見積もり（配信実費・コスト・実現可能性）で S1 の繰り越し（マネタイズ価格・NFR 目標値・機能の実現可否）を確定し `docs/discovery/planning/` を更新（最終値は人間が対話で決める）。

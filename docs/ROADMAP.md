@@ -23,6 +23,7 @@
 - ADR-0013 共通ステージ形（ディレクター＋職種＋評価／S2 除く全ステージ）。各ステージ＝自律＋枠組み対話の混合。feature-team/fleet 廃止し S5 を共通形で作り直す。ステージ間フィードバック（G2→S1 screen-specs 同期・S3→S1 価格/NFR/実現可否）
 - ADR-0014 ステージ別職種ロスター（S1=8 / S3=6 / S4=4 / S5=8・S2 は無し）。dev-*/rev-* はエージェント廃止・スキルは存続し職種へ割当
 - ADR-0015 S3/S4/S5 スキル設計（6観点）。アンカーは4独立ドキュメント（提供形態は別）。S4 は index.md=repo-native＋Linear 維持・HITL/AFK は粗いヒントで残す。S5 は QA を置かず dev がテスト・E2E（方針は S3 テスト戦略）
+- ADR-0016 サービス repo の出力構成（discovery/tech/decomposition/src）。AGENTS.md 正本＋CLAUDE.md ポインタ、DESIGN.md は S3 配置
 
 ## ターゲット・パイプライン
 
