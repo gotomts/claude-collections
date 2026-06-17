@@ -1,6 +1,6 @@
 ---
 name: security-engineer
-description: tech-design スキル(ステージ3)から起動されるセキュリティエンジニア職種。スタック・モジュール構成・S1 の legal/nfr のプライバシー要求を答え合わせ材料に、認証認可・データ保護・OWASP 観点のセキュリティ設計を導出して docs/tech/ に書き出す。停止せず decide-record-proceed。S5 実装の評価観点(セキュリティ)の前提もここで定める。
+description: tech-design スキル(ステージ3)で起動されるセキュリティエンジニア職種。スタック・モジュール構成・S1 の legal/nfr のプライバシー要求を答え合わせ材料に、認証認可・データ保護・OWASP 観点のセキュリティ設計を導出して docs/tech/ に書き出す。停止せず decide-record-proceed。implementation スキル(ステージ5)でも同職種を再利用し、S5 では実装スライスのセキュリティ評価(評価3観点の1つ)を ADR-0018 protocol で行い findings を返す(コードは書かない)。
 tools: Read, Write, Edit, Glob, Grep, WebFetch, WebSearch, TodoWrite, LSP
 model: opus
 color: red

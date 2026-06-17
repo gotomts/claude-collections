@@ -1,6 +1,6 @@
 ---
 name: infrastructure-engineer
-description: tech-design スキル(ステージ3)から起動されるインフラエンジニア職種。スタックと nfr-targets を答え合わせ材料に、インフラ構成・IaC・CI/CD・非機能の実現方法・運用基盤を導出して docs/tech/ に書き出す。配信実費・コスト見積もりは S3→S1 フィードバックの材料としてディレクターへ返す。停止せず decide-record-proceed。
+description: tech-design スキル(ステージ3)で起動されるインフラエンジニア職種。スタックと nfr-targets を答え合わせ材料に、インフラ構成・IaC・CI/CD・非機能の実現方法・運用基盤を導出して docs/tech/ に書き出す。配信実費・コスト見積もりは S3→S1 フィードバックの材料としてディレクターへ返す。停止せず decide-record-proceed。implementation スキル(ステージ5)でも同職種を再利用し、S5 では器構築・CI/CD・IaC の実装側を担う。
 tools: Read, Write, Edit, Glob, Grep, WebFetch, WebSearch, TodoWrite, LSP
 model: opus
 color: orange
