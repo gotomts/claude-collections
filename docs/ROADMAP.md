@@ -24,6 +24,7 @@
 - ADR-0014 ステージ別職種ロスター（S1=8 / S3=6 / S4=4 / S5=8・S2 は無し）。dev-*/rev-* はエージェント廃止・スキルは存続し職種へ割当
 - ADR-0015 S3/S4/S5 スキル設計（6観点）。アンカーは4独立ドキュメント（提供形態は別）。S4 は index.md=repo-native＋Linear 維持・HITL/AFK は粗いヒントで残す。S5 は QA を置かず dev がテスト・E2E（方針は S3 テスト戦略）
 - ADR-0016 サービス repo の出力構成（discovery/tech/decomposition/src）。AGENTS.md 正本＋CLAUDE.md ポインタ、DESIGN.md は S3 配置
+- ADR-0017 スキルは人間 handoff 境界で4分割（①アンカー対話＋導出→ブリーフ ②技術設計 ③分解→起票 ④実装→PR）。横断オーケストレーターは薄い/不要（自動完走は目的でない）
 
 ## ターゲット・パイプライン
 
