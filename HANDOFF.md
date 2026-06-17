@@ -9,9 +9,14 @@
 設計の残論点を ADR で決着させ、**スキル1（ステージ1）の実体を実装**した。
 
 - **追加 ADR**：0018 評価ループ差し戻し protocol（全ステージ共通）／0019 DECISIONS.md 廃止（決定は inline/git/ADR・繰り越しは inline ⚠️マーカー＋ゲート提示）／0020 DESIGN.md＝repo-root の**具体デザイン憲法**（意図版 design-system 廃止・design-concept/system/tokens 集約・生成機構は未定）／0021 feature-details 廃止・screen-specs を area サブフォルダ化／0022 **S1 roster を実在職種で再構成**。
-- **実装した実体**：`skills/service-discovery/SKILL.md`（ディレクター playbook）＋ 職種エージェント5体 `agents/{ux-researcher,product-manager,business-strategist,product-designer,reviewer}.md`。旧 `skills/service-derivation/` ＋ `agents/service-deriver.md` は**削除**。
-- **残課題（重要）**：(a) **DESIGN.md の生成機構**（ADR-0020 決定5・mood/aesthetic は画像つき人間対話を要し純自律でない・担い手＝プロダクトデザイナー）→ スキル1 では未実装の TODO。(b) スキル1 の**実証**（socialcoffeenote）。(c) スキル2-4（技術設計 S3 / 分解 S4 / 実装 S5）の実体化。
-- **再現方法**：context 消失時は `docs/adr/0018`〜`0022` と `skills/service-discovery/SKILL.md` を読めば、スキル1 の設計意図と実体が揃っている。スキル1 の修正・スキル2-4 の新規はこの ADR 群と SKILL.md の形式に従う。
+- **実装した実体（4スキル全部）**：
+  - `skills/service-discovery/`（S1）＋ `agents/{ux-researcher,product-manager,business-strategist,product-designer,reviewer}.md`
+  - `skills/tech-design/`（S3）＋ `agents/{software-architect,tech-lead,infrastructure-engineer,security-engineer,principal-engineer}.md`
+  - `skills/decomposition/`（S4）＋ `agents/{engineering-manager,qa-engineer}.md`（評価は principal-engineer 共用）
+  - `skills/implementation/`（S5）＋ `agents/{frontend,backend,mobile}-engineer.md`・`code-reviewer.md`・`performance-engineer.md`（infrastructure/security-engineer は S3 と共用）
+  - 旧 `skills/service-derivation/` ＋ `agents/service-deriver.md` は**削除**。
+- **残課題（重要）**：(a) **DESIGN.md の生成機構**（ADR-0020 決定5・mood は画像つき人間対話・担い手＝プロダクトデザイナー）→ S1 で未実装の TODO。(b) **実証**（socialcoffeenote）＝全スキル未検証（writing-skills の GREEN テスト）。(c) **グローバル配送**（agents→~/.claude の symlink/inject）。
+- **再現方法**：context 消失時は `docs/adr/0001`〜`0022` と `skills/*/SKILL.md` を読めば設計意図と実体が揃う。修正・追加はこの ADR 群と既存 SKILL.md/エージェントの形式に従う。
 
 ## このリポジトリは何か
 個人開発者が「企画→プロトタイプ→設計→実装→リリース」を一人で回すための **AI 自律開発ハーネス（制御層）**の設計と実装を集約する repo（`agents`、改名しうる）。ADR-0009：スキル・エージェント・オーケストレーター・設計判断を agents に集約（dotfiles の fleet は廃止予定）。
@@ -66,13 +71,12 @@
 - **アンカー＝4独立ドキュメント**（提供形態は PRFAQ と別・ADR-0002）。
 
 ## 未着手 / 次の一手
-1. **【最優先・スキル1 の穴】DESIGN.md の生成機構を決める**（ADR-0020 決定5）。mood/aesthetic は画像つき人間対話を要し純自律でない・担い手＝プロダクトデザイナー。決まれば `product-designer.md` と `service-discovery/SKILL.md` に DESIGN.md 生成を追加する。
-2. **スキル1（service-discovery）の実証**（socialcoffeenote）。既存アンカー → 5エージェント → discovery corpus → ブリーフ。アンカー実体は Obsidian vault `projects/active-dev/socialcoffeenote/01-service-designer/`（03-prfaq, 04-design-principles, 09-monetization, 提供形態）。出力先 repo は `gotomts/socialcoffeenote`。**writing-skills の GREEN テスト＝この実証**。
-3. **スキル2 技術設計（S3）**の実体化（ADR-0015・ロスター ADR-0014＝プリンシパルエンジニア等。S1 と同じ共通形）。
-4. **スキル3 分解（S4）・スキル4 実装（S5）**の実体化（ADR-0015）。S5 は feature-team 後継。
-5. **グローバル配送**：ユーザーが dotfiles 側で別途検討（agents が正本・ADR-0009、`~/.claude` は nix/home-manager 管理で agents は読み取り専用。skills は dotfiles への symlink）。
+1. **【最優先・S1 の穴】DESIGN.md の生成機構を決める**（ADR-0020 決定5）。mood/aesthetic は画像つき人間対話を要し純自律でない・担い手＝プロダクトデザイナー。決まれば `product-designer.md` と `service-discovery/SKILL.md`（＋ tech-design の brief 参照）に DESIGN.md 生成を追加する。
+2. **実証（socialcoffeenote）＝全スキル未検証**。既存アンカー → S1 5エージェント → corpus → ブリーフ → （以降 S3/S4/S5）。アンカー実体は Obsidian vault `projects/active-dev/socialcoffeenote/01-service-designer/`（03-prfaq, 04-design-principles, 09-monetization, 提供形態）。出力先 repo は `gotomts/socialcoffeenote`。**writing-skills の GREEN テスト＝この実証**。回して穴を洗い出し SKILL.md/エージェントを直す。
+3. **スキル間の連携確認**：S3→S1 フィードバック・G2→S1 書き戻し・Linear 起票（S4）・PR/G5（S5）の実地確認。
+4. **グローバル配送**：agents（正本・ADR-0009）→ `~/.claude` の symlink/inject。`~/.claude` は nix/home-manager 管理で読み取り専用、skills は dotfiles への symlink。エージェント（`agents/*.md`）の登録経路も要確認。
 
-> スキル1 の SKILL.md ＋ エージェント5体は**実装済み**（第2セッション追記参照）。旧誤実装は削除済み。
+> 4スキル（S1/S3/S4/S5）の SKILL.md ＋ 職種エージェント17体は**実装済み・未検証**（第2セッション追記参照）。S2 はプロトタイプ＝Claude Design（外部・スキル無し）。
 
 ## 進め方の約束（ユーザーの強い好み・メモリにも記録済み）
 - **質問は yes/no か番号**で（散文の開いた質問はしない。AskUserQuestion ウィジェットは不安定なのでテキスト番号）。
