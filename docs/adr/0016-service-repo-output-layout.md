@@ -12,14 +12,14 @@ accepted（ADR-0010 の repo-native を全ステージの出力に具体化。AD
 <service-repo>/
 ├── AGENTS.md               # エージェント横断の指示(S3 生成・正本)
 ├── CLAUDE.md               # @AGENTS.md を参照する薄いポインタ(S3 生成)
-├── DESIGN.md               # デザインシステム参照(Claude Design ハンドオフ由来・S3 配置)
+├── DESIGN.md               # 具体のデザイン憲法(統一プロトの入力・living・ADR-0020 で再定義)
 ├── CONTEXT.md              # ユビキタス言語(S3 種まき → S5 が育てる)
 ├── docs/
 │   ├── adr/                # 設計判断(S3 種まき → S5 追記)
 │   ├── discovery/          # S1 企画→ブリーフ
 │   │   ├── anchors/        #   prfaq / design-principles / provider / monetization-binary
-│   │   ├── planning/       #   01,02,05-14,99 + feature-details.md
-│   │   ├── design/         #   design-concept / design-system / design-tokens・screens.md・screen-specs/
+│   │   ├── planning/       #   01,02,05-14,99 (feature-details は ADR-0021 で廃止)
+│   │   ├── design/         #   screens.md・screen-specs/<area>/ (視覚デザインは DESIGN.md・ADR-0020)
 │   │   └── brief.md      # (DECISIONS.md は ADR-0019 で廃止)
 │   ├── tech/               # S3 技術設計(スタック/アーキ/モジュール/F-ID/ドメインモデル/開発の進め方/運用基盤)
 │   └── decomposition/      # S4 の index.md(垂直スライス骨格・実 issue は Linear)
@@ -33,7 +33,7 @@ accepted（ADR-0010 の repo-native を全ステージの出力に具体化。AD
 
 ## Consequences
 
-- **S3 の repo セットアップ責務**：`AGENTS.md`（正本）・`CLAUDE.md`（`@AGENTS.md` ポインタ）・`DESIGN.md`（Claude Design ハンドオフのデザインシステム）・初期 `docs/adr/`・`CONTEXT.md` を配置/種まき。`AGENTS.md` は CONTEXT.md / DESIGN.md / 各設計ページ / ADR を参照する。
-- **DESIGN.md の位置づけ**：S1 の `docs/discovery/design/design-system.md`（事前意図）に対し、`DESIGN.md`＝プロトタイプで実体化した実装時の権威版（Claude Design ハンドオフ由来）。
+- **S3 の repo セットアップ責務**：`AGENTS.md`（正本）・`CLAUDE.md`（`@AGENTS.md` ポインタ）・初期 `docs/adr/`・`CONTEXT.md` を配置/種まき。`AGENTS.md` は CONTEXT.md / DESIGN.md / 各設計ページ / ADR を参照する。（**ADR-0020 で改訂**：`DESIGN.md` は S3 配置ではなく、S1 後に具体デザイン憲法として組み上げプロトに先立って与える living file。生成機構は ADR-0020 決定5で未定）
+- **DESIGN.md の位置づけ**：**ADR-0020 で再定義**。意図版 design-system.md は廃止、`DESIGN.md`＝プロトに先立つ具体のデザイン憲法で G2 以降 living に更新。
 - **S5 はコードと PR が成果物**（docs ではない）。実装知見だけ `docs/adr/`・`CONTEXT.md` に追記。
 - 各ステージ出力は commit scope（`docs(discovery):` / `docs(tech):` 等）で分離可能。
