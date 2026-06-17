@@ -20,8 +20,7 @@ accepted（ADR-0010 の repo-native を全ステージの出力に具体化。AD
 │   │   ├── anchors/        #   prfaq / design-principles / provider / monetization-binary
 │   │   ├── planning/       #   01,02,05-14,99 + feature-details.md
 │   │   ├── design/         #   design-concept / design-system / design-tokens・screens.md・screen-specs/
-│   │   ├── brief.md
-│   │   └── DECISIONS.md
+│   │   └── brief.md      # (DECISIONS.md は ADR-0019 で廃止)
 │   ├── tech/               # S3 技術設計(スタック/アーキ/モジュール/F-ID/ドメインモデル/開発の進め方/運用基盤)
 │   └── decomposition/      # S4 の index.md(垂直スライス骨格・実 issue は Linear)
 └── src/                    # S5 実装コード
