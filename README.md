@@ -1,11 +1,11 @@
-# agents
+# claude-collections
 
-複数の**スキル+エージェント集（コレクション）**をホストするリポジトリ。各コレクションは1つの自己完結ユニットとして、自分の skills・agents・設計ドキュメント（ADR/CONTEXT）を持つ（モノレポ的）。
+Claude Code 用の**スキル+エージェント集（コレクション）**を複数ホストするリポジトリ。各コレクションは1つの自己完結ユニットとして、自分の skills・agents・設計ドキュメント（ADR/CONTEXT）を持つ（モノレポ的）。
 
 ## 構成
 
 ```
-agents/
+claude-collections/
 ├── README.md         # 本ファイル
 ├── AGENTS.md         # エージェント向け規約(正本)
 ├── CLAUDE.md         # @AGENTS.md ポインタ

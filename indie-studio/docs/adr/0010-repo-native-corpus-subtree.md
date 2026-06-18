@@ -16,4 +16,4 @@ accepted
 - **コミット履歴はコードと docs が混在する**（サブツリーでもログは混ざる）。受容し、commit scope（例: `docs(design):`）で分離可能にする（`git log -- docs/` 等でフィルタ）。
 - Obsidian＝人間のアンカー執筆面（任意）、repo `docs/`＝機械可読な corpus of record。derivation は anchors を読み `docs/design/` に書き出す。
 - feature-team は `docs/` を self-grill し、ゲートで Claude Code が `docs/` を直接編集できる（ADR-0006 を脆い MCP 依存なしで満たす）。
-- 構成例：`<service-repo>/{src/, docs/{CONTEXT.md, adr/, design/}}`。この `agents` リポジトリ自身が同型。
+- 構成例：`<service-repo>/{src/, docs/{CONTEXT.md, adr/, design/}}`。この `claude-collections` リポジトリの各コレクション自身が同型。

@@ -1,6 +1,6 @@
 # リポジトリは複数のスキル+エージェント集をコレクション単位で持つ
 
-`agents` リポジトリは単一のスキル+エージェント集ではなく、**複数のコレクション**をホストする。各コレクションは `<collection>/` 配下に**自己完結**する（自分の `skills/`・`agents/`・`docs/adr/`・`CONTEXT.md`・`ROADMAP.md` を持つ＝モノレポ的）。root には repo 横断の規約（`AGENTS.md`）・索引（`CONTEXT-MAP.md`）・横断決定（`docs/adr/`）を置く。初コレクションは `indie-studio`（個人開発のサービス設計〜デザイン〜開発をオールインで回す AI 自律開発ハーネス）。
+`claude-collections` リポジトリは単一のスキル+エージェント集ではなく、**複数のコレクション**をホストする。各コレクションは `<collection>/` 配下に**自己完結**する（自分の `skills/`・`agents/`・`docs/adr/`・`CONTEXT.md`・`ROADMAP.md` を持つ＝モノレポ的）。root には repo 横断の規約（`AGENTS.md`）・索引（`CONTEXT-MAP.md`）・横断決定（`docs/adr/`）を置く。初コレクションは `indie-studio`（個人開発のサービス設計〜デザイン〜開発をオールインで回す AI 自律開発ハーネス）。
 
 ## Status
 

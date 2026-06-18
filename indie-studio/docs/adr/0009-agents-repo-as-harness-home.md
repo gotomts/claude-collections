@@ -1,5 +1,7 @@
 # agents リポジトリをハーネスの単一ホームにする（fleet は廃止）
 
+> ※ 本 ADR 当時のリポジトリ名は `agents`。後に `claude-collections` に改名（root [`ADR-0002`](../../../docs/adr/0002-rename-to-claude-collections.md)）し、ハーネスは `indie-studio` コレクション配下に収まった。本文中の `agents` 参照は当時の名称として読む。
+
 AI による自律的な開発のためのスキル・エージェント・オーケストレーター・設計判断（CONTEXT/ADR）を、すべて `agents` リポジトリに集約し、一体で育てる。`dotfiles/claude/fleet`（dev×8/rev×3/pr-publisher）はいずれ廃止し、その後継は `agents` リポジトリで育てる。リポジトリ名は後で変更しうる。
 
 ## Status
