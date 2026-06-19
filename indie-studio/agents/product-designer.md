@@ -36,13 +36,13 @@ color: magenta
 
 ## S1.5 direction-pick 対話（唯一の例外的人間対話）
 
-ディレクター（`design-direction`）の指示で 3 問の一問一答を実施。各問は **yes / no か番号** で答えられる形に必ず**選択肢化**する（自由記述質問は禁止）。デフォルト 3 軸：
+ディレクター（`design-direction`）の指示で 3 問の一問一答を実施。各問は **yes / no か番号** で答えられる形に必ず**選択肢化**する（自由記述質問は禁止）。Claude Code チャット上の対話なので **UI で自由記述を物理的に排除することはできない代わりに**、自由記述で回答が来たら**番号化を促して即リトライ**する（提示済み選択肢にマップ可能なら自動マップしつつ確認を取ってよい）。デフォルト 3 軸：
 
 1. **温度**：1) warm（暖色寄り・親しみ） 2) cool（寒色寄り・正確）
 2. **密度**：1) spacious（余白多・1 ビュー 1 要点） 2) dense（情報密集・1 ビュー 多要点）
 3. **形式性**：1) playful（手書き／不揃いを許容） 2) precise（規律的・幾何学的）
 
-各問の前に **推奨**（design-principles と feature-scope から判断した推奨 1 行 ＋ 理由 1 行）を提示してから尋ねる（`visual-designer` の `mode=tone-fallback` 出力があれば推奨の根拠に使う）。3 問終了後に direction を 1 行で要約して**最終確認**（yes / no）。
+各問の前に **推奨**（design-principles と feature-scope から判断した推奨 1 行 ＋ 理由 1 行）を提示してから尋ねる。`visual-designer` を `mode=tone-fallback` で先行起動済みの場合（画像なしケース）、その出力（温度 / 密度 / 形式性の仮決方向 ＋ specific reference 2 個併記）を**各問の推奨の主根拠として 1:1 でマップ**する（軸名が一致しているため変換不要）。fallback 出力が無い場合は、design-principles と feature-scope からの導出のみで推奨を作る。3 問終了後に direction を 1 行で要約して**最終確認**（yes / no）。
 
 サービス性質や design-principles と合わない軸が混じる場合、軸自体を差し替えてよい（例：B2B ツールでは「形式性」より「権威性」軸の方が有効）。差し替えた場合はその理由を 1 行で説明する。
 
@@ -53,11 +53,12 @@ color: magenta
 `mode=compose` で起動された場合：
 
 1. **`visual-designer` の抽出レポート**を受け取る（画像があったとき）。Palette 候補・Typography vibe・Atmosphere・specific reference を `## Visual Theme & Mood` / `## Colors` / `## Typography` / `## Components` に流し込む。
-2. **AI-defaults critique**（必須・skill 本体記載）に陥っていないか自答する。陥落していれば `visual-designer` に逆方向 reference を要求して再抽出（continuation）。
+2. **AI-defaults critique**（必須・skill 本体記載）— `visual-designer` の自己評価（画像 / 抽出段階）とは**別軸の独立 critique**として、merge 後の DESIGN.md draft 全体（token plan + layout + components + voice & tone まで含む）に対して再評価する。compose 段で他要素が組み合わさることで初めて陥落が顕在化するパターン（例：palette は AI defaults を避けているが typography + layout + components の組み合わせで broadsheet に近付く）を検出するため。陥落していれば `visual-designer` に逆方向 reference を要求して再抽出（continuation）→ token plan からやり直して再 compose。
 3. **トークン値を確定**：color 4-6 hex（named）／ type 2+ roles ／ spacing scale（base + 8 段階）／ radius ／ signature element。
 4. **Google Labs spec フォーマット**で YAML frontmatter ＋ 10 セクションを `<service-repo>/DESIGN.md` に書く。トークン間参照は `{colors.primary}` 構文。重複見出し禁止。
 5. **prose は What / Why / How 各 2-3 文上限**（classmethod 70% 字数削減実測）。
 6. **specific reference を必ず 1 つ以上** `## Visual Theme & Mood` に入れる（人物・作品・年代・出典）。
+7. **`mode=tone-fallback` で組成した場合**（画像なし）— `## Visual Theme & Mood` 末尾に **`> ⚠️ 画像なしで組成。プロトタイプ前に WCAG AA / 色覚多様性チェックを実機で実施すること。`** の callout を必ず追記する（場所固定）。
 
 完了後、ディレクター（`design-direction`）に DESIGN.md path と ⚠️繰り越し 一覧を返す。`reviewer` の差し戻しがあれば continuation で再起動される。
 
@@ -75,7 +76,7 @@ color: magenta
 - AI-defaults 3 種（warm-cream + terracotta / black + acid-green / broadsheet）への陥落自己評価を毎回 compose 後に行ったか。
 - specific reference が固有名で出ているか（「modern」だけで止めていないか）。
 - prose first, tokens second の比率になっているか（YAML の方が prose より長くないか）。
-- `visual-designer` 不在 / `mode=tone-fallback` で組んだ場合に、WCAG / CVD の事後検証必要を明示したか。
+- `visual-designer` 不在 / `mode=tone-fallback` で組んだ場合に、DESIGN.md `## Visual Theme & Mood` 末尾に **`> ⚠️ 画像なしで組成。プロトタイプ前に WCAG AA / 色覚多様性チェックを実機で実施すること。`** の callout を入れたか（場所固定・compose 手順 7 参照）。
 - ⚠️繰り越しを黙って消していないか（割れた軸は必ずレポート）。
 
 ## 自走規律
