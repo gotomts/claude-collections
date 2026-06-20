@@ -46,6 +46,8 @@ S1 成果物（必須）と参考画像（任意）：
 | 推奨 | screens.md / screen-specs | `docs/discovery/design/` |
 | 任意 | 参考画像 0〜N 枚（UI スクショ・風景・絵画・写真・ブランド写真等） | チャット添付 or path 指定 |
 
+**S1a 出力**（推奨）：`docs/tech/stack-direction/stack.md` ・ `build-vs-buy.md` を `## Components` 記述の前に読む。提供形態と build vs buy の整合が取れる（ADR-0026）。S1a が未起動なら `anchors/provider.md` のみから推測する暫定運用（精度低）。
+
 参考画像は UI に限らない。**mood / palette / typography vibe を握るための視覚資料**であれば形式不問。**0 枚も可**（design-principles のトーン記述からのみ起こす fallback モード）。
 
 ## 出力
@@ -71,7 +73,7 @@ components: { button: { ... }, card: { ... } }
 ## Layout                  # base unit + 8段階 scale
 ## Elevation & Depth       # shadow tokens
 ## Shapes                  # radii / border
-## Components              # 主要コンポーネント（button / card / input 等）
+## Components              # 主要コンポーネント（button / card / input 等）。**S1a `stack-direction` の `stack.md`（提供形態）と `build-vs-buy.md`（SaaS 採用箇所）を読んでから書く**ことで、HIG button / Material button / Web button や Stripe Checkout / Apple Sign-In 等の組み込み UX が DESIGN.md に整合する（ADR-0026）。
 ## Voice & Tone            # ★indie-studio 拡張（コピー語彙・呼称規約。サービス性質次第で省略可）
 ## Do's and Don'ts         # anti-pattern（最後）
 ```
