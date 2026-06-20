@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "claude-collections",
+  "description": "Self-contained Claude Code skills/agents collections. Currently hosts the indie-studio autonomous development harness.",
+  "owner": {
+    "name": "gotomts",
+    "email": "mh.goto.web@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "indie-studio",
+      "source": "./indie-studio",
+      "description": "AI 自律開発ハーネス：個人開発のサービス設計〜デザイン〜開発をオールインで回す（G1 アンカー / S1 企画→ブリーフ / S2 プロトタイプ / S3 技術設計 / S4 分解 / S5 実装）。",
+      "category": "development-workflow"
+    }
+  ]
+}
