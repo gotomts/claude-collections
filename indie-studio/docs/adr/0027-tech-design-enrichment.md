@@ -23,7 +23,7 @@ accepted（ADR-0015 を extends：S3 スコープを feasibility 観点で拡張
 
 2. **S3 ステージ構造を更新**：
 
-   ```
+   ```plaintext
    ステージ1: コア技術判断
      - スタック → 読むだけ（S1a 確定済）
      - モジュール → architect
@@ -43,7 +43,7 @@ accepted（ADR-0015 を extends：S3 スコープを feasibility 観点で拡張
 
 3. **G3 ゲートに「実現可能性スコアカード」を導入**：観点 12 軸（既存スコープ 6 + 追加 6）ごとに **A 成立 / B 疑義あり / C 困難** を A/B/C で 1 行表示する。`principal-engineer`（評価役）が完了報告に含める。形式：
 
-   ```
+   ```markdown
    ## 実現可能性スコアカード（G3 ゲート用）
 
    | 観点 | スコア | 根拠（1 行） |
