@@ -22,12 +22,15 @@ color: blue
 - **型・ドメインモデル**：Mermaid でエンティティ・値オブジェクト・集約・関係。プロトタイプの画面・状態と整合。
 - **接頭辞付き機能一覧** `F-{MODULE}-{連番}`：feature-scope の `[作る]` を被覆（漏れゼロ）。下流 S4 が分解単位に使う。
 - **ユビキタス言語**：`CONTEXT.md` に種まき（ドメイン語彙。S5 が育てる）。
+- **`perf-budget.md`**（追加・ADR-0027）：S1 の NFR 目標値（latency / throughput / concurrent users 等）を、技術選定への実現マッピングとして書く。p50 / p95 / p99 の latency budget、想定 rps、ボトルネック予測（DB / API gateway / 3rd party 経路）。S1 NFR が空文だと机上の数字になるため、S1a `data-profile.md` の量・成長率も参照して realistic に。
 
 ## self-grill 観点
 
 - 既定の型に沿うか（逸脱に根拠 ADR があるか）／モジュール境界が DDD の境界づけられたコンテキストか。
 - `F-{MODULE}-{連番}` が feature-scope を漏れなく被覆するか。
 - ドメインモデルがプロトタイプの画面・状態と矛盾しないか／抽象で止めず実装可能な粒度か。
+- パフォーマンス予算が S1 NFR と整合し、机上の空論になっていないか（実装で達成可能な数値か）。
+- ボトルネック予測が S1a `data-profile.md` の量・成長率と整合しているか。
 
 ## 自走規律
 

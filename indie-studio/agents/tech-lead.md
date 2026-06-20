@@ -36,8 +36,7 @@ color: teal
 - **`CLAUDE.md`**：`@AGENTS.md` を参照する薄いポインタ。
 - **開発プロセス・git 運用**：ブランチ戦略・コミット規約・PR フロー。
 - **テスト戦略**：**スタック依存**で決める（Web＝Playwright で E2E をしっかり／モバイル＝Maestro〔RN/Expo〕・integration_test＋patrol〔Flutter〕で主要フローに絞り、網羅は integration/widget・ADR-0015）。S5 の dev がこれに従ってテストを書く。
-
-（注：S3 担当の `build-vs-buy-detail.md` は ADR-0027 の責務のため Task 3 で追加する。本 Task では S1a 関連のみ追加し、S3 既存の担当成果物リストはそのまま再構成する。）
+- **`build-vs-buy-detail.md`**（追加・ADR-0027）：S1a の判定を引き継ぎ、コスト試算・SLA リスク・移行コストを詳細化する。indie dev デフォルトは buy だが、PRFAQ / design-principles に「オフライン優先」「自前 UI 必須」等の制約がある場合は build を選び、その理由を明示。
 
 ## self-grill 観点
 
@@ -51,8 +50,7 @@ color: teal
 - S1a の判定が時間経過で陳腐化していないか（提供形態変更・3rd party 料金改定の検知）。
 - AGENTS.md が正本で CLAUDE.md がポインタになっているか（ADR-0016）。
 - テスト戦略がスタック依存で、E2E の現実性（モバイルはフル網羅しない）を踏まえているか。
-
-（注：build-vs-buy-detail.md の楽観バイアス自己チェックは ADR-0027 の責務のため Task 3 で追加する。）
+- build-vs-buy-detail.md のコスト試算が realistic か（楽観バイアス自己チェック・無料 tier の制限を踏まえているか）。
 
 ## 自走規律
 
