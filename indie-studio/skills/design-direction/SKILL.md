@@ -1,12 +1,12 @@
 ---
 name: design-direction
-description: service-discovery スキル(ステージ1)が出した brief / persona / feature-scope / screen-specs などの discovery corpus と、任意の参考画像（UI スクショ・風景・絵画・写真など）を入力に、Claude Design に渡すための具体デザイン憲法 DESIGN.md を組み上げたいときに使う、AI 自律開発ハーネスのステージ1.5スキル。Google Labs design.md spec の8セクション+indie-studio 拡張2セクション(Visual Theme & Mood / Voice & Tone)で書く。新規 DESIGN.md 起こしと既存 DESIGN.md の方向性更新の両方に使う。画面詳細(screen-specs)・プロトタイプ生成自体・技術設計は下流スキルの責務でここでは扱わない。
+description: service-discovery スキル(ステージ1)が出した brief / persona / feature-scope / screen-specs などの discovery corpus と、任意の参考画像（UI スクショ・風景・絵画・写真など）を入力に、Claude Design に渡すための具体デザイン憲法 DESIGN.md を組み上げたいときに使う、AI 自律開発ハーネスのサブステージ S1b スキル。上流＝S1a stack-direction（スタック確定済）、下流＝S2 プロトタイプ（Claude Design）。Google Labs design.md spec の8セクション+indie-studio 拡張2セクション(Visual Theme & Mood / Voice & Tone)で書く。新規 DESIGN.md 起こしと既存 DESIGN.md の方向性更新の両方に使う。画面詳細(screen-specs)・プロトタイプ生成自体・技術設計は下流スキルの責務でここでは扱わない。
 maintainer: gotomts
 ---
 
 # design-direction
 
-AI 自律開発ハーネスの **ステージ1.5（S1 後段 → S2 入力起こし）** スキル。実行環境は **Claude Code**。このスキルを読んだメインセッションが**ディレクター**となり、人間と「雰囲気」を 3 問対話で握り、参考画像があれば視覚的に mood / palette / typography を抽出して、**具体値＋禁止事項**で書かれた `DESIGN.md`（デザイン憲法）を組み上げる。
+AI 自律開発ハーネスの **サブステージ S1b（S1 / S1a 後段 → S2 入力起こし）** スキル。実行環境は **Claude Code**。このスキルを読んだメインセッションが**ディレクター**となり、人間と「雰囲気」を 3 問対話で握り、参考画像があれば視覚的に mood / palette / typography を抽出して、**具体値＋禁止事項**で書かれた `DESIGN.md`（デザイン憲法）を組み上げる。
 
 到達点：**「アンカー → 触れるプロトタイプの直前」までを、最少 3 問の対話＋任意の画像入力だけで、AI デフォルト3種に陥らず、Claude Design が全画面で統一感を保てる具体憲法に落とす**。質は対話量ではなく self-grill + AI-defaults critique の徹底度から出す（ADR-0004 / 0005 / 0020 / 0023）。
 
@@ -14,9 +14,9 @@ AI 自律開発ハーネスの **ステージ1.5（S1 後段 → S2 入力起こ
 
 - `service-discovery`（S1）が完了し、`docs/discovery/` に anchors + planning + design (screens.md / screen-specs) が揃った状態で、Claude Design に渡すための **DESIGN.md がまだ無い** とき。
 - 既存 DESIGN.md の方向性を再検討したいとき（mood の方針変更、参考画像の追加）。
-- ハーネスの5スキル（ADR-0017 / ADR-0023）の **1.5番目** として、S1 と S2 の間で人間が起動するとき。
+- ハーネスのサブステージ S1b として、S1a と S2 の間で人間が起動するとき。
 
-**ここで扱わないこと**：screen-specs（S1 product-designer 担当）／プロトタイプ生成そのもの（Claude Design＝claude.ai・S2）／技術設計・分解・実装（S3〜S5）。
+**ここで扱わないこと**：screen-specs（S1 product-designer 担当）／スタック・3rd party 制約・build vs buy（上流 S1a stack-direction）／プロトタイプ生成そのもの（Claude Design＝claude.ai・S2）／技術設計・分解・実装（S3〜S5）。
 
 ## ステージ構造
 
@@ -179,6 +179,11 @@ components: { button: { ... }, card: { ... } }
 - アンカー（`docs/discovery/anchors/`）は決め直さない（G1 で確定済み・読むだけ）。
 - screen-specs（`docs/discovery/design/screen-specs/`）は触らない（S1 `product-designer` 担当・並列ジョブ競合回避）。
 - 画像ピクセルを repo に commit しない（出典は path のみ DESIGN.md 内記載）。
+
+## 前提・後段
+
+- **前提**：`S1 service-discovery` 完了（`docs/discovery/` 一式）＋ `S1a stack-direction` 完了（`docs/tech/stack-direction/{stack,data-profile,third-party,build-vs-buy}.md`）。
+- **後段**：`S2` プロトタイプ（Claude Design＝claude.ai）。DESIGN.md を持って claude.ai に渡る。
 
 ## 関連 ADR
 
