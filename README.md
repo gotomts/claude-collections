@@ -6,14 +6,16 @@ Claude Code 用の**スキル+エージェント集（コレクション）**を
 
 ```
 claude-collections/
-├── README.md         # 本ファイル
-├── AGENTS.md         # エージェント向け規約(正本)
-├── CLAUDE.md         # @AGENTS.md ポインタ
-├── CONTEXT-MAP.md    # コレクション索引
-├── docs/adr/         # repo 横断の決定
-└── <collection>/     # コレクション(自己完結)
+├── README.md                       # 本ファイル
+├── AGENTS.md                       # エージェント向け規約(正本)
+├── CLAUDE.md                       # @AGENTS.md ポインタ
+├── CONTEXT-MAP.md                  # コレクション索引
+├── docs/adr/                       # repo 横断の決定
+├── .claude-plugin/marketplace.json # Claude Code plugin marketplace 宣言
+└── <collection>/                   # コレクション(自己完結)
     ├── CONTEXT.md
     ├── docs/{adr,ROADMAP.md}
+    ├── .claude-plugin/plugin.json  # Claude Code plugin metadata
     ├── skills/
     └── agents/
 ```
@@ -28,3 +30,32 @@ claude-collections/
 ## コレクション
 
 - **[`indie-studio`](indie-studio/)** — 個人開発のサービス設計〜デザイン〜開発をオールインで回す AI 自律開発ハーネス。アンカー（人間が握る土台）から企画・デザイン・技術設計・分解・実装までを、人間の数ゲートだけで自律的に進める。
+
+## Plugin として install して使う
+
+本リポジトリは Claude Code の **plugin marketplace** として機能する（`.claude-plugin/marketplace.json`）。各コレクションは独立した plugin として配布され、`/plugin install <name>@claude-collections` で他プロジェクトに取り込める。
+
+### 同じ Mac の別プロジェクトから使う（local path）
+
+ローカルチェックアウトを直接 marketplace として登録する。反復開発に最適。
+
+```
+/plugin marketplace add /Users/<you>/ghq/github.com/gotomts/claude-collections
+/plugin install indie-studio@claude-collections
+```
+
+### 別マシン・別環境から使う（private repo）
+
+リポジトリは現状 private 想定。事前に `gh auth login` で GitHub 認証を済ませておく（手動 install/update には gh CLI の credential helper が使われる）。
+
+```
+/plugin marketplace add gotomts/claude-collections
+/plugin install indie-studio@claude-collections
+```
+
+auto-update まで有効にしたい場合は環境変数 `GITHUB_TOKEN`（または `GH_TOKEN`）を設定する。
+
+### バージョニング方針
+
+- **現状（テスト期）**：`plugin.json` の `version` を省略し、git commit SHA を暗黙の pin として扱う。main にコミットすると `/plugin marketplace update` で即反映される
+- **安定化後**：semver を `plugin.json` に明示し、breaking change には major bump を伴う。切り替え判断は [`docs/adr/0003`](docs/adr/0003-plugin-marketplace-distribution.md) を extends する新 ADR で記録する
