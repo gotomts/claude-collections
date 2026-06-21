@@ -77,6 +77,12 @@ _Avoid_: 意図版デザインシステム（DESIGN.md は realized でも inten
 **画面一覧（Screen inventory）**:
 機能スコープから導く「どの画面を作るか」の骨格。プロトタイプの**枠組み**であり、エージェントがドラフトを出し**人間が枠組みレビュー**（G4 相当の軽い関所）してから下流（screen-specs・ブリーフ）の自律導出に進む（ADR-0011）。各画面の詳細＝**screen-specs**（先行導出する期待値、G2 で育つ）。
 
+## Naming convention
+
+**サブステージ（Sub-stage）**:
+main stage（`S1`〜`S5`）の中に挟まる autonomous なサブ工程の番号付け規約（ADR-0025）。サブステージは**英字 suffix**（`S1a`, `S1b`, ...）で命名し、**alphabetic 順 = 実行順**を不変条件とする。main stages（`S1`〜`S5`）と gates（`G1`〜`G5`）は不変。新規サブステージは末尾の英字を進めて命名し、既存サブステージ間に挿入する場合は後続の英字を順送り rename する。
+_Avoid_: 小数点表記（`S1.5` 等）、numeric subindex（`S1-1` 等）。
+
 ## Flagged ambiguities
 
 - 設計の幹（アンカーゲート〜5大枠ゲート〜自走設計〜self-grill〜Claude Design〜repo-native corpus）は **ADR-0001〜0010 で確定**。企画→ブリーフ段の編成（多職種エージェント8体）は **ADR-0011 で確定**。ドキュメントの2モードと vault 退役は **ADR-0012 で確定**。出力先は repo の `docs/discovery/{anchors,planning,design,brief.md,DECISIONS.md}`。残るは実装レベルの論点（fleet 廃止の移行手順・オーケストレーターの実装・信頼度ダイヤルの運用基準・既存薄実装の作り直し）→ `docs/ROADMAP.md` 参照。
