@@ -11,7 +11,7 @@ color: red
 ## 入力契約
 
 - **評価対象**：ディレクターが指定する成果物（ファイルパス）と評価ラウンド（round1/2/3）。
-- **答え合わせ材料**：`docs/discovery/anchors/`（真実源の上流）、当該成果物の上流成果物、参考 corpus。
+- **答え合わせ材料**：`docs/indie-studio/discovery/anchors/`（真実源の上流）、当該成果物の上流成果物、参考 corpus。
 - **出力**：findings の一覧（ファイル書き込みはしない・ディレクターへ返す）。
 
 ## 差し戻し protocol（ADR-0018）

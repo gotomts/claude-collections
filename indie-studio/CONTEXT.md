@@ -85,7 +85,7 @@ _Avoid_: 小数点表記（`S1.5` 等）、numeric subindex（`S1-1` 等）。
 
 ## Flagged ambiguities
 
-- 設計の幹（アンカーゲート〜5大枠ゲート〜自走設計〜self-grill〜Claude Design〜repo-native corpus）は **ADR-0001〜0010 で確定**。企画→ブリーフ段の編成（多職種エージェント8体）は **ADR-0011 で確定**。ドキュメントの2モードと vault 退役は **ADR-0012 で確定**。出力先は repo の `docs/discovery/{anchors,planning,design,brief.md,DECISIONS.md}`。残るは実装レベルの論点（fleet 廃止の移行手順・オーケストレーターの実装・信頼度ダイヤルの運用基準・既存薄実装の作り直し）→ `docs/ROADMAP.md` 参照。
+- 設計の幹（アンカーゲート〜5大枠ゲート〜自走設計〜self-grill〜Claude Design〜repo-native corpus）は **ADR-0001〜0010 で確定**。企画→ブリーフ段の編成（多職種エージェント8体）は **ADR-0011 で確定**。ドキュメントの2モードと vault 退役は **ADR-0012 で確定**。出力先は repo の `docs/indie-studio/discovery/{anchors,planning,design,brief.md,DECISIONS.md}`。残るは実装レベルの論点（fleet 廃止の移行手順・オーケストレーターの実装・信頼度ダイヤルの運用基準・既存薄実装の作り直し）→ `docs/ROADMAP.md` 参照。
 
 ## Findings
 
@@ -95,7 +95,7 @@ _Avoid_: 小数点表記（`S1.5` 等）、numeric subindex（`S1-1` 等）。
 - **逆伝播＝人間駆動の並列デュアル訂正（ADR-0006）**: プロトタイプゲートでは Claude Design と Claude Code を並列稼働させ、人間が docs 修正（Claude Code）とプロトタイプ修正（Claude Design）を同時に出す。システム自動同期ではない。
 - **プロトタイプ品質バー（端折り禁止）**: 自律導出は完全な corpus を生成する。「minimal」は人間の入力・対話の最小化を指し、導出物の最小化ではない。お粗末なプロトタイプは許容しない。質は対話ではなく self-grill の徹底度から出る。なお **screen-specs（画面仕様）は「先行導出する期待値」**であり、Claude Design に渡して無駄画面を防ぎ、G2 でプロトタイプとの差を訂正して育てる正当化トレイル（ADR-0011／0003／0006）。デザイン層の出口は moodboard ではなく **design-system ＋ design-tokens**（ADR-0011）。
 - **企画→ブリーフ段＝多職種エージェント編成（ADR-0011）**: この段は単一スキルではなく、ディレクター（オーケストレーター）＋専門6（UXリサーチャー／PM／事業・マーケ／リスク・法務・品質／プロダクトデザイナー／デザインシステムエンジニア）＋評価1（プロダクトクリティーク）の8体。対話で作っていた service-designer＋prototype-designer の corpus を対話なしで同じ深さで生成する。画面一覧はドラフト後に人間が枠組みレビュー（G4 相当の軽い関所）。
-- **ドキュメントは AI が書く・2モードのみ（ADR-0012）**: ハーネスの全文書は (1) AI が自律的に書く、(2) 人間との対話から AI が書く、の2種だけ。**人間は手で文書を書かない**。アンカーは (2)＝人間と対話して AI が書く（決めるのは人間・書くのは AI）。それ以外の導出 corpus は (1)＝自律。ゆえに Obsidian vault（人間の執筆面）は退役し、anchors も corpus も repo-native（`docs/discovery/anchors/` 等）。
+- **ドキュメントは AI が書く・2モードのみ（ADR-0012）**: ハーネスの全文書は (1) AI が自律的に書く、(2) 人間との対話から AI が書く、の2種だけ。**人間は手で文書を書かない**。アンカーは (2)＝人間と対話して AI が書く（決めるのは人間・書くのは AI）。それ以外の導出 corpus は (1)＝自律。ゆえに Obsidian vault（人間の執筆面）は退役し、anchors も corpus も repo-native（`docs/indie-studio/discovery/anchors/` 等）。
 - **共通ステージ形・ステージ間フィードバック（ADR-0013）**: 5ゲート（G1〜G5）のステージ列＝G1 アンカー / S1 企画→ブリーフ / S2 プロトタイプ / S3 技術設計 / S4 分解 / S5 実装。**S2（Claude Design＝外部）以外の全ステージは共通形「ディレクター（スキルを読んだメインセッションの制御役）＋職種エージェント群＋評価エージェント」**で corpus を生む。各ステージは**自律導出＋枠組み判断の対話の混合**（純・自律のステージは無い）。**feature-team / fleet は廃止**し S5 を共通形で作り直す。パイプラインは前方一方向でなく、**G2→S1（プロトタイプの明確化を screen-specs 核ドキュメントへ書き戻し）・S3→S1（技術見積もりで価格/NFR/実現可否を確定）**のフィードバックを持つ。
 - **G5 適応ゲート（ADR-0008）**: レビュー要否は G4 で人間がチケット単位にタグ付け。非根幹は green で自動 merge、根幹のみ人間レビュー＋merge。精度向上に応じ自動 merge ゾーンを手で広げる。
 - **agents＝ハーネスのホーム（ADR-0009）**: スキル・エージェント・オーケストレーター・設計を agents に集約。dotfiles の fleet は廃止。リポジトリ名は変更しうる。

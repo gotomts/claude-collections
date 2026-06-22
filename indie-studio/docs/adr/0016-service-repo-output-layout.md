@@ -4,9 +4,11 @@
 
 ## Status
 
-accepted（ADR-0010 の repo-native を全ステージの出力に具体化。ADR-0014/0015 の S3「CLAUDE.md 生成」を「AGENTS.md＋CLAUDE.md ポインタ＋DESIGN.md 配置」に更新）
+accepted（ADR-0010 の repo-native を全ステージの出力に具体化。ADR-0014/0015 の S3「CLAUDE.md 生成」を「AGENTS.md＋CLAUDE.md ポインタ＋DESIGN.md 配置」に更新。**ADR-0028 で `discovery/` ・ `tech/` ・ `decomposition/` を `docs/indie-studio/` 配下に namespace 化**）
 
 ## レイアウト
+
+> **⚠️ ADR-0028 で再定義済**：下記の `docs/discovery/` ・ `docs/tech/` ・ `docs/decomposition/` は **`docs/indie-studio/` 配下に namespace 化された**（root の `*.md` と `docs/adr/` は維持）。最新レイアウトは [ADR-0028](0028-namespace-indie-studio-outputs-under-docs.md) 参照。本図は決定経緯の歴史として残す。
 
 ```
 <service-repo>/
@@ -16,13 +18,13 @@ accepted（ADR-0010 の repo-native を全ステージの出力に具体化。AD
 ├── CONTEXT.md              # ユビキタス言語(S3 種まき → S5 が育てる)
 ├── docs/
 │   ├── adr/                # 設計判断(S3 種まき → S5 追記)
-│   ├── discovery/          # S1 企画→ブリーフ
+│   ├── discovery/          # S1 企画→ブリーフ ※ADR-0028 で docs/indie-studio/discovery/ に移動
 │   │   ├── anchors/        #   prfaq / design-principles / provider / monetization-binary
 │   │   ├── planning/       #   01,02,05-14,99 (feature-details は ADR-0021 で廃止)
 │   │   ├── design/         #   screens.md・screen-specs/<area>/ (視覚デザインは DESIGN.md・ADR-0020)
 │   │   └── brief.md      # (DECISIONS.md は ADR-0019 で廃止)
-│   ├── tech/               # S3 技術設計(スタック/アーキ/モジュール/F-ID/ドメインモデル/開発の進め方/運用基盤)
-│   └── decomposition/      # S4 の index.md(垂直スライス骨格・実 issue は Linear)
+│   ├── tech/               # S3 技術設計(スタック/アーキ/モジュール/F-ID/ドメインモデル/開発の進め方/運用基盤) ※ADR-0028 で docs/indie-studio/tech/ に移動
+│   └── decomposition/      # S4 の index.md(垂直スライス骨格・実 issue は Linear) ※ADR-0028 で docs/indie-studio/decomposition/ に移動
 └── src/                    # S5 実装コード
 ```
 

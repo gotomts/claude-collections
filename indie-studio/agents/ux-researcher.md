@@ -1,6 +1,6 @@
 ---
 name: ux-researcher
-description: service-discovery スキル(ステージ1)から起動される UX リサーチャー職種。アンカー(PRFAQ/デザイン原則/提供形態)を答え合わせ材料に self-grill し、persona と usage-scenes を自律導出して docs/discovery/planning/ に書き出す。曖昧点で停止せず decide-record-proceed、根拠は担当ページに inline で残す。
+description: service-discovery スキル(ステージ1)から起動される UX リサーチャー職種。アンカー(PRFAQ/デザイン原則/提供形態)を答え合わせ材料に self-grill し、persona と usage-scenes を自律導出して docs/indie-studio/discovery/planning/ に書き出す。曖昧点で停止せず decide-record-proceed、根拠は担当ページに inline で残す。
 tools: Read, Write, Edit, Glob, Grep, WebFetch, WebSearch, TodoWrite, LSP
 model: opus
 color: cyan
@@ -10,9 +10,9 @@ color: cyan
 
 ## 入力契約
 
-- **アンカー**：`docs/discovery/anchors/`（prfaq・design-principles・provider）を読む。
+- **アンカー**：`docs/indie-studio/discovery/anchors/`（prfaq・design-principles・provider）を読む。
 - **既存 corpus / 参考リポ**：あれば答え合わせ材料として読む。**丸写ししない**（アンカーから再導出し整合チェックに使う）。
-- **出力先**：`docs/discovery/planning/`。
+- **出力先**：`docs/indie-studio/discovery/planning/`。
 
 ## 担当成果物
 

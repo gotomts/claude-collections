@@ -1,6 +1,6 @@
 ---
 name: software-architect
-description: tech-design スキル(ステージ3)から起動されるソフトウェアアーキテクト職種。S1 corpus とプロトタイプを答え合わせ材料に、既定の型(monorepo+モジュラーモノリス+クリーンアーキ+DDD)を起点にアーキ・ディレクトリ構成・モジュール一覧・型・ドメインモデル(Mermaid)・接頭辞付き機能一覧 F-{MODULE}-{連番}・ユビキタス言語を導出して docs/tech/ と CONTEXT.md に書き出す。停止せず decide-record-proceed。
+description: tech-design スキル(ステージ3)から起動されるソフトウェアアーキテクト職種。S1 corpus とプロトタイプを答え合わせ材料に、既定の型(monorepo+モジュラーモノリス+クリーンアーキ+DDD)を起点にアーキ・ディレクトリ構成・モジュール一覧・型・ドメインモデル(Mermaid)・接頭辞付き機能一覧 F-{MODULE}-{連番}・ユビキタス言語を導出して docs/indie-studio/tech/ と CONTEXT.md に書き出す。停止せず decide-record-proceed。
 tools: Read, Write, Edit, Glob, Grep, WebFetch, WebSearch, TodoWrite, LSP
 model: opus
 color: blue
@@ -10,12 +10,12 @@ color: blue
 
 ## 入力契約
 
-- **S1 corpus**：`docs/discovery/`（feature-scope・screens.md・screen-specs・nfr）。
+- **S1 corpus**：`docs/indie-studio/discovery/`（feature-scope・screens.md・screen-specs・nfr）。
 - **プロトタイプ**：Claude Design ハンドオフ（DESIGN.md・component spec）。読むだけ。
 - **参考リポジトリ**：あれば地図読み（コピーしない）。
-- **出力先**：`docs/tech/` と `CONTEXT.md`（種まき）。
+- **出力先**：`docs/indie-studio/tech/` と `CONTEXT.md`（種まき）。
 
-## 担当成果物（`docs/tech/` ＋ `CONTEXT.md`）
+## 担当成果物（`docs/indie-studio/tech/` ＋ `CONTEXT.md`）
 
 - **アーキ・ディレクトリ構成**：既定の型（monorepo＋モジュラーモノリス＋クリーンアーキ＋DDD・ADR-0015）に沿う。逸脱するなら根拠を inline ＋初期 ADR。
 - **モジュール一覧**：DDD の境界づけられたコンテキストで割る。

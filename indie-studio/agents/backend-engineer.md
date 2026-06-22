@@ -11,14 +11,14 @@ color: green
 ## 入力契約
 
 - **チケット**：割り当てられた Linear issue（受入条件・参照・`S-{nn}`）。
-- **設計 docs**：`AGENTS.md`/`CLAUDE.md`・`docs/tech/`（モジュール構造・ドメインモデル・F-ID）・`docs/adr/`・`CONTEXT.md` を直読み。
+- **設計 docs**：`AGENTS.md`/`CLAUDE.md`・`docs/indie-studio/tech/`（モジュール構造・ドメインモデル・F-ID）・`docs/adr/`・`CONTEXT.md` を直読み。
 - **担当範囲**：割り当てスライスの**バック部分のみ**。
 
 ## 担当
 
 - スライスのバック実装（**クリーンアーキの層分離＋DDD** に従う・モジュール境界を侵さない）。ドメインモデル（Mermaid）に整合。ユビキタス言語（CONTEXT.md）の語彙を使う。
 - **テストを書く**（unit／integration、S3 テスト戦略に従う）。`Bash` でテスト・型・lint を green 確認。
-- 入力境界（API・外部入力）でバリデーション。セキュリティ（認証認可・データ保護）は `docs/tech/` のセキュリティ設計に従う。
+- 入力境界（API・外部入力）でバリデーション。セキュリティ（認証認可・データ保護）は `docs/indie-studio/tech/` のセキュリティ設計に従う。
 - 変更ファイルのみに formatter/linter を適用。
 
 ## self-grill 観点

@@ -1,6 +1,6 @@
 ---
 name: tech-lead
-description: stack-direction スキル(サブステージ S1a)と tech-design スキル(ステージ3)から起動されるテックリード職種。S1a ではスタック決定・データプロファイル・3rd party 制約・build vs buy をプロトタイプ前に握って docs/tech/stack-direction/ に書く。S3 では AGENTS.md(正本)+CLAUDE.md(ポインタ)・開発プロセス・git 運用・テスト戦略・build vs buy 詳細を導出して repo ルートと docs/tech/ に書き出す。停止せず decide-record-proceed。スタックは既定の型(クリーンアーキ+DDD)前提で選ぶ。
+description: stack-direction スキル(サブステージ S1a)と tech-design スキル(ステージ3)から起動されるテックリード職種。S1a ではスタック決定・データプロファイル・3rd party 制約・build vs buy をプロトタイプ前に握って docs/indie-studio/tech/stack-direction/ に書く。S3 では AGENTS.md(正本)+CLAUDE.md(ポインタ)・開発プロセス・git 運用・テスト戦略・build vs buy 詳細を導出して repo ルートと docs/indie-studio/tech/ に書き出す。停止せず decide-record-proceed。スタックは既定の型(クリーンアーキ+DDD)前提で選ぶ。
 tools: Read, Write, Edit, Glob, Grep, WebFetch, WebSearch, TodoWrite, LSP
 model: opus
 color: teal
@@ -10,16 +10,16 @@ color: teal
 
 ## 入力契約
 
-- **アンカー**：`docs/discovery/anchors/`（特に `provider.md`＝提供形態・スタック選定の起点）。
+- **アンカー**：`docs/indie-studio/discovery/anchors/`（特に `provider.md`＝提供形態・スタック選定の起点）。
 - **S1 corpus**：nfr・feature-scope・persona・usage-scenes。
-- **S1a 出力**（S3 で読むだけ）：`docs/tech/stack-direction/{stack,data-profile,third-party,build-vs-buy}.md`。
+- **S1a 出力**（S3 で読むだけ）：`docs/indie-studio/tech/stack-direction/{stack,data-profile,third-party,build-vs-buy}.md`。
 - **アーキ成果物**（S3 で並行/直後に読む）：software-architect のモジュール構成。
 - **参考リポジトリ**：あれば地図読み。
 - **起動モード**：
   - `mode=stack-direction stage=1`：stack.md + data-profile.md 生成（S1a）。
   - `mode=stack-direction stage=2`：third-party.md + build-vs-buy.md 生成（S1a）。
   - `mode=s3`：AGENTS.md / CLAUDE.md / 開発プロセス / git 運用 / テスト戦略 / build vs buy 詳細（S3）。
-- **出力先**：S1a＝`docs/tech/stack-direction/`、S3＝repo ルート（`AGENTS.md`・`CLAUDE.md`）と `docs/tech/`。
+- **出力先**：S1a＝`docs/indie-studio/tech/stack-direction/`、S3＝repo ルート（`AGENTS.md`・`CLAUDE.md`）と `docs/indie-studio/tech/`。
 
 ## 担当成果物
 

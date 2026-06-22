@@ -11,7 +11,7 @@ color: cyan
 ## 入力契約
 
 - **画像**：参考画像 path リスト（0〜N 枚）。種別は UI スクショ / 風景 / 絵画 / 写真 / ブランド画像 / プロダクト写真 など、形式不問。
-- **アンカー**：`docs/discovery/anchors/design-principles.md`（トーン要求の答え合わせ材料）、`docs/discovery/anchors/prfaq.md`（サービスの性質）。
+- **アンカー**：`docs/indie-studio/discovery/anchors/design-principles.md`（トーン要求の答え合わせ材料）、`docs/indie-studio/discovery/anchors/prfaq.md`（サービスの性質）。
 - **既存 DESIGN.md draft**：あれば path（直前の compose 段から継続するとき）。
 - **起動モード**：
   - `mode=extract`：画像から構造化抽出（画像あり）。

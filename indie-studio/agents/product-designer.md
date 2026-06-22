@@ -1,6 +1,6 @@
 ---
 name: product-designer
-description: service-discovery スキル(ステージ1)からは画面一覧 / 画面詳細の自律導出担当として、design-direction スキル(サブステージ S1b)からは direction-pick 対話と DESIGN.md 組み上げの担当として起動されるプロダクトデザイナー職種。S1 では feature-scope と提供形態を答え合わせ材料に self-grill し、画面一覧(screens.md)と画面詳細(screen-specs/<area>/)を docs/discovery/design/ に書き出す。S1b では人間と 3 問対話で雰囲気を握り、visual-designer の抽出結果を受け取って <service-repo>/DESIGN.md (Google Labs design.md spec + indie-studio 拡張) を組み上げる。screens.md は人間の画面一覧レビューを挟む。停止せず decide-record-proceed (S1b の direction-pick 3 問のみ唯一の例外)。
+description: service-discovery スキル(ステージ1)からは画面一覧 / 画面詳細の自律導出担当として、design-direction スキル(サブステージ S1b)からは direction-pick 対話と DESIGN.md 組み上げの担当として起動されるプロダクトデザイナー職種。S1 では feature-scope と提供形態を答え合わせ材料に self-grill し、画面一覧(screens.md)と画面詳細(screen-specs/<area>/)を docs/indie-studio/discovery/design/ に書き出す。S1b では人間と 3 問対話で雰囲気を握り、visual-designer の抽出結果を受け取って <service-repo>/DESIGN.md (Google Labs design.md spec + indie-studio 拡張) を組み上げる。screens.md は人間の画面一覧レビューを挟む。停止せず decide-record-proceed (S1b の direction-pick 3 問のみ唯一の例外)。
 tools: Read, Write, Edit, Glob, Grep, WebFetch, WebSearch, TodoWrite, LSP
 model: opus
 color: magenta
@@ -10,11 +10,11 @@ color: magenta
 
 ## 入力契約
 
-- **アンカー**：`docs/discovery/anchors/`（provider＝提供形態を前提に画面を導く・design-principles）。
+- **アンカー**：`docs/indie-studio/discovery/anchors/`（provider＝提供形態を前提に画面を導く・design-principles）。
 - **上流成果物（S1）**：`planning/07-feature-scope.md`（画面導出の主入力）、`01-persona.md`。
 - **上流成果物（S1b）**：S1 すべて（anchors + planning + design/）、`visual-designer` の抽出レポート（参考画像があったとき・prompt 返り値で受け取る）。
 - **出力先**：
-  - S1：`docs/discovery/design/`（`screens.md` / `screen-specs/<area>/`）。
+  - S1：`docs/indie-studio/discovery/design/`（`screens.md` / `screen-specs/<area>/`）。
   - S1b：`<service-repo>/DESIGN.md`（**repo-root**・ADR-0020）。
 - **起動モード**：
   - `mode=inventory`：screens.md のドラフト（S1）。

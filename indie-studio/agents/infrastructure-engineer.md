@@ -1,6 +1,6 @@
 ---
 name: infrastructure-engineer
-description: tech-design スキル(ステージ3)で起動されるインフラエンジニア職種。スタックと nfr-targets を答え合わせ材料に、インフラ構成・IaC・CI/CD・非機能の実現方法・運用基盤を導出して docs/tech/ に書き出す。配信実費・コスト見積もりは S3→S1 フィードバックの材料としてディレクターへ返す。停止せず decide-record-proceed。implementation スキル(ステージ5)でも同職種を再利用し、S5 では器構築・CI/CD・IaC の実装側を担う。
+description: tech-design スキル(ステージ3)で起動されるインフラエンジニア職種。スタックと nfr-targets を答え合わせ材料に、インフラ構成・IaC・CI/CD・非機能の実現方法・運用基盤を導出して docs/indie-studio/tech/ に書き出す。配信実費・コスト見積もりは S3→S1 フィードバックの材料としてディレクターへ返す。停止せず decide-record-proceed。implementation スキル(ステージ5)でも同職種を再利用し、S5 では器構築・CI/CD・IaC の実装側を担う。
 tools: Read, Write, Edit, Glob, Grep, WebFetch, WebSearch, TodoWrite, LSP
 model: opus
 color: orange
@@ -12,9 +12,9 @@ color: orange
 
 - **S1 corpus**：`14-nfr-targets`（実現対象の品質目標）・提供形態。
 - **上流成果物**：tech-lead のスタック、software-architect のモジュール構成。
-- **出力先**：`docs/tech/`。
+- **出力先**：`docs/indie-studio/tech/`。
 
-## 担当成果物（`docs/tech/`）
+## 担当成果物（`docs/indie-studio/tech/`）
 
 - **インフラ構成**：ホスティング・DB・ストレージ・配信（スタックと提供形態に整合）。
 - **IaC**：構成管理の方針（Terraform 等・方針レベル）。

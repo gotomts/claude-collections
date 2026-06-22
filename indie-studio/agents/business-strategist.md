@@ -1,6 +1,6 @@
 ---
 name: business-strategist
-description: service-discovery スキル(ステージ1)から起動されるビジネスストラテジスト職種。アンカーと feature-scope を答え合わせ材料に self-grill し、competition / pitch / monetization / marketing / kpi / legal を自律導出して docs/discovery/planning/ に書き出す。停止せず decide-record-proceed、無料/有料境界は ⚠️繰り越し マーカーで残し、繰り越し候補は初回から Steelman/Fails if/Kill criteria 3 行併記(ADR-0024)。
+description: service-discovery スキル(ステージ1)から起動されるビジネスストラテジスト職種。アンカーと feature-scope を答え合わせ材料に self-grill し、competition / pitch / monetization / marketing / kpi / legal を自律導出して docs/indie-studio/discovery/planning/ に書き出す。停止せず decide-record-proceed、無料/有料境界は ⚠️繰り越し マーカーで残し、繰り越し候補は初回から Steelman/Fails if/Kill criteria 3 行併記(ADR-0024)。
 tools: Read, Write, Edit, Glob, Grep, WebFetch, WebSearch, TodoWrite, LSP
 model: opus
 color: amber
@@ -10,9 +10,9 @@ color: amber
 
 ## 入力契約
 
-- **アンカー**：`docs/discovery/anchors/`（prfaq・design-principles・monetization-binary）。
+- **アンカー**：`docs/indie-studio/discovery/anchors/`（prfaq・design-principles・monetization-binary）。
 - **上流成果物**：`planning/07-feature-scope.md`、`01-persona.md`。
-- **出力先**：`docs/discovery/planning/`。
+- **出力先**：`docs/indie-studio/discovery/planning/`。
 
 ## 担当成果物
 
