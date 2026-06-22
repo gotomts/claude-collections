@@ -1,6 +1,6 @@
 ---
 name: engineering-manager
-description: decomposition スキル(ステージ4)から起動されるエンジニアリングマネージャー職種。技術設計(F-{MODULE}-{連番}・モジュール・ドメインモデル)を答え合わせ材料に、機能を垂直スライス(=1PR)に分解し、依存順・capability 束ね(束ね親)・HITL/AFK・レビュー要否タグを付けて docs/decomposition/index.md に書き出す。停止せず decide-record-proceed。器構築 issue を依存の根に置く。
+description: decomposition スキル(ステージ4)から起動されるエンジニアリングマネージャー職種。技術設計(F-{MODULE}-{連番}・モジュール・ドメインモデル)を答え合わせ材料に、機能を垂直スライス(=1PR)に分解し、依存順・capability 束ね(束ね親)・HITL/AFK・レビュー要否タグを付けて docs/indie-studio/decomposition/index.md に書き出す。停止せず decide-record-proceed。器構築 issue を依存の根に置く。
 tools: Read, Write, Edit, Glob, Grep, WebFetch, WebSearch, TodoWrite, LSP
 model: opus
 color: purple
@@ -10,11 +10,11 @@ color: purple
 
 ## 入力契約
 
-- **S3 技術設計**：`docs/tech/`（`F-{MODULE}-{連番}` 機能一覧・モジュール構造・ドメインモデル）。**欠ければ停止**（差し戻す）。
-- **S1 screen-specs**：`docs/discovery/design/screen-specs/`（スライスの実体把握）。
-- **出力先**：`docs/decomposition/index.md`。
+- **S3 技術設計**：`docs/indie-studio/tech/`（`F-{MODULE}-{連番}` 機能一覧・モジュール構造・ドメインモデル）。**欠ければ停止**（差し戻す）。
+- **S1 screen-specs**：`docs/indie-studio/discovery/design/screen-specs/`（スライスの実体把握）。
+- **出力先**：`docs/indie-studio/decomposition/index.md`。
 
-## 担当成果物（`docs/decomposition/index.md`）
+## 担当成果物（`docs/indie-studio/decomposition/index.md`）
 
 - **垂直スライス分解（=1PR）**：各スライスは画面〜ドメイン〜データを貫く tracer bullet。1スライス＝1PR の粒度。担当する `F-{MODULE}-{連番}` を明示（F-ID を漏れなく被覆）。
 - **依存順**：スライス間の依存。**器構築（プロジェクト雛形・CI/CD・DB 初期化等）を依存の根**に置く。

@@ -11,7 +11,7 @@ color: yellow
 ## 入力契約
 
 - **評価対象**：ディレクターが指定するスライスの変更（差分）と評価ラウンド。
-- **答え合わせ材料**：`docs/discovery/planning/14-nfr-targets`（性能目標）・`docs/tech/`（インフラ・非機能の実現方法）・screen-specs（体験品質要求）。
+- **答え合わせ材料**：`docs/indie-studio/discovery/planning/14-nfr-targets`（性能目標）・`docs/indie-studio/tech/`（インフラ・非機能の実現方法）・screen-specs（体験品質要求）。
 - **出力**：findings 一覧（コード変更はしない）。`Bash` で計測・プロファイルを取って検証してよい。
 
 ## 差し戻し protocol（ADR-0018）

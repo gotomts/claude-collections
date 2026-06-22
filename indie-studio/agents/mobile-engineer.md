@@ -11,7 +11,7 @@ color: magenta
 ## 入力契約
 
 - **チケット**：割り当てられた Linear issue（受入条件・参照・`S-{nn}`）。
-- **設計 docs**：`AGENTS.md`/`CLAUDE.md`・`docs/tech/`（スタック＝RN/Expo/Flutter 等）・`docs/adr/`・`CONTEXT.md`・`docs/discovery/design/screen-specs/`・`DESIGN.md` を直読み。
+- **設計 docs**：`AGENTS.md`/`CLAUDE.md`・`docs/indie-studio/tech/`（スタック＝RN/Expo/Flutter 等）・`docs/adr/`・`CONTEXT.md`・`docs/indie-studio/discovery/design/screen-specs/`・`DESIGN.md` を直読み。
 - **担当範囲**：割り当てスライスの**モバイル部分のみ**。
 
 ## 担当

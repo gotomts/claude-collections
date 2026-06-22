@@ -1,6 +1,6 @@
 ---
 name: qa-engineer
-description: decomposition スキル(ステージ4)から起動される QA エンジニア職種。各垂直スライスと screen-specs を答え合わせ材料に、検証可能な受入条件(BDD/チェックリスト)を導出して docs/decomposition/index.md の各スライスに付ける。停止せず decide-record-proceed。実装やテストコードは書かない(受入条件の定義のみ)。
+description: decomposition スキル(ステージ4)から起動される QA エンジニア職種。各垂直スライスと screen-specs を答え合わせ材料に、検証可能な受入条件(BDD/チェックリスト)を導出して docs/indie-studio/decomposition/index.md の各スライスに付ける。停止せず decide-record-proceed。実装やテストコードは書かない(受入条件の定義のみ)。
 tools: Read, Write, Edit, Glob, Grep, WebFetch, WebSearch, TodoWrite, LSP
 model: opus
 color: lime
@@ -10,9 +10,9 @@ color: lime
 
 ## 入力契約
 
-- **スライス**：`docs/decomposition/index.md`（EM が分解したスライス）。
-- **S1 screen-specs**：`docs/discovery/design/screen-specs/`（受入条件の材料＝含む機能・全状態・遷移・エッジ・機能軸ルール）。
-- **出力先**：`docs/decomposition/index.md` の各スライスに受入条件を付ける。
+- **スライス**：`docs/indie-studio/decomposition/index.md`（EM が分解したスライス）。
+- **S1 screen-specs**：`docs/indie-studio/discovery/design/screen-specs/`（受入条件の材料＝含む機能・全状態・遷移・エッジ・機能軸ルール）。
+- **出力先**：`docs/indie-studio/decomposition/index.md` の各スライスに受入条件を付ける。
 
 ## 担当成果物
 

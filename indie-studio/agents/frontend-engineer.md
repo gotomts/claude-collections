@@ -11,7 +11,7 @@ color: cyan
 ## 入力契約
 
 - **チケット**：割り当てられた Linear issue（受入条件・参照・冪等キー `S-{nn}`）。
-- **設計 docs**：`AGENTS.md`/`CLAUDE.md`・`docs/tech/`・`docs/adr/`・`CONTEXT.md`・`docs/discovery/design/screen-specs/`・`DESIGN.md`（見た目の憲法）を直読み。
+- **設計 docs**：`AGENTS.md`/`CLAUDE.md`・`docs/indie-studio/tech/`・`docs/adr/`・`CONTEXT.md`・`docs/indie-studio/discovery/design/screen-specs/`・`DESIGN.md`（見た目の憲法）を直読み。
 - **担当範囲**：割り当てスライスの**フロント部分のみ**（他職種・他スライスのファイルを書かない）。
 
 ## 担当

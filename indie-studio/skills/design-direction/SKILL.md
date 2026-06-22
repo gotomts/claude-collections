@@ -12,7 +12,7 @@ AI 自律開発ハーネスの **サブステージ S1b（S1 / S1a 後段 → S2
 
 ## いつ使うか
 
-- `service-discovery`（S1）が完了し、`docs/discovery/` に anchors + planning + design (screens.md / screen-specs) が揃った状態で、Claude Design に渡すための **DESIGN.md がまだ無い** とき。
+- `service-discovery`（S1）が完了し、`docs/indie-studio/discovery/` に anchors + planning + design (screens.md / screen-specs) が揃った状態で、Claude Design に渡すための **DESIGN.md がまだ無い** とき。
 - 既存 DESIGN.md の方向性を再検討したいとき（mood の方針変更、参考画像の追加）。
 - ハーネスのサブステージ S1b として、S1a と S2 の間で人間が起動するとき。
 
@@ -41,12 +41,12 @@ S1 成果物（必須）と参考画像（任意）：
 
 | 区分 | 中身 | 場所 |
 |---|---|---|
-| 必須 | アンカー（PRFAQ・デザイン原則・提供形態・マネタイズ二値） | `docs/discovery/anchors/` |
-| 必須 | feature-scope・persona | `docs/discovery/planning/` |
-| 推奨 | screens.md / screen-specs | `docs/discovery/design/` |
+| 必須 | アンカー（PRFAQ・デザイン原則・提供形態・マネタイズ二値） | `docs/indie-studio/discovery/anchors/` |
+| 必須 | feature-scope・persona | `docs/indie-studio/discovery/planning/` |
+| 推奨 | screens.md / screen-specs | `docs/indie-studio/discovery/design/` |
 | 任意 | 参考画像 0〜N 枚（UI スクショ・風景・絵画・写真・ブランド写真等） | チャット添付 or path 指定 |
 
-**S1a 出力**（推奨）：`docs/tech/stack-direction/stack.md` ・ `build-vs-buy.md` を `## Components` 記述の前に読む。提供形態と build vs buy の整合が取れる（ADR-0026）。S1a が未起動なら `anchors/provider.md` のみから推測する暫定運用（精度低）。
+**S1a 出力**（推奨）：`docs/indie-studio/tech/stack-direction/stack.md` ・ `build-vs-buy.md` を `## Components` 記述の前に読む。提供形態と build vs buy の整合が取れる（ADR-0026）。S1a が未起動なら `anchors/provider.md` のみから推測する暫定運用（精度低）。
 
 参考画像は UI に限らない。**mood / palette / typography vibe を握るための視覚資料**であれば形式不問。**0 枚も可**（design-principles のトーン記述からのみ起こす fallback モード）。
 
@@ -164,7 +164,7 @@ components: { button: { ... }, card: { ... } }
     └── discovery/  ← S1 成果物（読むだけ）
 ```
 
-- DESIGN.md は **repo-root** に置く（ADR-0020）。`docs/discovery/design/` 配下には置かない。
+- DESIGN.md は **repo-root** に置く（ADR-0020）。`docs/indie-studio/discovery/design/` 配下には置かない。
 - `visual-designer` の中間抽出レポート（画像ごとの構造化出力）は DESIGN.md `## Visual Theme & Mood` 本文に**取り込み**、別ファイルとしては残さない（二重管理回避）。
 - 参考画像そのものは repo に commit しない（容量・著作権リスク）。出典・パスは DESIGN.md 内に記載する。
 
@@ -178,13 +178,13 @@ components: { button: { ... }, card: { ... } }
 ## 破壊的操作の禁止
 
 - push / PR / merge / 課金 / 外部送信はしない。repo へのファイル書き込みと commit に留める。
-- アンカー（`docs/discovery/anchors/`）は決め直さない（G1 で確定済み・読むだけ）。
-- screen-specs（`docs/discovery/design/screen-specs/`）は触らない（S1 `product-designer` 担当・並列ジョブ競合回避）。
+- アンカー（`docs/indie-studio/discovery/anchors/`）は決め直さない（G1 で確定済み・読むだけ）。
+- screen-specs（`docs/indie-studio/discovery/design/screen-specs/`）は触らない（S1 `product-designer` 担当・並列ジョブ競合回避）。
 - 画像ピクセルを repo に commit しない（出典は path のみ DESIGN.md 内記載）。
 
 ## 前提・後段
 
-- **前提**：`S1 service-discovery` 完了（`docs/discovery/` 一式）＋ `S1a stack-direction` 完了（`docs/tech/stack-direction/{stack,data-profile,third-party,build-vs-buy}.md`）。
+- **前提**：`S1 service-discovery` 完了（`docs/indie-studio/discovery/` 一式）＋ `S1a stack-direction` 完了（`docs/indie-studio/tech/stack-direction/{stack,data-profile,third-party,build-vs-buy}.md`）。
 - **後段**：`S2` プロトタイプ（Claude Design＝claude.ai）。DESIGN.md を持って claude.ai に渡る。
 
 ## 関連 ADR

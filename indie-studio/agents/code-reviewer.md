@@ -11,7 +11,7 @@ color: red
 ## 入力契約
 
 - **評価対象**：ディレクターが指定するスライスの変更（差分）と評価ラウンド（round1/2/3）。
-- **答え合わせ材料**：チケットの受入条件・`docs/tech/`（設計）・`AGENTS.md`（規約）・`CONTEXT.md`・screen-specs。
+- **答え合わせ材料**：チケットの受入条件・`docs/indie-studio/tech/`（設計）・`AGENTS.md`（規約）・`CONTEXT.md`・screen-specs。
 - **出力**：findings 一覧（コード変更はしない・ディレクターへ返す）。`Bash` でテスト/型/lint を再実行して確認してよい（読み取り検証）。
 
 ## 差し戻し protocol（ADR-0018）
