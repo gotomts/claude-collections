@@ -8,6 +8,13 @@
 |---|---|---|---|
 | [`indie-studio`](indie-studio/) | 個人開発のサービス設計〜デザイン〜開発をオールインで回す AI 自律開発ハーネス（G1 アンカー / S1 企画→ブリーフ / S2 プロトタイプ / S3 技術設計 / S4 分解 / S5 実装） | [`indie-studio/CONTEXT.md`](indie-studio/CONTEXT.md) | [`indie-studio/docs/adr/`](indie-studio/docs/adr/) |
 
+## shared/
+
+- 真実源として `shared/agents/` を持つ。コレクションではなく **vendoring の元データ**（ADR-0004）。
+- 各コレクションが `dependencies.json` で pick し、`make sync` で `<collection>/agents/` に generated file として展開される。
+- 現状の中身：engineering 系 13 エージェント（executor 5 + quality 4 + leadership 4）。
+- 配布対象外（marketplace.json には列挙しない）。install 先には流れない。
+
 ## repo 横断
 
 - 構成規約・コレクションの足し方 → root [`AGENTS.md`](AGENTS.md)
