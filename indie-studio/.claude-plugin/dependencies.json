@@ -1,0 +1,19 @@
+{
+  "shared": {
+    "agents": [
+      "backend-engineer",
+      "code-reviewer",
+      "engineering-manager",
+      "frontend-engineer",
+      "infrastructure-engineer",
+      "mobile-engineer",
+      "performance-engineer",
+      "principal-engineer",
+      "qa-engineer",
+      "reviewer",
+      "security-engineer",
+      "software-architect",
+      "tech-lead"
+    ]
+  }
+}
