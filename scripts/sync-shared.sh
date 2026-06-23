@@ -280,6 +280,16 @@ cmd_verify() {
         awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2{print}' "$dst" | tail -5 | xxd | head -20 >&2 || true
         echo "  DEBUG dst file last 200 bytes (xxd):" >&2
         tail -c 200 "$dst" | xxd >&2 || true
+        echo "  DEBUG git status: $(git status --short "$dst" 2>&1)" >&2
+        echo "  DEBUG dst sha256: $(_sha256 "$dst")" >&2
+        echo "  DEBUG src file: $src, sha256: $(_sha256 "$src")" >&2
+        echo "  DEBUG src body sha256: $(awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2{print}' "$src" | _sha256)" >&2
+        echo "  DEBUG git config core.autocrlf: $(git config --get core.autocrlf 2>&1 || echo not_set)" >&2
+        echo "  DEBUG git config filter: $(git config --list | grep -E '^(filter|smudge|clean)' || echo no_filters)" >&2
+        echo "  DEBUG ls -la dst:" >&2
+        ls -la "$dst" >&2
+        echo "  DEBUG diff between git blob and working tree (first 5 lines):" >&2
+        diff <(git show HEAD:"$dst") "$dst" | head -10 >&2 || true
         echo "  DEBUG awk version: $(awk --version 2>&1 | head -1 || echo unknown)" >&2
         echo "  DEBUG locale: LC_ALL=${LC_ALL:-unset} LANG=${LANG:-unset}" >&2
         has_drift=1
