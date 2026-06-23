@@ -267,40 +267,6 @@ cmd_verify() {
       current_body=$(body_hash "$dst")
       if [ -n "$recorded_body" ] && [ "$recorded_body" != "$current_body" ]; then
         echo "Edited: $dst (body modified — revert via 'git checkout $dst' or move change to shared/)" >&2
-        echo "  DEBUG recorded=$recorded_body" >&2
-        echo "  DEBUG current=$current_body" >&2
-        echo "  DEBUG file size: $(wc -c < "$dst" | tr -d ' ')" >&2
-        echo "  DEBUG total file lines: $(wc -l < "$dst" | tr -d ' ')" >&2
-        echo "  DEBUG --- positions: $(awk '/^---$/{printf NR" "}' "$dst")" >&2
-        echo "  DEBUG body line count: $(awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2{c++} END{print c+0}' "$dst")" >&2
-        echo "  DEBUG body byte size: $(awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2{print}' "$dst" | wc -c | tr -d ' ')" >&2
-        echo "  DEBUG body first 3 lines (xxd):" >&2
-        awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2{print}' "$dst" | head -3 | xxd | head -10 >&2 || true
-        echo "  DEBUG body last 5 lines (xxd):" >&2
-        awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2{print}' "$dst" | tail -5 | xxd | head -20 >&2 || true
-        echo "  DEBUG dst file last 200 bytes (xxd):" >&2
-        tail -c 200 "$dst" | xxd >&2 || true
-        echo "  DEBUG git status: $(git status --short "$dst" 2>&1)" >&2
-        echo "  DEBUG dst sha256: $(_sha256 "$dst")" >&2
-        echo "  DEBUG src file: $src, sha256: $(_sha256 "$src")" >&2
-        echo "  DEBUG src body sha256: $(awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2{print}' "$src" | _sha256)" >&2
-        echo "  DEBUG git config core.autocrlf: $(git config --get core.autocrlf 2>&1 || echo not_set)" >&2
-        echo "  DEBUG git config filter: $(git config --list | grep -E '^(filter|smudge|clean)' || echo no_filters)" >&2
-        echo "  DEBUG ls -la dst:" >&2
-        ls -la "$dst" >&2
-        echo "  DEBUG diff between git blob and working tree (first 5 lines):" >&2
-        diff <(git show HEAD:"$dst") "$dst" | head -10 >&2 || true
-        echo "  DEBUG HEAD commit: $(git rev-parse HEAD)" >&2
-        echo "  DEBUG git cat-file size of blob: $(git cat-file -s HEAD:"$dst")" >&2
-        echo "  DEBUG cat-file content sha256: $(git cat-file -p HEAD:"$dst" | _sha256)" >&2
-        echo "  DEBUG check git attributes:" >&2
-        git check-attr -a "$dst" >&2 || true
-        echo "  DEBUG check all gitattributes files:" >&2
-        find / -name .gitattributes 2>/dev/null | head -5 >&2 || true
-        echo "  DEBUG git config --get-all core.attributesfile:" >&2
-        git config --get-all core.attributesfile >&2 || true
-        echo "  DEBUG awk version: $(awk --version 2>&1 | head -1 || echo unknown)" >&2
-        echo "  DEBUG locale: LC_ALL=${LC_ALL:-unset} LANG=${LANG:-unset}" >&2
         has_drift=1
       fi
     done
