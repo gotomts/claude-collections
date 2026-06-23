@@ -74,8 +74,8 @@
 | 項目 | 主体 | 詳細 |
 |---|---|---|
 | draft の自動更新 | release-drafter (GitHub Actions) | main マージごとに draft が自動更新される |
-| publish 判断 | Claude Code | PR merge 直後の Claude Code セッションで `gh release view --tag=indie-studio/<latest-draft-tag>` で draft 内容を確認、内容のまとまり (e.g. 機能完成 / 数 PR 蓄積 / リファクタ完了 / docs まとめ) を評価して publish 推奨 or 待機を提案 |
-| publish 操作 | Claude Code (ユーザー承認下) | ユーザーが OK と回答後、Claude Code が `gh release edit --tag=indie-studio/v0.0.x --draft=false` で publish 実行 |
+| publish 判断 | Claude Code | PR merge 直後の Claude Code セッションで `gh release view indie-studio/<latest-draft-tag>` で draft 内容を確認、内容のまとまり (e.g. 機能完成 / 数 PR 蓄積 / リファクタ完了 / docs まとめ) を評価して publish 推奨 or 待機を提案 |
+| publish 操作 | Claude Code (ユーザー承認下) | ユーザーが OK と回答後、Claude Code が `gh release edit indie-studio/v0.0.x --draft=false` で publish 実行 |
 | trigger 規約 | root AGENTS.md | 「PR merge 後の Claude Code セッションで publish 判断を必ず実行」を明記 |
 | backup 1 (session 開始時) | Claude Code | root AGENTS.md に「セッション開始時に未 publish draft の有無を確認、溜まってたら publish 判断を提案」を明記。merge 後にセッション閉じた case の漏れを拾う |
 | backup 2 (月次) | 人間 | `indie-studio/ROADMAP.md` に「月次 draft 状態レビュー」を 1 行追加。backup 1 でも漏れた case の最終 safety net |
