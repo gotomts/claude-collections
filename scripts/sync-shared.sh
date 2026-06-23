@@ -194,7 +194,52 @@ cmd_verify() {
   fi
   echo "All synced files are up-to-date."
 }
-cmd_status() { echo "status not yet implemented" >&2; exit 2; }
+cmd_status() {
+  local target="${1:-}"
+  local collections=()
+  if [ -n "$target" ]; then
+    [ -f "$target/.claude-plugin/dependencies.json" ] || {
+      echo "Error: $target/.claude-plugin/dependencies.json not found" >&2
+      exit 2
+    }
+    collections=("$target")
+  else
+    mapfile -t collections < <(discover_collections)
+  fi
+
+  local collection name
+  for collection in "${collections[@]}"; do
+    local dep="$collection/.claude-plugin/dependencies.json"
+    local agents=()
+    mapfile -t agents < <(read_picked_agents "$dep")
+    echo "$collection:"
+    local synced=0 drifted=0 missing=0
+    for name in "${agents[@]}"; do
+      local dst="$collection/agents/$name.md"
+      local src="shared/agents/$name.md"
+      if [ ! -f "$src" ]; then
+        printf "  ? %-25s (unknown in shared/)\n" "$name"
+        continue
+      fi
+      if [ ! -f "$dst" ]; then
+        printf "  ! %-25s (missing in collection)\n" "$name"
+        missing=$((missing+1))
+        continue
+      fi
+      local recorded current
+      recorded=$(read_source_hash "$dst")
+      current=$(file_hash "$src")
+      if [ "$recorded" = "$current" ]; then
+        printf "  ✓ %-25s (synced)\n" "$name"
+        synced=$((synced+1))
+      else
+        printf "  ✗ %-25s (drifted — source updated)\n" "$name"
+        drifted=$((drifted+1))
+      fi
+    done
+    echo "  Summary: $synced synced / $drifted drifted / $missing missing"
+  done
+}
 
 case "${1:-}" in
   sync)   shift; cmd_sync   "${1:-}" ;;
