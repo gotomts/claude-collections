@@ -69,6 +69,18 @@ read_picked_agents() {
   jq -r '.shared.agents[]' "$dep_file"
 }
 
+# dependencies.json の shared.skills[] を読む（optional・無い場合は no-op）
+read_picked_skills() {
+  local dep_file="$1"
+  # shared.skills is optional; absent / null → silent no-op
+  jq -e '.shared.skills' "$dep_file" >/dev/null 2>&1 || return 0
+  jq -e '.shared.skills | type == "array"' "$dep_file" >/dev/null 2>&1 || {
+    echo "dependencies.json: shared.skills must be an array ($dep_file)" >&2
+    return 2
+  }
+  jq -r '.shared.skills[]' "$dep_file"
+}
+
 # generated file かどうか（frontmatter に x-source 行があれば true）
 is_generated() {
   local file="$1"
@@ -121,6 +133,72 @@ sync_one() {
   fi
 
   mkdir -p "$collection/agents"
+
+  local tmp="$dst.tmp.$$"
+
+  if ! awk -v src="$src" -v hash="$hash" -v bhash="$bhash" -v now="$now" '
+    BEGIN { fm_state = 0 }
+    NR == 1 && /^---$/ { fm_state = 1; print; next }
+    fm_state == 1 && /^---$/ {
+      print "x-source: " src
+      print "x-source-hash: " hash
+      print "x-body-hash: " bhash
+      print "x-synced-at: " now
+      print
+      fm_state = 2
+      next
+    }
+    fm_state == 1 && /^x-source:|^x-source-hash:|^x-body-hash:|^x-synced-at:/ { next }
+    { print }
+    END {
+      if (fm_state != 2) exit 3
+    }
+  ' "$src" > "$tmp"; then
+    rm -f "$tmp"
+    echo "Malformed source: $src (no closing --- delimiter)" >&2
+    return 2
+  fi
+
+  mv "$tmp" "$dst"
+
+  echo "  synced: $dst"
+}
+
+# 1 skill を 1 collection に sync
+sync_one_skill() {
+  local collection="$1"
+  local name="$2"
+  local src="shared/skills/$name/SKILL.md"
+  local dst="$collection/skills/$name/SKILL.md"
+
+  if [ ! -f "$src" ]; then
+    echo "Unknown skill: $name (not in shared/skills/)" >&2
+    return 2
+  fi
+
+  if [ -f "$dst" ] && ! is_generated "$dst"; then
+    echo "Collision: $dst exists as handwritten file. Either rename it or remove from dependencies.json." >&2
+    return 2
+  fi
+
+  local hash bhash now
+  hash=$(file_hash "$src")
+  bhash=$(body_hash "$src")
+  now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+  # Idempotent skip: dst の source-hash と body-hash が両方一致しているなら書き直さない
+  if [ -f "$dst" ] && is_generated "$dst"; then
+    local existing_hash existing_bhash dst_bhash
+    existing_hash=$(read_source_hash "$dst")
+    existing_bhash=$(read_body_hash "$dst")
+    dst_bhash=$(body_hash "$dst")
+    if [ "$existing_hash" = "$hash" ] && [ -n "$existing_bhash" ] && [ "$existing_bhash" = "$dst_bhash" ]; then
+      echo "  unchanged: $dst"
+      return 0
+    fi
+  fi
+
+  mkdir -p "$collection/skills/$name"
 
   local tmp="$dst.tmp.$$"
 
@@ -216,6 +294,24 @@ cmd_sync() {
     for name in "${agents[@]}"; do
       sync_one "$collection" "$name"
     done
+
+    # skills loop（optional・shared.skills 無ければ no-op）
+    local skills=()
+    mapfile -t skills < <(read_picked_skills "$dep")
+
+    if [ "${#skills[@]}" -gt 0 ]; then
+      local uniq_count_s
+      uniq_count_s=$(printf "%s\n" "${skills[@]}" | sort -u | wc -l | tr -d ' ')
+      if [ "$uniq_count_s" -ne "${#skills[@]}" ]; then
+        echo "dependencies.json: duplicate skill name in $dep" >&2
+        exit 2
+      fi
+    fi
+
+    local skill_name
+    for skill_name in "${skills[@]}"; do
+      sync_one_skill "$collection" "$skill_name"
+    done
   done
 }
 
@@ -262,6 +358,41 @@ cmd_verify() {
       fi
 
       # Body 手編集検知（x-body-hash が無い古い generated file はスキップ、次回 sync で付与される）
+      local recorded_body current_body
+      recorded_body=$(read_body_hash "$dst")
+      current_body=$(body_hash "$dst")
+      if [ -n "$recorded_body" ] && [ "$recorded_body" != "$current_body" ]; then
+        echo "Edited: $dst (body modified — revert via 'git checkout $dst' or move change to shared/)" >&2
+        has_drift=1
+      fi
+    done
+
+    # skills verify loop（optional）
+    local skills=()
+    mapfile -t skills < <(read_picked_skills "$dep")
+
+    local skill_name
+    for skill_name in "${skills[@]}"; do
+      local dst="$collection/skills/$skill_name/SKILL.md"
+      local src="shared/skills/$skill_name/SKILL.md"
+
+      if [ ! -f "$src" ]; then
+        echo "Unknown skill: $skill_name (not in shared/skills/)" >&2
+        exit 2
+      fi
+      if [ ! -f "$dst" ]; then
+        echo "Missing: $dst" >&2
+        has_drift=1
+        continue
+      fi
+      local recorded_src current_src
+      recorded_src=$(read_source_hash "$dst")
+      current_src=$(file_hash "$src")
+      if [ "$recorded_src" != "$current_src" ]; then
+        echo "Drifted: $dst (source-hash mismatch — shared/ updated, run 'make sync')" >&2
+        has_drift=1
+      fi
+
       local recorded_body current_body
       recorded_body=$(read_body_hash "$dst")
       current_body=$(body_hash "$dst")
@@ -331,6 +462,47 @@ cmd_status() {
         synced=$((synced+1))
       fi
     done
+
+    # skills status loop（optional）
+    local skills=()
+    mapfile -t skills < <(read_picked_skills "$dep")
+
+    local skill_name
+    for skill_name in "${skills[@]}"; do
+      local dst="$collection/skills/$skill_name/SKILL.md"
+      local src="shared/skills/$skill_name/SKILL.md"
+      if [ ! -f "$src" ]; then
+        printf "  ? %-25s (unknown in shared/skills/)\n" "$skill_name"
+        continue
+      fi
+      if [ ! -f "$dst" ]; then
+        printf "  ! %-25s (missing skill in collection)\n" "$skill_name"
+        missing=$((missing+1))
+        continue
+      fi
+      local recorded_src current_src recorded_body current_body
+      recorded_src=$(read_source_hash "$dst")
+      current_src=$(file_hash "$src")
+      recorded_body=$(read_body_hash "$dst")
+      current_body=$(body_hash "$dst")
+
+      local body_edited=0
+      if [ -n "$recorded_body" ] && [ "$recorded_body" != "$current_body" ]; then
+        body_edited=1
+      fi
+
+      if [ "$recorded_src" != "$current_src" ]; then
+        printf "  ✗ %-25s (skill drifted — source updated)\n" "$skill_name"
+        drifted=$((drifted+1))
+      elif [ "$body_edited" -eq 1 ]; then
+        printf "  ✎ %-25s (skill edited — body modified)\n" "$skill_name"
+        edited=$((edited+1))
+      else
+        printf "  ✓ %-25s (skill synced)\n" "$skill_name"
+        synced=$((synced+1))
+      fi
+    done
+
     echo "  Summary: $synced synced / $drifted drifted / $edited edited / $missing missing"
   done
 }

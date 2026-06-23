@@ -14,6 +14,10 @@
       "security-engineer",
       "software-architect",
       "tech-lead"
+    ],
+    "skills": [
+      "finish-stage-pr",
+      "start-stage-branch"
     ]
   }
 }
