@@ -57,6 +57,8 @@ color: red
 - **monetization（観点 ⑤ 対象：繰り越し候補のみ）**：禁じ手を侵していないか／無料/有料境界を繰り越しに残しているか。**観点 ⑤**：`⚠️繰り越し` 候補に 3 行が併記されているか・各候補の `Fails if` が観測可能か。
 - **risks-assumptions（観点 ⑤ 対象：全 assumption）**：前提が検証状態付きか／網羅性。**観点 ⑤**：各 assumption に 3 行が併記されているか・`Fails if` が具体的か・`Kill criteria` が「この週に取れる」最安に絞れているか。
 - **screens/screen-specs**：feature-scope 全 `[作る]` の被覆／全状態の網羅／安全要求／繰り越しの触れる表現。
+- **DESIGN.md（S1b・spec compliance を含む観点・ADR-0029）**：(a) **frontmatter spec compliance**：`colors` / `typography` / `spacing` / `rounded` がフラット map（ネスト禁止）、`components` が 2 階層・variant は hyphen 連結（3 階層禁止）、全 Dimension に `px` / `em` / `rem` の unit suffix（`lineHeight` の unitless 除く）、token reference が `{<group>.<token-name>}` 構文で解決可能、`shadows` / `motion` が YAML top-level に置かれていない。(b) **section alias**：英語単独セクション名（`## Components`）でスラッシュ併記が無いか。(c) **拡張セクション位置**：`## Visual Theme & Mood` が Overview 直後、`## Motion` / `## Voice & Tone` が Components 後・Do's and Don'ts 前。重複見出しなし。(d) **shadow の表現**：`## Elevation & Depth` prose で具体値 + `components.<name>.boxShadow` literal。(e) **motion の表現**：`## Motion` prose のみ（YAML token なし）。(f) **specific reference**：1 つ以上の固有名（人物・作品・年代・出典）が `## Visual Theme & Mood` に出ているか。spec compliance 違反は `blocker`。
+- **HTML mock（S1b・ADR-0030）は評価対象外**：mock は機械的視覚出力で reviewer の評価観点（anchor 整合・真実源・カバレッジ逆引き・load-bearing claim 反証可能性）とは別軸。mock の妥当性は次の視覚確認ゲートで人間が判定する。reviewer は DESIGN.md（spec compliance 含む）のみ評価する。
 - **横断**：抽象語で止めていないか／真実源の二重管理がないか／黙って端折っていないか。
 
 ## 上流欠陥を見つけたら
