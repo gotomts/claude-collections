@@ -125,7 +125,7 @@
 | `.github/release-drafter-indie-studio.yml` | 新規 | release-drafter config (categories / autolabeler / tag-template / version-resolver) |
 | `.github/workflows/release-drafter-indie-studio.yml` | 新規 | GitHub Actions workflow (push:main + paths:['indie-studio/**'] + workflow_dispatch) |
 | `AGENTS.md` (root) | 追記 | 「## リリースノート運用」節を追加。内容: collection 単位 release / tag 命名 / PR merge 後の publish 判断 trigger 規約 / セッション開始時の未 publish draft 確認 / 月次 draft レビュー |
-| `indie-studio/ROADMAP.md` | 追記 | 「月次 draft レビュー」「安定化フェーズ移行時の TODO」を追記 |
+| `indie-studio/docs/ROADMAP.md` | 追記 | 「月次 draft レビュー」「安定化フェーズ移行時の TODO」を追記 |
 
 ---
 
