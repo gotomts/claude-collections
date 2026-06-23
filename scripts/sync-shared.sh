@@ -145,7 +145,55 @@ cmd_sync() {
   done
 }
 
-cmd_verify() { echo "verify not yet implemented" >&2; exit 2; }
+cmd_verify() {
+  local target="${1:-}"
+  local collections=()
+  if [ -n "$target" ]; then
+    [ -f "$target/.claude-plugin/dependencies.json" ] || {
+      echo "Error: $target/.claude-plugin/dependencies.json not found" >&2
+      exit 2
+    }
+    collections=("$target")
+  else
+    mapfile -t collections < <(discover_collections)
+  fi
+
+  local has_drift=0
+  local collection name
+
+  for collection in "${collections[@]}"; do
+    local dep="$collection/.claude-plugin/dependencies.json"
+    local agents=()
+    mapfile -t agents < <(read_picked_agents "$dep")
+
+    for name in "${agents[@]}"; do
+      local dst="$collection/agents/$name.md"
+      local src="shared/agents/$name.md"
+
+      if [ ! -f "$src" ]; then
+        echo "Unknown agent: $name (not in shared/agents/)" >&2
+        exit 2
+      fi
+      if [ ! -f "$dst" ]; then
+        echo "Missing: $dst" >&2
+        has_drift=1
+        continue
+      fi
+      local recorded current
+      recorded=$(read_source_hash "$dst")
+      current=$(file_hash "$src")
+      if [ "$recorded" != "$current" ]; then
+        echo "Drifted: $dst (source-hash mismatch)" >&2
+        has_drift=1
+      fi
+    done
+  done
+
+  if [ "$has_drift" -eq 1 ]; then
+    return 1
+  fi
+  echo "All synced files are up-to-date."
+}
 cmd_status() { echo "status not yet implemented" >&2; exit 2; }
 
 case "${1:-}" in
