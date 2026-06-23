@@ -27,6 +27,16 @@
 - shared/agents/ の編集 PR では、影響を受ける全 collection の generated を `make sync` で更新してから commit する。CI verify が忘れを構造的に防ぐ。
 - コレクション固有のエージェント（例：indie-studio の business-strategist 等）は従来通り `<collection>/agents/` に手書きで置く。shared/ と同名にしないこと。
 
+## shared/ の共有スキル
+
+- helper 系（例：start-stage-branch / finish-stage-pr）の共通スキルは `shared/skills/` を真実源とする（ADR-0005）。
+- 各コレクションは `<collection>/.claude-plugin/dependencies.json` の `shared.skills[]` で取り込み宣言する（`shared.agents[]` と同階層・任意フィールド）。
+- 取り込みの実体化は `make sync COLLECTION=<name>` で。`<collection>/skills/<name>/SKILL.md` に generated file が書き出される（frontmatter に `x-source` / `x-source-hash` / `x-body-hash` / `x-synced-at` を持つ）。
+- generated file は **手編集禁止**。shared 側を編集して `make sync` で反映。
+- `make verify` の drift 検知は agents と同型（source-hash mismatch / body modified）。
+- 当面 1 skill = 1 SKILL.md（補助ファイルは sync 対象外）。複雑な skill 構成が必要になった時点で本 ADR を拡張。
+- コレクション固有のスキルは従来通り `<collection>/skills/` に手書きで置く。shared/ と同名にしないこと（agents と同規律）。
+
 ## 既存コレクション
 
 - **`indie-studio`**：個人開発のサービス設計〜デザイン〜開発を自律で回すハーネス。設計の真実源は `indie-studio/CONTEXT.md` と `indie-studio/docs/adr/`。
