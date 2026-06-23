@@ -140,29 +140,35 @@ cmd_sync() {
     }
     collections=("$target")
   elif [ -t 0 ]; then
-    # TTY 環境では interactive picker。non-TTY (CI/pipe) では下の else に落ちて全 collection
+    # TTY 環境では interactive picker（fzf 優先 / 未インストール時は select fallback）
+    # non-TTY (CI/pipe) では下の else に落ちて全 collection
     local discovered=()
     mapfile -t discovered < <(discover_collections)
     if [ "${#discovered[@]}" -eq 0 ]; then
       echo "No collections found (no */.claude-plugin/dependencies.json)" >&2
       return 0
     fi
-    echo "Select collection to sync:" >&2
-    local PS3="#? "
     local options=("(all collections)" "${discovered[@]}")
-    local choice
-    select choice in "${options[@]}"; do
-      if [ -z "$choice" ]; then
-        echo "Invalid selection. Try again." >&2
-        continue
-      fi
-      if [ "$choice" = "(all collections)" ]; then
-        collections=("${discovered[@]}")
-      else
-        collections=("$choice")
-      fi
-      break
-    done
+    local choice=""
+    if command -v fzf >/dev/null 2>&1; then
+      # 矢印キー + fuzzy search。Esc/Ctrl-C で fzf が非 0 終了 → cancel として return
+      choice=$(printf '%s\n' "${options[@]}" | fzf --height=40% --reverse --prompt="Sync> " --no-multi) || return 0
+    else
+      echo "Select collection to sync:" >&2
+      local PS3="#? "
+      select choice in "${options[@]}"; do
+        if [ -z "$choice" ]; then
+          echo "Invalid selection. Try again." >&2
+          continue
+        fi
+        break
+      done
+    fi
+    if [ "$choice" = "(all collections)" ]; then
+      collections=("${discovered[@]}")
+    else
+      collections=("$choice")
+    fi
   else
     mapfile -t collections < <(discover_collections)
   fi

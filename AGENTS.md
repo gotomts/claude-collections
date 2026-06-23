@@ -20,7 +20,7 @@
 
 - engineering 系（executor / quality / leadership）の共通エージェントは `shared/agents/` を真実源とする（ADR-0004）。
 - 各コレクションは `<collection>/.claude-plugin/dependencies.json` の `shared.agents[]` で取り込み宣言する。
-- 取り込みの実体化は `make sync COLLECTION=<name>` で指定 collection を sync。`make sync` 単独実行時は TTY なら interactive picker（all/各 collection を選択）、非 TTY（CI/pipe）なら全 collection を一括 sync。`<collection>/agents/<name>.md` に generated file が書き出される（frontmatter に `x-source` / `x-source-hash` / `x-synced-at` を持つ）。
+- 取り込みの実体化は `make sync COLLECTION=<name>` で指定 collection を sync。`make sync` 単独実行時は TTY なら interactive picker（`fzf` インストール時は矢印キー + fuzzy search、未インストール時は番号入力 fallback）、非 TTY（CI/pipe）なら全 collection を一括 sync。`<collection>/agents/<name>.md` に generated file が書き出される（frontmatter に `x-source` / `x-source-hash` / `x-synced-at` を持つ）。
 - generated file は **手編集禁止**。shared 側を編集して `make sync` で反映させる。
 - `make verify` で drift を機械的に検知（CI も実行）。手元での確認は `make status`。
 - shared/agents/ の編集 PR では、影響を受ける全 collection の generated を `make sync` で更新してから commit する。CI verify が忘れを構造的に防ぐ。
