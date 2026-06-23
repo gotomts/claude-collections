@@ -22,7 +22,7 @@ AI 自律開発ハーネスの **サブステージ S1b（S1 / S1a 後段 → S2
 
 ## ステージ構造
 
-```
+```text
 S1 完了（anchors + planning + design/screens.md / screen-specs）
   → direction-pick 対話（3問・type-2 人間ゲート）
   → 画像 ingest（任意・画像なしも可）
@@ -126,19 +126,26 @@ components:                       # map<string, map<string, string>> 2 階層必
 
 ### 本文セクション順（spec 正規 8 + indie-studio 拡張 3）
 
+```text
+## Overview                # [必須] philosophy / vibe（prose 最上段）
+## Visual Theme & Mood     # [必須] ★indie-studio 拡張：参考画像/mood の言語化（specific reference 必須）
+## Colors                  # [必須] named hex/oklch + 用途
+## Typography              # [必須] 6 プロパティ semantic 名（h1 / body-md / label-caps 等で 9-15 levels）
+## Layout                  # [必須] base unit + 8 段階 scale（unit suffix 必須）
+## Elevation & Depth       # [必須] shadow の具体値（prose） + components 内 literal 値で散らす
+## Shapes                  # [必須] radii / border
+## Components              # [必須] 2 階層 + variant hyphen 連結。**S1a `stack-direction` の `stack.md`（提供形態）と `build-vs-buy.md`（SaaS 採用箇所）を読んでから書く**（ADR-0026）
+## Motion                  # [条件付き] ★indie-studio 拡張：実装で motion を使うなら必須（reduced-motion fallback を含む）、使わないなら省略可。duration / easing の具体値（prose のみ・YAML token 化しない）
+## Voice & Tone            # [条件付き] ★indie-studio 拡張（コピー語彙の規律が要るなら必須、ロゴ単体等なら省略可）
+## Do's and Don'ts         # [必須] anti-pattern（最後）
 ```
-## Overview                # philosophy / vibe（prose 最上段、必須）
-## Visual Theme & Mood     # ★indie-studio 拡張：参考画像/mood の言語化（specific reference 必須）
-## Colors                  # named hex/oklch + 用途
-## Typography              # 6 プロパティ semantic 名（h1 / body-md / label-caps 等で 9-15 levels）
-## Layout                  # base unit + 8 段階 scale（unit suffix 必須）
-## Elevation & Depth       # shadow の具体値（prose） + components 内 literal 値で散らす
-## Shapes                  # radii / border
-## Components              # 2 階層 + variant hyphen 連結。**S1a `stack-direction` の `stack.md`（提供形態）と `build-vs-buy.md`（SaaS 採用箇所）を読んでから書く**（ADR-0026）
-## Motion                  # ★indie-studio 拡張：duration / easing の具体値（prose のみ・YAML token 化しない）
-## Voice & Tone            # ★indie-studio 拡張（コピー語彙・呼称規約。サービス性質次第で省略可）
-## Do's and Don'ts         # anti-pattern（最後）
-```
+
+**mandatory（9 セクション） vs conditional（2 セクション）の区別**：
+
+- **mandatory（必ず生成）**：Overview / Visual Theme & Mood / Colors / Typography / Layout / Elevation & Depth / Shapes / Components / Do's and Don'ts
+- **conditional（要件が成立するときのみ生成）**：Motion（実装で motion を使うなら必須）・Voice & Tone（コピー語彙の規律が要るなら必須）
+
+条件付きの省略は理由付き `➖省略(理由)` で完全性ガードに集計する（黙って端折らない）。
 
 ### format 規約（ADR-0029）
 
@@ -170,7 +177,10 @@ components:                       # map<string, map<string, string>> 2 階層必
 
 **期待マニフェスト**（完全性ガードの基準）：
 
-- **DESIGN.md の必須セクション** ＝ YAML frontmatter ＋ Overview / Visual Theme & Mood / Colors / Typography / Layout / Elevation & Depth / Shapes / Components / Motion / Do's and Don'ts の 10 セクション。**Voice & Tone** はサービス性質次第（コピー語彙の規律が要るなら必須、ロゴ単体等なら省略可）。**Motion** は実装で motion を使うなら必須（reduced-motion fallback を含む）、使わないなら省略可。各セクションを ✅生成 / ➖省略(理由) / ⚠️未達(理由) で決着。
+- **DESIGN.md の必須要素**：
+  - **mandatory（必ず生成・YAML frontmatter ＋ 9 セクション）**：YAML frontmatter ／ Overview ／ Visual Theme & Mood ／ Colors ／ Typography ／ Layout ／ Elevation & Depth ／ Shapes ／ Components ／ Do's and Don'ts。
+  - **conditional（要件が成立するときのみ生成・2 セクション）**：`## Motion`（実装で motion を使うなら必須・reduced-motion fallback を含む）、`## Voice & Tone`（コピー語彙の規律が要るなら必須、ロゴ単体等なら省略可）。
+  - 各要素を ✅生成 / ➖省略(理由) / ⚠️未達(理由) で決着。conditional の省略は理由付き `➖` で扱う（mandatory の省略は `⚠️未達` で扱う）。
 - **HTML mock の必須要素** ＝ CSS `:root` の token 写像（DESIGN.md YAML を 1:1 kebab-case で）＋ Component gallery（button / card / chip / badge / input / FAB 等の全 variant）＋ 主要画面 1〜2 枚（`[MVP]` × `priority: high` から feature-scope 最大被覆）。
 
 **並列/直列**：画像 ingest（visual-designer）と direction-pick 序盤の anchors / design-principles 読み込みは並列可。token plan 以降は直列（compose は単一ファイル DESIGN.md への書き込みのため）。mock 生成は reviewer 合格後の直列ステップ（DESIGN.md と並列に書かない）。
@@ -179,7 +189,7 @@ components:                       # map<string, map<string, string>> 2 階層必
 2. **画像 ingest**（任意・並列可）：参考画像があれば `visual-designer` を `mode=extract` で spawn し、画像から mood / palette / typography vibe を構造化抽出。画像なしは `mode=tone-fallback` で design-principles のみから記述子抽出。
 3. **token plan**：`product-designer` を `mode=compose` で continuation 再起動し、color 4-6 hex（named）/ type 2+ roles / spacing scale / radius / signature element を内製。
 4. **AI-defaults critique**（自己 critique・必須）：plan が AI デフォルト3種に陥っていないか自答（後述）。陥っていれば plan に戻す。
-5. **compose DESIGN.md**：`product-designer` continuation で、YAML frontmatter ＋ 10〜11 セクションを **spec pin フォーマット**（ADR-0029）で `<service-repo>/DESIGN.md` に書く。フラット map / unit suffix / hyphen variant / 英語単独セクション名を守る。shadows は components 内 literal、motion は `## Motion` prose のみ。
+5. **compose DESIGN.md**：`product-designer` continuation で、YAML frontmatter ＋ **mandatory 9 セクション**（必須）＋ **conditional 2 セクション**（要件が成立するときのみ）を **spec pin フォーマット**（ADR-0029）で `<service-repo>/DESIGN.md` に書く。フラット map / unit suffix / hyphen variant / 英語単独セクション名を守る。shadows は components 内 literal、motion は `## Motion` prose のみ。
 6. **reviewer 評価ループ**（ADR-0018）：`reviewer` を spawn（fresh）し、DESIGN.md の findings を完全マニフェストで返させる（**spec compliance** を評価観点に含む）。最大 3 ラウンド差し戻し。round2-3 は continuation で凍結スコープ確認のみ。finding ごとに ✅解消 ／ ➖省略(理由) ／ ⚠️未達(理由) を決着。**mock は reviewer の評価対象外**（次ステップで別軸として視覚確認する）。
 7. **HTML mock 生成**（ADR-0030）：`ui-prototyper` を `mode=mock` で spawn（fresh）。reviewer 合格版 DESIGN.md と `screens.md` を入力に、Component gallery + 主要 1〜2 画面 hybrid を 1 ファイル統合で `<service-repo>/docs/indie-studio/design-direction/mock/<service-slug>-design-mock.html` に書き出す。token は CSS custom property に 1:1 kebab-case 写像。
 8. **視覚確認ゲート**（人間ゲート・type-2・最大 2 ループ・ADR-0030）：ディレクターが mock の path を提示し、人間に「1) OK（S2 へ進む） 2) 戻る（修正したい）」の 1 問を投げる。
@@ -222,9 +232,9 @@ components:                       # map<string, map<string, string>> 2 階層必
 
 **構造（hybrid・1 ファイル統合）**：
 
-1. **`:root` の CSS variable 写像**：DESIGN.md frontmatter の YAML token を CSS custom property に 1:1 kebab-case で写す（`colors.text-primary` → `--color-text-primary`、`components.button-primary.backgroundColor` → `--button-primary-bg` 等）。shadows / motion は DESIGN.md の prose を読んで CSS variable 化する（`--shadow-sm` / `--motion-quick-duration` 等）。
+1. **`:root` の CSS variable 写像**：DESIGN.md frontmatter の YAML token を CSS custom property に 1:1 kebab-case で写す（`colors.text-primary` → `--color-text-primary`、`components.button-primary.backgroundColor` → `--button-primary-background-color` 等。**property 名は短縮しない**＝1:1 reversible mapping のため）。shadows / motion は DESIGN.md の prose を読んで CSS variable 化する（`--shadow-sm` / `--motion-quick-duration` 等）。
 2. **Component gallery**：button / card / chip / badge / input / FAB の **全 variant**（primary / secondary / icon / destructive・hover / focus / disabled・public / private / draft 等）を並べて表示。
-3. **主要画面 1〜2 枚**：`screens.md` から `[MVP]` × `priority: high` × **feature-scope の `[作る]` 機能を最大被覆**する screen を選ぶ。該当画面がない場合は area prefix の core から各 1 枚（最大 4 枚まで）。
+3. **主要画面 1〜2 枚**：`screens.md` から `[MVP]` × `priority: high` × **feature-scope の `[作る]` 機能を最大被覆**する screen を選ぶ。該当画面がない場合は area prefix の core から 1〜2 枚（**最大 2 枚まで**＝Component gallery + 1〜2 key screens の hybrid 構成と整合）。
 4. **device frame**：iPhone 14 Pro 390×844 / Android Pixel 7 412×915 等の viewport で枠を見せる（proto-fidelity 表現）。
 
 **配置先**：`<service-repo>/docs/indie-studio/design-direction/mock/<service-slug>-design-mock.html`（ADR-0028 namespace + ADR-0030）。複数 mock を作る場合は `<service-slug>-design-mock-<screen>.html`。
@@ -269,7 +279,7 @@ components:                       # map<string, map<string, string>> 2 階層必
 
 ## 出力レイアウト
 
-```
+```text
 <service-repo>/
 ├── DESIGN.md                                # 本スキルの主成果物その 1（repo-root・ADR-0020）
 └── docs/
@@ -288,7 +298,7 @@ components:                       # map<string, map<string, string>> 2 階層必
 
 ## 品質バー（端折り禁止）
 
-- 「minimal」は人間の入力最小化を指し、**導出物の最小化ではない**（ADR-0011）。10〜11 セクション + mock の必須要素を端折らない。
+- 「minimal」は人間の入力最小化を指し、**導出物の最小化ではない**（ADR-0011）。mandatory 9 セクション + mock の必須要素を端折らない。conditional 2 セクション（Motion / Voice & Tone）の省略は ➖省略(理由) で完全性ガードに通す。
 - 抽象語で止めない（"modern" / "clean" / "trustworthy" → 具体トークンと specific reference まで）。
 - DESIGN.md は **prose first, tokens second**（Google Labs PHILOSOPHY.md）。トークン値だけのファイルにしない。
 - 形容詞列挙の罠を避ける：必ず 1 つは固有名（人物・作品・年代・出典）を出す。

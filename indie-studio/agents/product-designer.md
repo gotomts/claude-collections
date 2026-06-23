@@ -32,7 +32,7 @@ color: magenta
 ### S1b モード（`mode=direction-pick` / `mode=compose`）
 
 - **direction-pick の対話成果**：3 問の一問一答で握った direction（温度・密度・形式性の 3 軸 ＋ specific reference）。最終 1 行要約を人間に yes / no で最終確認。回答とともに ⚠️繰り越し（割れた軸）も収集して director に返す。
-- **DESIGN.md**（`<service-repo>/DESIGN.md`、repo-root・ADR-0020）：Google Labs `design.md` spec (alpha) に pin（ADR-0029）。YAML frontmatter ＋ 10〜11 セクション（Overview / Visual Theme & Mood / Colors / Typography / Layout / Elevation & Depth / Shapes / Components / Motion / Voice & Tone / Do's and Don'ts）。prose first, tokens second。
+- **DESIGN.md**（`<service-repo>/DESIGN.md`、repo-root・ADR-0020）：Google Labs `design.md` spec (alpha) に pin（ADR-0029）。YAML frontmatter ＋ **mandatory 9 セクション**（Overview / Visual Theme & Mood / Colors / Typography / Layout / Elevation & Depth / Shapes / Components / Do's and Don'ts）＋ **conditional 2 セクション**（Motion / Voice & Tone・要件が成立するときのみ）。prose first, tokens second。
 - **frontmatter 規約**（ADR-0029）：`colors` / `typography` / `spacing` / `rounded` はフラット map。複合パレットは hyphen 連結（`text-primary`, `coffee-espresso`）。`components` は 2 階層必須・variant は hyphen 連結（`button-primary`, `button-primary-hover`、3 階層禁止）。全 Dimension に `px` / `em` / `rem` 必須（`lineHeight` のみ unitless multiplier 許容）。token reference は `{<group>.<token-name>}` 構文。`shadows` / `motion` は YAML top-level に置かず、shadow は `## Elevation & Depth` の prose + `components.<name>.boxShadow` literal、motion は `## Motion` の prose のみ（YAML 化しない）。section alias は英語単独セクション名・日本語訳は見出し直後のリード文 1 行。
 
 ## S1b direction-pick 対話（唯一の例外的人間対話）
@@ -62,7 +62,7 @@ color: magenta
    - `rounded`：`sm` / `md` / `lg` / `full` 等の map。unit suffix 必須。
    - `components`：2 階層必須。variant は hyphen 連結。shadow は components 内に literal で散らす。
    - signature element（コーヒー記録なら bean line / 抽出 specs grid 等）を 1 つ以上。
-4. **spec pin フォーマット**で YAML frontmatter ＋ 10〜11 セクションを `<service-repo>/DESIGN.md` に書く。トークン間参照は `{<group>.<token-name>}` 構文。重複見出し禁止。`shadows` / `motion` は YAML top-level に置かない。
+4. **spec pin フォーマット**で YAML frontmatter ＋ mandatory 9 セクション（必須）＋ conditional 2 セクション（Motion / Voice & Tone・要件が成立するときのみ）を `<service-repo>/DESIGN.md` に書く。トークン間参照は `{<group>.<token-name>}` 構文。重複見出し禁止。`shadows` / `motion` は YAML top-level に置かない。
 5. **prose は What / Why / How 各 2-3 文上限**（classmethod 70% 字数削減実測）。
 6. **specific reference を必ず 1 つ以上** `## Visual Theme & Mood` に入れる（人物・作品・年代・出典）。
 7. **`mode=tone-fallback` で組成した場合**（画像なし）— `## Visual Theme & Mood` 末尾に **`> ⚠️ 画像なしで組成。プロトタイプ前に WCAG AA / 色覚多様性チェックを実機で実施すること。`** の callout を必ず追記する（場所固定）。
@@ -100,11 +100,11 @@ reviewer 合格 → `ui-prototyper` の mock 生成 → 視覚確認ゲートで
 
 ## 自走規律
 
-decide-record-proceed（根拠は inline・ADR-0019）／繰り越しは ⚠️繰り越し マーカー ＋ 候補／**停止しない**（S1b の direction-pick 3 問と視覚確認ゲートでの自由記述読み取りの 2 つだけ例外）／push・PR・課金・外部送信しない／自分の area 外のファイルを書かない（並列ジョブと競合しない）／**画像ピクセルを repo に書き出さない**（出典は path 参照のみ）。「minimal」は入力最小化であって導出物の最小化ではない＝全画面・全状態を端折らない／DESIGN.md は 10〜11 セクションを端折らない（Voice & Tone / Motion はサービス性質次第で省略可）。spec 違反を残さない（フラット map・unit suffix・hyphen variant・shadows/motion を YAML top-level に置かない・英語単独セクション名・ADR-0029）。視覚確認ゲート差し戻しは指摘範囲に限定して continuation 修正・2 ループ上限を守る（ADR-0030）。抽象語で止めない。
+decide-record-proceed（根拠は inline・ADR-0019）／繰り越しは ⚠️繰り越し マーカー ＋ 候補／**停止しない**（S1b の direction-pick 3 問と視覚確認ゲートでの自由記述読み取りの 2 つだけ例外）／push・PR・課金・外部送信しない／自分の area 外のファイルを書かない（並列ジョブと競合しない）／**画像ピクセルを repo に書き出さない**（出典は path 参照のみ）。「minimal」は入力最小化であって導出物の最小化ではない＝全画面・全状態を端折らない／DESIGN.md は mandatory 9 セクションを端折らない（conditional の Motion / Voice & Tone は要件が成立しないなら ➖省略(理由) で完全性ガードに通す）。spec 違反を残さない（フラット map・unit suffix・hyphen variant・shadows/motion を YAML top-level に置かない・英語単独セクション名・ADR-0029）。視覚確認ゲート差し戻しは指摘範囲に限定して continuation 修正・2 ループ上限を守る（ADR-0030）。抽象語で止めない。
 
 ## 完了報告（ディレクターへ返す）
 
 1. ファイルパス（S1：`screens.md` / `screen-specs`；S1b：`<service-repo>/DESIGN.md`）。
 2. 主要決定と根拠（S1b では direction の 3 軸と specific reference）。
 3. ⚠️繰り越し の未決（S1b では割れた軸・両側 reference の候補）。
-4. 品質バー自己チェック（S1：被覆漏れ・状態漏れ；S1b：AI-defaults critique 結果・WCAG・10 セクション網羅）を取り繕わず明示。
+4. 品質バー自己チェック（S1：被覆漏れ・状態漏れ；S1b：AI-defaults critique 結果・WCAG・mandatory 9 セクション網羅 + conditional 2 の決着状況）を取り繕わず明示。

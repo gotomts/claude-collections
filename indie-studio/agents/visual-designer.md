@@ -49,7 +49,7 @@ color: cyan
 - 各 token の用途と理由
 ### `## Typography`（semantic 名でフラット map・各 token に 6 プロパティ）
 - `h1` / `h2` / `body-md` / `body-sm` / `label-caps` / `label-md` 等の token 名候補
-- 各 token の fontFamily / fontSize（unit suffix 付き・px/em/rem）/ fontWeight / lineHeight / letterSpacing 案
+- 各 token の fontFamily / fontSize（unit suffix 付き・px/em/rem）/ fontWeight / lineHeight / letterSpacing / fontFeature 案（mono 系で `tnum` 等を使うなら fontFeature を必ず明示）
 ### `## Components` への影響（2 階層・variant hyphen 連結）
 - `button-primary` / `button-primary-hover` / `card` / `card-hover` 等の variant 名候補
 - radii・shadow tone・padding 等の示唆（shadow は components 内 literal で散らす方針・YAML top-level に置かない）

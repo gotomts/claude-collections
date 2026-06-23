@@ -41,7 +41,7 @@ DESIGN.md frontmatter の YAML token を CSS custom property に **1:1 kebab-cas
 | `typography.<token-name>.letterSpacing` | `--type-<token-name>-letter-spacing` |
 | `spacing.<scale-level>` | `--space-<scale-level>` |
 | `rounded.<scale-level>` | `--radius-<scale-level>` |
-| `components.<component-name>.<property>` | `--<component-name>-<property-kebab>`（例：`button-primary.backgroundColor` → `--button-primary-bg`・読みやすさ優先で短縮可・ただし mock 内で一貫させる） |
+| `components.<component-name>.<property>` | `--<component-name>-<property-kebab>`（例：`button-primary.backgroundColor` → `--button-primary-background-color`、`card.boxShadow` → `--card-box-shadow`。**property 名は短縮しない**＝DESIGN.md YAML ↔ mock CSS variable の 1:1 reversible mapping を保つため） |
 
 **shadows / motion の扱い**（ADR-0029 の `## Elevation & Depth` / `## Motion` セクション prose から拾う）：
 
@@ -69,7 +69,7 @@ DESIGN.md で定義されていない variant を勝手に発明しない（**mo
 `screens.md` から以下の優先順で 1〜2 画面を選ぶ：
 
 1. **第一条件**：`[MVP]` × `priority: high` × **feature-scope の `[作る]` 機能を最大被覆**する screen。
-2. **該当が無い / 1 画面しか取れない場合**：area prefix の core から各 1 枚（最大 4 枚まで）。
+2. **該当が無い / 1 画面しか取れない場合**：area prefix の core から 1〜2 枚（**最大 2 枚まで**＝Component gallery + 1〜2 key screens の hybrid 構成と整合）。
 3. **iOS と Android の両方が提供形態の場合**：iOS の HIG button / navigation 慣習を採用した version で組む（提供形態がどちらかに偏っている場合はそちらに合わせる）。
 4. **device frame**：iPhone 14 Pro 390×844 / Android Pixel 7 412×915 等の viewport で枠を見せる。Web 提供形態なら 1200px max-width の desktop frame で。
 
@@ -102,7 +102,7 @@ DESIGN.md で定義されていない variant を勝手に発明しない（**mo
       /* page chrome (mockup viewing only) */
       body { background: #ECEAE3; ... }
       /* component styles */
-      .button-primary { background: var(--button-primary-bg); ... }
+      .button-primary { background-color: var(--button-primary-background-color); ... }
       ...
       /* device frame */
       .device { width: 390px; height: 844px; ... }
