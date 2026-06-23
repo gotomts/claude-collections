@@ -267,6 +267,12 @@ cmd_verify() {
       current_body=$(body_hash "$dst")
       if [ -n "$recorded_body" ] && [ "$recorded_body" != "$current_body" ]; then
         echo "Edited: $dst (body modified — revert via 'git checkout $dst' or move change to shared/)" >&2
+        echo "  DEBUG recorded=$recorded_body" >&2
+        echo "  DEBUG current=$current_body" >&2
+        echo "  DEBUG body line count: $(awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2{c++} END{print c+0}' "$dst")" >&2
+        echo "  DEBUG body byte size: $(awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2{print}' "$dst" | wc -c | tr -d ' ')" >&2
+        echo "  DEBUG awk version: $(awk --version 2>&1 | head -1 || echo unknown)" >&2
+        echo "  DEBUG locale: LC_ALL=${LC_ALL:-unset} LANG=${LANG:-unset}" >&2
         has_drift=1
       fi
     done
