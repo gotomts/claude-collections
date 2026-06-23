@@ -276,6 +276,10 @@ cmd_verify() {
         echo "  DEBUG body byte size: $(awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2{print}' "$dst" | wc -c | tr -d ' ')" >&2
         echo "  DEBUG body first 3 lines (xxd):" >&2
         awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2{print}' "$dst" | head -3 | xxd | head -10 >&2 || true
+        echo "  DEBUG body last 5 lines (xxd):" >&2
+        awk 'BEGIN{fm=0} /^---$/{fm++; next} fm>=2{print}' "$dst" | tail -5 | xxd | head -20 >&2 || true
+        echo "  DEBUG dst file last 200 bytes (xxd):" >&2
+        tail -c 200 "$dst" | xxd >&2 || true
         echo "  DEBUG awk version: $(awk --version 2>&1 | head -1 || echo unknown)" >&2
         echo "  DEBUG locale: LC_ALL=${LC_ALL:-unset} LANG=${LANG:-unset}" >&2
         has_drift=1
