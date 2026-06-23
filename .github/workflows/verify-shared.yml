@@ -1,0 +1,20 @@
+name: verify-shared
+on:
+  pull_request:
+    paths:
+      - 'shared/**'
+      - '**/dependencies.json'
+      - '**/agents/**'
+      - 'scripts/sync-shared.sh'
+      - 'Makefile'
+      - '.github/workflows/verify-shared.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Verify shared sync
+        run: make verify
