@@ -89,10 +89,21 @@ sync_one() {
   hash=$(file_hash "$src")
   now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
+  # Idempotent skip: if dst already has matching source-hash, preserve as-is
+  if [ -f "$dst" ] && is_generated "$dst"; then
+    local existing_hash
+    existing_hash=$(read_source_hash "$dst")
+    if [ "$existing_hash" = "$hash" ]; then
+      echo "  unchanged: $dst"
+      return 0
+    fi
+  fi
+
   mkdir -p "$collection/agents"
 
-  # frontmatter parse: 元の x-source/x-source-hash/x-synced-at は削ぎ落として再注入
-  awk -v src="$src" -v hash="$hash" -v now="$now" '
+  local tmp="$dst.tmp.$$"
+
+  if ! awk -v src="$src" -v hash="$hash" -v now="$now" '
     BEGIN { fm_state = 0 }
     NR == 1 && /^---$/ { fm_state = 1; print; next }
     fm_state == 1 && /^---$/ {
@@ -105,7 +116,16 @@ sync_one() {
     }
     fm_state == 1 && /^x-source:|^x-source-hash:|^x-synced-at:/ { next }
     { print }
-  ' "$src" > "$dst"
+    END {
+      if (fm_state != 2) exit 3
+    }
+  ' "$src" > "$tmp"; then
+    rm -f "$tmp"
+    echo "Malformed source: $src (no closing --- delimiter)" >&2
+    return 2
+  fi
+
+  mv "$tmp" "$dst"
 
   echo "  synced: $dst"
 }
@@ -129,12 +149,14 @@ cmd_sync() {
     local agents=()
     mapfile -t agents < <(read_picked_agents "$dep")
 
-    # 重複検知
-    local uniq_count
-    uniq_count=$(printf "%s\n" "${agents[@]}" | sort -u | wc -l | tr -d ' ')
-    if [ "$uniq_count" -ne "${#agents[@]}" ]; then
-      echo "dependencies.json: duplicate agent name in $dep" >&2
-      exit 2
+    # Duplicate check (only meaningful with at least 1 element)
+    if [ "${#agents[@]}" -gt 0 ]; then
+      local uniq_count
+      uniq_count=$(printf "%s\n" "${agents[@]}" | sort -u | wc -l | tr -d ' ')
+      if [ "$uniq_count" -ne "${#agents[@]}" ]; then
+        echo "dependencies.json: duplicate agent name in $dep" >&2
+        exit 2
+      fi
     fi
 
     echo "$collection:"
