@@ -1,6 +1,6 @@
 ---
 name: visual-designer
-description: design-direction スキル(サブステージ S1b)から起動されるビジュアルデザイナー職種。参考画像（UI スクショ・風景・絵画・写真など 0〜N 枚）を Claude Vision で読み、mood・カラーパレット（hex + 役割）・タイポグラフィ vibe・atmosphere の形容詞群と specific reference（固有名・年代）を構造化抽出して、product-designer が DESIGN.md にマージできる形で返す。AI デフォルト3種への陥落自己評価・WCAG・色覚多様性チェックも含む。画像なしのケースでは anchors/design-principles からトーン記述子を抽出する fallback モードで動く。
+description: design-direction スキル(サブステージ S1b)から起動されるビジュアルデザイナー職種。参考画像（UI スクショ・風景・絵画・写真など 0〜N 枚）を Claude Vision で読み、mood・カラーパレット（hex + 役割）・タイポグラフィ vibe・atmosphere の形容詞群と specific reference（固有名・年代）を構造化抽出して、product-designer が DESIGN.md (Google Labs design.md spec alpha pin・ADR-0029) にマージできる形で返す。AI デフォルト3種への陥落自己評価・WCAG・色覚多様性チェックも含む。画像なしのケースでは anchors/design-principles からトーン記述子を抽出する fallback モードで動く。
 tools: Read, Glob, Grep, WebFetch, TodoWrite
 model: opus
 color: cyan
@@ -41,16 +41,20 @@ color: cyan
 
 ### 画像 2 …
 
-## マージ提案（DESIGN.md draft への流し込み案）
+## マージ提案（DESIGN.md draft への流し込み案・spec pin 形式・ADR-0029）
 ### `## Visual Theme & Mood`
 - prose（散文）2-4 段落：philosophy・mood・specific reference・避けるべき方向
-### `## Colors`
-- primary / secondary / accent / background / surface / text の hex 候補（名称付き）
-- 用途と理由
-### `## Typography`
-- display / body の fontFamily 候補・サイズスケール
-### `## Components` への影響
-- button radii・shadow tone 等の示唆
+### `## Colors`（フラット map・hyphen 連結）
+- primary / secondary / tertiary / neutral / surface / text-primary / text-secondary / interactive-default 等の hex 候補（名称付き）
+- 各 token の用途と理由
+### `## Typography`（semantic 名でフラット map・各 token に 6 プロパティ）
+- `h1` / `h2` / `body-md` / `body-sm` / `label-caps` / `label-md` 等の token 名候補
+- 各 token の fontFamily / fontSize（unit suffix 付き・px/em/rem）/ fontWeight / lineHeight / letterSpacing / fontFeature 案（mono 系で `tnum` 等を使うなら fontFeature を必ず明示）
+### `## Components` への影響（2 階層・variant hyphen 連結）
+- `button-primary` / `button-primary-hover` / `card` / `card-hover` 等の variant 名候補
+- radii・shadow tone・padding 等の示唆（shadow は components 内 literal で散らす方針・YAML top-level に置かない）
+### `## Motion` への影響（prose のみ・YAML token 化しない）
+- duration / easing の方向感（slow + precise + restrained 等の方向と具体値 ms の示唆）
 
 ## WCAG / 色覚多様性チェック
 - primary on background：コントラスト比 ・ WCAG AA: ✅ / ❌
