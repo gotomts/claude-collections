@@ -1,19 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Prereq: bash 4+ (mapfile を使うため。macOS デフォルトは 3.2)
 if ((BASH_VERSINFO[0] < 4)); then
   echo "bash 4+ required (macOS default is 3.2 — install via: brew install bash)" >&2
   exit 2
 fi
 
-# Move to repo root (cwd 非依存にするため)
 cd "$(git rev-parse --show-toplevel 2>/dev/null)" || {
   echo "Error: not in a git repository" >&2
   exit 2
 }
 
-# Prereq: jq
 command -v jq >/dev/null 2>&1 || {
   echo "jq is required. Install via: brew install jq" >&2
   exit 2
@@ -31,7 +28,123 @@ EOF
   exit 2
 }
 
-cmd_sync()   { echo "sync not yet implemented" >&2; exit 2; }
+# OS 差を吸収（macOS: shasum、Linux: sha256sum）
+if command -v sha256sum >/dev/null 2>&1; then
+  _sha256() { sha256sum "$1" | awk '{print $1}'; }
+else
+  _sha256() { shasum -a 256 "$1" | awk '{print $1}'; }
+fi
+
+file_hash() {
+  echo "sha256:$(_sha256 "$1")"
+}
+
+# *.claude-plugin/dependencies.json を持つ collection を発見
+discover_collections() {
+  for dep in */.claude-plugin/dependencies.json; do
+    [ -f "$dep" ] || continue
+    dirname "$(dirname "$dep")"
+  done
+}
+
+# dependencies.json の shared.agents[] を読む（重複検知付き）
+read_picked_agents() {
+  local dep_file="$1"
+  jq -e '.shared.agents | type == "array"' "$dep_file" >/dev/null 2>&1 || {
+    echo "dependencies.json: shared.agents must be an array ($dep_file)" >&2
+    return 2
+  }
+  jq -r '.shared.agents[]' "$dep_file"
+}
+
+# generated file かどうか（frontmatter に x-source 行があれば true）
+is_generated() {
+  local file="$1"
+  [ -f "$file" ] && head -50 "$file" | grep -q '^x-source:'
+}
+
+# generated file から x-source-hash 行を取り出す
+read_source_hash() {
+  head -50 "$1" | awk '/^x-source-hash:/ {print $2; exit}'
+}
+
+# 1 エージェントを 1 collection に sync
+sync_one() {
+  local collection="$1"
+  local name="$2"
+  local src="shared/agents/$name.md"
+  local dst="$collection/agents/$name.md"
+
+  if [ ! -f "$src" ]; then
+    echo "Unknown agent: $name (not in shared/agents/)" >&2
+    return 2
+  fi
+
+  if [ -f "$dst" ] && ! is_generated "$dst"; then
+    echo "Collision: $dst exists as handwritten file. Either rename it or remove from dependencies.json." >&2
+    return 2
+  fi
+
+  local hash now
+  hash=$(file_hash "$src")
+  now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+  mkdir -p "$collection/agents"
+
+  # frontmatter parse: 元の x-source/x-source-hash/x-synced-at は削ぎ落として再注入
+  awk -v src="$src" -v hash="$hash" -v now="$now" '
+    BEGIN { fm_state = 0 }
+    NR == 1 && /^---$/ { fm_state = 1; print; next }
+    fm_state == 1 && /^---$/ {
+      print "x-source: " src
+      print "x-source-hash: " hash
+      print "x-synced-at: " now
+      print
+      fm_state = 2
+      next
+    }
+    fm_state == 1 && /^x-source:|^x-source-hash:|^x-synced-at:/ { next }
+    { print }
+  ' "$src" > "$dst"
+
+  echo "  synced: $dst"
+}
+
+cmd_sync() {
+  local target="${1:-}"
+  local collections=()
+  if [ -n "$target" ]; then
+    [ -f "$target/.claude-plugin/dependencies.json" ] || {
+      echo "Error: $target/.claude-plugin/dependencies.json not found" >&2
+      exit 2
+    }
+    collections=("$target")
+  else
+    mapfile -t collections < <(discover_collections)
+  fi
+
+  local collection
+  for collection in "${collections[@]}"; do
+    local dep="$collection/.claude-plugin/dependencies.json"
+    local agents=()
+    mapfile -t agents < <(read_picked_agents "$dep")
+
+    # 重複検知
+    local uniq_count
+    uniq_count=$(printf "%s\n" "${agents[@]}" | sort -u | wc -l | tr -d ' ')
+    if [ "$uniq_count" -ne "${#agents[@]}" ]; then
+      echo "dependencies.json: duplicate agent name in $dep" >&2
+      exit 2
+    fi
+
+    echo "$collection:"
+    local name
+    for name in "${agents[@]}"; do
+      sync_one "$collection" "$name"
+    done
+  done
+}
+
 cmd_verify() { echo "verify not yet implemented" >&2; exit 2; }
 cmd_status() { echo "status not yet implemented" >&2; exit 2; }
 
