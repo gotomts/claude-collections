@@ -290,6 +290,15 @@ cmd_verify() {
         ls -la "$dst" >&2
         echo "  DEBUG diff between git blob and working tree (first 5 lines):" >&2
         diff <(git show HEAD:"$dst") "$dst" | head -10 >&2 || true
+        echo "  DEBUG HEAD commit: $(git rev-parse HEAD)" >&2
+        echo "  DEBUG git cat-file size of blob: $(git cat-file -s HEAD:"$dst")" >&2
+        echo "  DEBUG cat-file content sha256: $(git cat-file -p HEAD:"$dst" | _sha256)" >&2
+        echo "  DEBUG check git attributes:" >&2
+        git check-attr -a "$dst" >&2 || true
+        echo "  DEBUG check all gitattributes files:" >&2
+        find / -name .gitattributes 2>/dev/null | head -5 >&2 || true
+        echo "  DEBUG git config --get-all core.attributesfile:" >&2
+        git config --get-all core.attributesfile >&2 || true
         echo "  DEBUG awk version: $(awk --version 2>&1 | head -1 || echo unknown)" >&2
         echo "  DEBUG locale: LC_ALL=${LC_ALL:-unset} LANG=${LANG:-unset}" >&2
         has_drift=1
