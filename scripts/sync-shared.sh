@@ -139,6 +139,30 @@ cmd_sync() {
       exit 2
     }
     collections=("$target")
+  elif [ -t 0 ]; then
+    # TTY 環境では interactive picker。non-TTY (CI/pipe) では下の else に落ちて全 collection
+    local discovered=()
+    mapfile -t discovered < <(discover_collections)
+    if [ "${#discovered[@]}" -eq 0 ]; then
+      echo "No collections found (no */.claude-plugin/dependencies.json)" >&2
+      return 0
+    fi
+    echo "Select collection to sync:" >&2
+    local PS3="#? "
+    local options=("(all collections)" "${discovered[@]}")
+    local choice
+    select choice in "${options[@]}"; do
+      if [ -z "$choice" ]; then
+        echo "Invalid selection. Try again." >&2
+        continue
+      fi
+      if [ "$choice" = "(all collections)" ]; then
+        collections=("${discovered[@]}")
+      else
+        collections=("$choice")
+      fi
+      break
+    done
   else
     mapfile -t collections < <(discover_collections)
   fi
