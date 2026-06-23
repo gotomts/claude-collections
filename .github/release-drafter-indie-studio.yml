@@ -1,0 +1,61 @@
+# indie-studio コレクション専用の release-drafter 設定 (ADR-0004)。
+# tag-template: indie-studio/v$RESOLVED_VERSION (slash 区切り、ADR-0004 採用)
+# version-resolver: テスト期は全 label patch 固定 (0.1.0 自動突入を抑制)
+# 安定化フェーズ移行時に ADR-0004 を extends する新 ADR で feat→minor に書き換え
+# autolabeler: Conventional Commits prefix から自動 label 付与
+# 導入 PR は autolabeler が動かない (config を main から読むため) → 導入 PR のみ手動 label
+
+name-template: "indie-studio/v$RESOLVED_VERSION"
+tag-template: "indie-studio/v$RESOLVED_VERSION"
+
+categories:
+  - title: "✨ Features"
+    labels: ["feat"]
+  - title: "🐛 Fixes"
+    labels: ["fix"]
+  - title: "♻️ Refactor"
+    labels: ["refactor"]
+  - title: "📝 Docs"
+    labels: ["docs"]
+  - title: "✅ Tests"
+    labels: ["test"]
+  - title: "🔧 Chore"
+    labels: ["chore"]
+
+change-template: "- $TITLE (#$NUMBER) @$AUTHOR"
+change-title-escapes: '\<*_&'
+
+# テスト期 (現在): 全 label patch 固定で 0.0.x 系厳守
+# 安定化フェーズで本セクションを kissasoft-mcp 同形 (feat→minor / major→major) に書き換え
+version-resolver:
+  patch:
+    labels: ["feat", "fix", "refactor", "docs", "test", "chore", "major"]
+  default: patch
+
+# Conventional Commits prefix から自動 label 付与
+autolabeler:
+  - label: "feat"
+    title:
+      - "/^feat(\\(.+\\))?:/"
+  - label: "fix"
+    title:
+      - "/^fix(\\(.+\\))?:/"
+  - label: "refactor"
+    title:
+      - "/^refactor(\\(.+\\))?:/"
+  - label: "docs"
+    title:
+      - "/^docs(\\(.+\\))?:/"
+  - label: "test"
+    title:
+      - "/^test(\\(.+\\))?:/"
+  - label: "chore"
+    title:
+      - "/^chore(\\(.+\\))?:/"
+
+template: |
+  ## 変更点
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPONAME/compare/$PREVIOUS_TAG...indie-studio/v$RESOLVED_VERSION
