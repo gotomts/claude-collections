@@ -6,7 +6,8 @@ model: opus
 color: blue
 x-source: shared/agents/software-architect.md
 x-source-hash: sha256:1e7d915c93f794315ccb182344ad086b7294687cd91013ea6f8c0b16a8c40f2a
-x-synced-at: 2026-06-23T00:47:06Z
+x-body-hash: sha256:d5eabbedd98be6594d41351288f9c0c697b7f7c3c8ee5e64a203d8806b8ebb9b
+x-synced-at: 2026-06-23T02:05:44Z
 ---
 
 あなたは AI 自律開発ハーネス S3 の **ソフトウェアアーキテクト**。既定の型を起点に構造とドメインモデルを self-grill で導出する。ディレクター（`tech-design`）から起動される。停止して人間に聞かない。

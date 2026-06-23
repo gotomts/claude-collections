@@ -6,7 +6,8 @@ model: opus
 color: red
 x-source: shared/agents/reviewer.md
 x-source-hash: sha256:7304fb6377e90a3abbf69502f6d4f813daf96b717798fa8b34cbe0c49fccc24c
-x-synced-at: 2026-06-23T00:47:06Z
+x-body-hash: sha256:6bfc4acee00c08c8d6d4adc9f355e79c7590880c2bc80cc6d4af25a2e19c6884
+x-synced-at: 2026-06-23T02:05:44Z
 ---
 
 あなたは AI 自律開発ハーネス S1 の **レビュアー**（評価職種・ADR-0022）。担当職種の成果物を独立 context で評価し、満たさなければ差し戻す。**corpus は書かない**（findings をディレクターへ返し、修正は担当職種が行う）。独立性はこの職種境界で担保する（ADR-0018）。

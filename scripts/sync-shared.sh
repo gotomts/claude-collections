@@ -28,15 +28,27 @@ EOF
   exit 2
 }
 
-# OS 差を吸収（macOS: shasum、Linux: sha256sum）
+# OS 差を吸収（macOS: shasum、Linux: sha256sum）。引数なしで呼ぶと stdin を読む
 if command -v sha256sum >/dev/null 2>&1; then
-  _sha256() { sha256sum "$1" | awk '{print $1}'; }
+  _sha256() { sha256sum "$@" | awk '{print $1}'; }
 else
-  _sha256() { shasum -a 256 "$1" | awk '{print $1}'; }
+  _sha256() { shasum -a 256 "$@" | awk '{print $1}'; }
 fi
 
+# ファイル全体の hash
 file_hash() {
   echo "sha256:$(_sha256 "$1")"
+}
+
+# body 部分（closing --- 以降）の hash。手編集検知用
+body_hash() {
+  local h
+  h=$(awk '
+    BEGIN { fm = 0 }
+    /^---$/ { fm++; next }
+    fm >= 2 { print }
+  ' "$1" | _sha256)
+  echo "sha256:$h"
 }
 
 # *.claude-plugin/dependencies.json を持つ collection を発見
@@ -68,6 +80,11 @@ read_source_hash() {
   head -50 "$1" | awk '/^x-source-hash:/ {print $2; exit}'
 }
 
+# generated file から x-body-hash 行を取り出す（古い generated file には無い場合あり、その時は empty）
+read_body_hash() {
+  head -50 "$1" | awk '/^x-body-hash:/ {print $2; exit}'
+}
+
 # 1 エージェントを 1 collection に sync
 sync_one() {
   local collection="$1"
@@ -85,15 +102,19 @@ sync_one() {
     return 2
   fi
 
-  local hash now
+  local hash bhash now
   hash=$(file_hash "$src")
+  bhash=$(body_hash "$src")
   now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-  # Idempotent skip: if dst already has matching source-hash, preserve as-is
+  # Idempotent skip: dst の source-hash と body-hash が両方一致しているなら書き直さない
+  # body-hash が一致していない場合は master always wins で上書き（手編集を検知したい場合は verify を使う）
   if [ -f "$dst" ] && is_generated "$dst"; then
-    local existing_hash
+    local existing_hash existing_bhash dst_bhash
     existing_hash=$(read_source_hash "$dst")
-    if [ "$existing_hash" = "$hash" ]; then
+    existing_bhash=$(read_body_hash "$dst")
+    dst_bhash=$(body_hash "$dst")
+    if [ "$existing_hash" = "$hash" ] && [ -n "$existing_bhash" ] && [ "$existing_bhash" = "$dst_bhash" ]; then
       echo "  unchanged: $dst"
       return 0
     fi
@@ -103,18 +124,19 @@ sync_one() {
 
   local tmp="$dst.tmp.$$"
 
-  if ! awk -v src="$src" -v hash="$hash" -v now="$now" '
+  if ! awk -v src="$src" -v hash="$hash" -v bhash="$bhash" -v now="$now" '
     BEGIN { fm_state = 0 }
     NR == 1 && /^---$/ { fm_state = 1; print; next }
     fm_state == 1 && /^---$/ {
       print "x-source: " src
       print "x-source-hash: " hash
+      print "x-body-hash: " bhash
       print "x-synced-at: " now
       print
       fm_state = 2
       next
     }
-    fm_state == 1 && /^x-source:|^x-source-hash:|^x-synced-at:/ { next }
+    fm_state == 1 && /^x-source:|^x-source-hash:|^x-body-hash:|^x-synced-at:/ { next }
     { print }
     END {
       if (fm_state != 2) exit 3
@@ -231,11 +253,20 @@ cmd_verify() {
         has_drift=1
         continue
       fi
-      local recorded current
-      recorded=$(read_source_hash "$dst")
-      current=$(file_hash "$src")
-      if [ "$recorded" != "$current" ]; then
-        echo "Drifted: $dst (source-hash mismatch)" >&2
+      local recorded_src current_src
+      recorded_src=$(read_source_hash "$dst")
+      current_src=$(file_hash "$src")
+      if [ "$recorded_src" != "$current_src" ]; then
+        echo "Drifted: $dst (source-hash mismatch — shared/ updated, run 'make sync')" >&2
+        has_drift=1
+      fi
+
+      # Body 手編集検知（x-body-hash が無い古い generated file はスキップ、次回 sync で付与される）
+      local recorded_body current_body
+      recorded_body=$(read_body_hash "$dst")
+      current_body=$(body_hash "$dst")
+      if [ -n "$recorded_body" ] && [ "$recorded_body" != "$current_body" ]; then
+        echo "Edited: $dst (body modified — revert via 'git checkout $dst' or move change to shared/)" >&2
         has_drift=1
       fi
     done
@@ -265,7 +296,7 @@ cmd_status() {
     local agents=()
     mapfile -t agents < <(read_picked_agents "$dep")
     echo "$collection:"
-    local synced=0 drifted=0 missing=0
+    local synced=0 drifted=0 edited=0 missing=0
     for name in "${agents[@]}"; do
       local dst="$collection/agents/$name.md"
       local src="shared/agents/$name.md"
@@ -278,18 +309,29 @@ cmd_status() {
         missing=$((missing+1))
         continue
       fi
-      local recorded current
-      recorded=$(read_source_hash "$dst")
-      current=$(file_hash "$src")
-      if [ "$recorded" = "$current" ]; then
-        printf "  ✓ %-25s (synced)\n" "$name"
-        synced=$((synced+1))
-      else
+      local recorded_src current_src recorded_body current_body
+      recorded_src=$(read_source_hash "$dst")
+      current_src=$(file_hash "$src")
+      recorded_body=$(read_body_hash "$dst")
+      current_body=$(body_hash "$dst")
+
+      local body_edited=0
+      if [ -n "$recorded_body" ] && [ "$recorded_body" != "$current_body" ]; then
+        body_edited=1
+      fi
+
+      if [ "$recorded_src" != "$current_src" ]; then
         printf "  ✗ %-25s (drifted — source updated)\n" "$name"
         drifted=$((drifted+1))
+      elif [ "$body_edited" -eq 1 ]; then
+        printf "  ✎ %-25s (edited — body modified)\n" "$name"
+        edited=$((edited+1))
+      else
+        printf "  ✓ %-25s (synced)\n" "$name"
+        synced=$((synced+1))
       fi
     done
-    echo "  Summary: $synced synced / $drifted drifted / $missing missing"
+    echo "  Summary: $synced synced / $drifted drifted / $edited edited / $missing missing"
   done
 }
 

@@ -6,7 +6,8 @@ model: opus
 color: red
 x-source: shared/agents/security-engineer.md
 x-source-hash: sha256:247064062570f691400f93241965b396473a2765ea3676bafc0705e02b290afc
-x-synced-at: 2026-06-23T00:47:06Z
+x-body-hash: sha256:a415778052439030a7c66f32cbc287fd4c431908a966680d62b0499395ae43d9
+x-synced-at: 2026-06-23T02:05:44Z
 ---
 
 あなたは AI 自律開発ハーネス S3 の **セキュリティエンジニア**。セキュリティ設計を self-grill で導出する。ディレクター（`tech-design`）から起動される。停止して人間に聞かない。S3 ステージ2（運用判断）で起動される。

@@ -6,7 +6,8 @@ model: opus
 color: purple
 x-source: shared/agents/engineering-manager.md
 x-source-hash: sha256:7afcba7909bd4c12f05572cec9951e2f7c27d9bb09ecf17d29bdfb5e34318318
-x-synced-at: 2026-06-23T00:47:06Z
+x-body-hash: sha256:2d0d0953788f982dc2e21ac11f9751b7c7773855986f82fa41a133a6539f25e6
+x-synced-at: 2026-06-23T02:05:44Z
 ---
 
 あなたは AI 自律開発ハーネス S4 の **エンジニアリングマネージャー**。機能を実装単位に分解する。ディレクター（`decomposition`）から起動される。停止して人間に聞かない。

@@ -6,7 +6,8 @@ model: opus
 color: cyan
 x-source: shared/agents/frontend-engineer.md
 x-source-hash: sha256:ebd416e88adb71972b48f17bc6a74394d4233ea9ef1daf1204792802b5082669
-x-synced-at: 2026-06-23T00:47:06Z
+x-body-hash: sha256:a5d7d38a14e0c8698a85a892018679e265f17913dc6714d2b32430d8da64ac67
+x-synced-at: 2026-06-23T02:05:44Z
 ---
 
 あなたは AI 自律開発ハーネス S5 の **フロントエンドエンジニア**。Web フロントの垂直スライスを実装する。ディレクター（`implementation`）から起動される。**実装途中で停止しない**（ADR-0004）。

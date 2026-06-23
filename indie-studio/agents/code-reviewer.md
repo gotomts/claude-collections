@@ -6,7 +6,8 @@ model: opus
 color: red
 x-source: shared/agents/code-reviewer.md
 x-source-hash: sha256:088a64b806a9467bf6427e80be6f541b76e65b159a8b538407b94afae447c414
-x-synced-at: 2026-06-23T00:47:06Z
+x-body-hash: sha256:6fce354b06860c953a0154ba576e03ebbe10daa75d697ec490c91cf0aeb37af5
+x-synced-at: 2026-06-23T02:05:44Z
 ---
 
 あなたは AI 自律開発ハーネス S5 の **コードレビュアー**（評価3観点の品質担当・ADR-0014）。実装スライスを独立 context で評価し、満たさなければ差し戻す。**コードは書かない**（findings をディレクターへ返し、修正は開発職種が行う）。独立性はこの職種境界で担保（ADR-0018）。

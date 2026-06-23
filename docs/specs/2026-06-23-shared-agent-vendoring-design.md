@@ -115,9 +115,9 @@ Usage:
 #### verify の動作
 1. 対象 collection 群を特定（sync と同じロジック）
 2. 各 picked agent について：
-   - `<collection>/agents/<name>.md` 存在確認（無ければ "missing", exit 1）
-   - frontmatter の `x-source-hash` を読む
-   - `shared/agents/<name>.md` の現在 hash と比較（不一致なら "drifted", exit 1）
+   - `<collection>/agents/<name>.md` 存在確認（無ければ "Missing: ...", exit 1）
+   - frontmatter の `x-source-hash` を読み、`shared/agents/<name>.md` の現在 hash と比較（不一致なら "Drifted: ... (source-hash mismatch — shared/ updated, run 'make sync')", exit 1）
+   - frontmatter の `x-body-hash` を読み、dst の現在 body hash と比較（不一致なら "Edited: ... (body modified — revert via 'git checkout <dst>' or move change to shared/)", exit 1）
 3. 全一致なら exit 0、サマリを出力
 
 #### status の動作
@@ -126,9 +126,10 @@ verify と同じチェックだが exit 0 固定。出力例：
 indie-studio:
   ✓ backend-engineer       (synced)
   ✗ code-reviewer          (drifted — source updated)
+  ✎ qa-engineer            (edited — body modified)
   ! tech-lead              (missing in collection)
-  
-Summary: 11 synced / 1 drifted / 1 missing
+
+Summary: 10 synced / 1 drifted / 1 edited / 1 missing
 ```
 
 ### 3.3 実装言語
@@ -173,7 +174,7 @@ Summary: 11 synced / 1 drifted / 1 missing
 
 ## 5. Generated file frontmatter
 
-shared/ の元 frontmatter を**無加工で保持**し、末尾に `x-*` を 3 つ追加：
+shared/ の元 frontmatter を**無加工で保持**し、末尾に `x-*` を 4 つ追加：
 
 **元（`shared/agents/backend-engineer.md`）:**
 ```yaml
@@ -198,6 +199,7 @@ model: ...
 color: ...
 x-source: shared/agents/backend-engineer.md
 x-source-hash: sha256:abc123...
+x-body-hash: sha256:def456...
 x-synced-at: 2026-06-23T00:00:00Z
 ---
 
@@ -205,9 +207,19 @@ x-synced-at: 2026-06-23T00:00:00Z
 ```
 
 - 既存 frontmatter フィールドは順序含めて無加工
-- `x-*` 3 つはファイル末尾の `---` 直前に追加
-- `x-source-hash` の値形式：`sha256:` prefix + 16進文字列（lowercase）
+- `x-*` 4 つはファイル末尾の `---` 直前に追加
+- `x-source-hash` の値形式：`sha256:` prefix + 16進文字列（lowercase）。**ファイル全体**の hash（shared/ source 側）
+- `x-body-hash` の値形式：同じく `sha256:` + hex lowercase。**closing `---` 以降の本文**の hash。dst 側の手編集を検知するための footprint
 - `x-synced-at` は ISO 8601 UTC（秒精度）
+
+### 5.1 x-source-hash と x-body-hash の役割分担
+
+| field | 意味 | 検知対象 |
+|---|---|---|
+| `x-source-hash` | shared/ source ファイルの最終既知状態 | shared/ が更新されたが make sync 忘れ → "Drifted" |
+| `x-body-hash` | dst body の最終既知状態（master の body と同一） | dst body が手編集された → "Edited" |
+
+`verify` は両者を独立にチェックし、どちらかでも mismatch なら exit 1。`sync` は **master-always-wins**：source/body のいずれが変わっていても shared/ の内容で上書きする（idempotent skip は両 hash 一致時のみ発火）。
 
 **前提：Claude Code agent loader が未知 frontmatter フィールドを無視する**（ADR-0004 で記載のリスク）。実装 PR の冒頭で実機確認し、破綻したら fallback（`description` 末尾に文字列メタ埋め）を別 ADR で記録して切り替え。
 
