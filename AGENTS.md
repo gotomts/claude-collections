@@ -55,14 +55,14 @@
 
 PR を main に merge した直後の Claude Code セッションで、publish 判断を **必ず実行する**:
 
-1. `gh release list --include-drafts --repo gotomts/claude-collections` で対象 collection の draft を確認
+1. `gh release list --repo gotomts/claude-collections` で対象 collection の draft を確認
 2. `gh release view --repo gotomts/claude-collections <tag-name>` で draft 内容を確認
 3. 内容のまとまり (機能完成 / 数 PR 蓄積 / リファクタ完了 / docs まとめ等) を評価し publish 推奨 or 待機を提案
 4. ユーザー承認後、`gh release edit --repo gotomts/claude-collections <tag-name> --draft=false` で publish 実行
 
 ### Backup 1: セッション開始時の未 publish draft 確認
 
-Claude Code セッション開始時に未 publish draft の有無を確認し、溜まっている場合は publish 判断を proactively 提案する。`gh release list --include-drafts --repo gotomts/claude-collections` で状態確認。
+Claude Code セッション開始時に未 publish draft の有無を確認し、溜まっている場合は publish 判断を proactively 提案する。`gh release list --repo gotomts/claude-collections` で状態確認。
 
 ### Backup 2: 月次 draft レビュー
 
