@@ -58,4 +58,4 @@ template: |
 
   $CHANGES
 
-  **Full Changelog**: https://github.com/$OWNER/$REPONAME/compare/$PREVIOUS_TAG...indie-studio/v$RESOLVED_VERSION
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...indie-studio/v$RESOLVED_VERSION

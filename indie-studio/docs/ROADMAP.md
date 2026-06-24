@@ -81,7 +81,7 @@
 毎月 1 回、以下のコマンドで未 publish draft を確認し、必要に応じて publish 判断する:
 
 ```bash
-gh release list --include-drafts --repo gotomts/claude-collections | grep 'indie-studio/'
+gh release list --repo gotomts/claude-collections | grep 'indie-studio/'
 ```
 
 PR merge 後の Claude Code セッションでの判断 (primary)、セッション開始時の確認 (backup 1) でも漏れた case の最終 safety net。

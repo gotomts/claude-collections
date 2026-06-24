@@ -389,14 +389,14 @@ Append the following content to the end of `AGENTS.md` (use Edit tool to add aft
 
 PR を main に merge した直後の Claude Code セッションで、publish 判断を **必ず実行する**:
 
-1. `gh release list --include-drafts --repo gotomts/claude-collections` で対象 collection の draft を確認
+1. `gh release list --repo gotomts/claude-collections` で対象 collection の draft を確認
 2. `gh release view --repo gotomts/claude-collections <tag-name>` で draft 内容を確認
 3. 内容のまとまり (機能完成 / 数 PR 蓄積 / リファクタ完了 / docs まとめ等) を評価し publish 推奨 or 待機を提案
 4. ユーザー承認後、`gh release edit --repo gotomts/claude-collections <tag-name> --draft=false` で publish 実行
 
 ### Backup 1: セッション開始時の未 publish draft 確認
 
-Claude Code セッション開始時に未 publish draft の有無を確認し、溜まっている場合は publish 判断を proactively 提案する。`gh release list --include-drafts --repo gotomts/claude-collections` で状態確認。
+Claude Code セッション開始時に未 publish draft の有無を確認し、溜まっている場合は publish 判断を proactively 提案する。`gh release list --repo gotomts/claude-collections` で状態確認。
 
 ### Backup 2: 月次 draft レビュー
 
@@ -461,7 +461,7 @@ Append the following content to the end of `indie-studio/docs/ROADMAP.md`:
 毎月 1 回、以下のコマンドで未 publish draft を確認し、必要に応じて publish 判断する:
 
 ```bash
-gh release list --include-drafts --repo gotomts/claude-collections | grep 'indie-studio/'
+gh release list --repo gotomts/claude-collections | grep 'indie-studio/'
 ```
 
 PR merge 後の Claude Code セッションでの判断 (primary)、セッション開始時の確認 (backup 1) でも漏れた case の最終 safety net。
@@ -558,7 +558,7 @@ gh pr create --title "feat: claude-collections にリリースノート運用 (r
 - [ ] GitHub Repository Settings → Actions → Workflow permissions = Read and write
 - [ ] 本 PR に手動で `docs` ラベルを付与
 - [ ] PR merge 後、`Release Drafter (indie-studio)` workflow が成功
-- [ ] `gh release list --include-drafts` で `indie-studio/v0.0.1` の draft が作成されている
+- [ ] `gh release list` で `indie-studio/v0.0.1` の draft が作成されている (デフォルトで draft 含む)
 - [ ] `gh release view indie-studio/v0.0.1` で本 PR の変更が「📝 Docs」もしくは「🔧 Chore」カテゴリに表示
 - [ ] Claude Code がユーザー承認下で `gh release edit indie-studio/v0.0.1 --draft=false` を実行し初回 publish 完了
 
@@ -590,7 +590,7 @@ Expected: 最新 run の `status: completed`、`conclusion: success`。失敗時
 - [ ] **Step 7: draft Release の存在確認**
 
 ```bash
-gh release list --include-drafts --repo gotomts/claude-collections
+gh release list --repo gotomts/claude-collections
 ```
 
 Expected: `indie-studio/v0.0.1` の draft が一覧に存在。
