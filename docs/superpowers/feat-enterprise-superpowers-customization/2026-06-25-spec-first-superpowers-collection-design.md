@@ -28,6 +28,10 @@ status: draft (brainstorming 段階、user 承認待ち)
 - コードコメント方針 (WHY のみ、JSDoc 抑制)
 - 4 種テンプレート (summary / gwt / pr-description / review-response)
 - **セキュリティレビュー** (設計レベル: enhance-brainstorming Phase 3/4 で security-engineer を常時能動 dispatch / コードレベル: STOP POINT 2 で code-review skill 実行に加えて security-engineer による security-focused なコードレビューを 1 回実施)
+- **監査ログ (agent dispatch log)**: 各 skill で agent dispatch した際、`いつ / 誰を / 何のために dispatch したか + 回答要約` を該当 5 成果物 (design / plan / summary / gwt / review-response) に追記。「なぜこの設計を採ったか」のトレースに agent の助言も含めて説明可能にする
+- **機微情報チェック (法令 / 業界規制 trigger)**: enhance-brainstorming Phase 3 の security-engineer dispatch 時に「個人情報 / 決済データ / 医療データ / 認証情報を扱う設計か?」をチェックリスト形式で確認、該当したら適用規制 (GDPR / 個人情報保護法 / PCI-DSS / HIPAA 等) を提示して user に確認させる。具体的な規制チェックは外部ツール / 法務に委ねる (本コレクションは trigger 提示のみ)
+- **ライセンスチェック (OSS ライセンス遵守)**: enhance-brainstorming Phase 4 (plan 生成後) に「plan で追加予定の依存ライブラリ一覧」を抽出、各ライブラリのライセンスを確認 (license-checker 等の推奨案内含む)、制限ライセンス (GPL / AGPL / SSPL / 商用制限あり) が含まれる場合に user に警告
+- **AI 利用ポリシー案内**: 各 skill の Step 1 で `.ai-restrictions.md` (または同等のプロジェクト固有ファイル) を Read、存在すれば内容を表示して制約を user に案内 (ファイル無ければスキップ)。強制ではなく案内のみ、ファイル形式は環境依存
 
 ### 除外するルール (本コレクションは持たない)
 
@@ -36,8 +40,9 @@ status: draft (brainstorming 段階、user 承認待ち)
 
 ## スコープ
 
-- **In**: spec-first-superpowers コレクションの新設、shared/skills/finish-stage-pr の後方互換改修、root の marketplace.json 登録、CONTEXT-MAP.md 索引追加、**セキュリティレビュー** (Spec フェーズの設計レベル + 実装後 STOP POINT 2 のコードレベル)
-- **Out**: エンプラ特有要素 (監査ログ / コンプライアンス / 変更管理 / 承認フロー) は本コレクションには含めない。必要なら別コレクション / 別 ADR で後続検討
+- **In**: spec-first-superpowers コレクションの新設、shared/skills/finish-stage-pr の後方互換改修、root の marketplace.json 登録、CONTEXT-MAP.md 索引追加、**セキュリティレビュー** (Spec フェーズの設計レベル + 実装後 STOP POINT 2 のコードレベル)、**監査ログ** (agent dispatch log を 5 成果物に追記)、**コンプライアンス** (機微情報チェック / ライセンスチェック / AI 利用ポリシー案内、いずれも trigger / 案内のみで強制はしない)
+- **Out**: エンプラ特有要素のうち **変更管理 / 承認フロー** は本コレクションには含めない。必要なら別コレクション / 別 ADR で後続検討
+- **Out**: コード変更ログ (git log でカバー) / 本番デプロイ履歴 (CI/CD 領域) は既存ツールで十分なため本コレクションのスコープ外
 - **Out**: 既存 indie-studio コレクションへの変更 (finish-stage-pr 改修は後方互換、indie-studio 挙動は据え置き)
 
 ## アーキテクチャ
@@ -97,14 +102,14 @@ CONTEXT-MAP.md に並列で索引する。
 
 - **invoke trigger**: 機能開発開始時にユーザーが `spec-first-superpowers:enhance-brainstorming` を呼ぶ
 - **動作**:
-  1. ブランチ確認 → `docs/superpowers/{branch}/` 準備 (commit 前提、worktree 退避なし)
-  2. Phase 1: 会話で問題理解 → 2-3 アプローチ提示 → **`software-architect` を dispatch してアプローチ案の Clean Architecture + SOLID 整合性レビュー**
-  3. Phase 2: templates/summary.md から summary.md を生成 → **`software-architect` を dispatch して「方式の要点」「効いている設計判断」を SOLID/YAGNI 観点でレビュー** → user 承認 + commit (認識齟齬 検出ポイント①)
-  4. Phase 3: 合意済み summary を context として `superpowers:brainstorming` に委譲 → design.md → **`software-architect` を dispatch して design 全体の SOLID / モジュール境界レビュー** → **続けて `security-engineer` を常時能動 dispatch して design のセキュリティレビュー (認証 / 認可 / データ取扱 / 外部入力 / シークレット / 通信 / コード実行 等の観点)** → user 承認 + commit
-  5. Phase 4: `superpowers:writing-plans` invoke → plan.md → **`qa-engineer` を dispatch して plan のテスト戦略の段取り妥当性レビュー** → **続けて `security-engineer` を常時能動 dispatch して plan のセキュリティ観点 (セキュリティテスト / 脅威モデリングの段取り / 機微データ取扱の手順) レビュー** → user 承認 + commit
-  6. Phase 5: templates/gwt.md から gwt.md を生成 → **`qa-engineer` を dispatch して AC の網羅性 (異常系 / 境界値 / 空状態) レビュー** → user 承認 + commit (認識齟齬 検出ポイント②)
-  7. Phase 6: templates/pr-description.md から pr-description.md を生成 → user 承認 + commit (認識齟齬 検出ポイント③)
-  8. **Phase 1 / 2 / 5 / 6 でもセキュリティ箇所が検出されたら**: `security-engineer` を任意 dispatch (Phase 3/4 の常時 dispatch とは別)
+  1. ブランチ確認 → `docs/superpowers/{branch}/` 準備 (commit 前提、worktree 退避なし) → **`.ai-restrictions.md` (または同等のプロジェクト固有 AI 利用ポリシー) を Read して制約があれば user に案内 (H)**
+  2. Phase 1: 会話で問題理解 → 2-3 アプローチ提示 → **`software-architect` を dispatch してアプローチ案の Clean Architecture + SOLID 整合性レビュー** → **dispatch log を Phase 2 で生成する summary.md の「レビュー履歴」セクションへの追記対象として保持 (B)**
+  3. Phase 2: templates/summary.md から summary.md を生成 → **`software-architect` を dispatch して「方式の要点」「効いている設計判断」を SOLID/YAGNI 観点でレビュー** → **summary.md の末尾に「## レビュー履歴」セクションを追加し、Phase 1 + Phase 2 の dispatch log (時刻 / agent / 目的 / 回答要約) を追記 (B)** → user 承認 + commit (認識齟齬 検出ポイント①)
+  4. Phase 3: 合意済み summary を context として `superpowers:brainstorming` に委譲 → design.md → **`software-architect` を dispatch して design 全体の SOLID / モジュール境界レビュー** → **続けて `security-engineer` を常時能動 dispatch して design のセキュリティレビュー (認証 / 認可 / データ取扱 / 外部入力 / シークレット / 通信 / コード実行 等の観点) + 機微情報チェックリスト (個人情報 / 決済データ / 医療データ / 認証情報を扱う設計か?) を確認、該当したら適用規制 (GDPR / 個人情報保護法 / PCI-DSS / HIPAA 等) を提示して user に確認 (E)** → **design.md の末尾に「## レビュー履歴」セクションを追加し dispatch log を追記 (B)** → user 承認 + commit
+  5. Phase 4: `superpowers:writing-plans` invoke → plan.md → **`qa-engineer` を dispatch して plan のテスト戦略の段取り妥当性レビュー** → **続けて `security-engineer` を常時能動 dispatch して plan のセキュリティ観点 (セキュリティテスト / 脅威モデリングの段取り / 機微データ取扱の手順) レビュー** → **続けて plan で追加予定の依存ライブラリを抽出 → 各ライブラリのライセンスを確認 (license-checker 等の推奨案内、user 確認 1 問)、制限ライセンス (GPL / AGPL / SSPL / 商用制限あり) は警告 (G)** → **plan.md の末尾に「## レビュー履歴」セクションを追加し dispatch log を追記 (B)** → user 承認 + commit
+  6. Phase 5: templates/gwt.md から gwt.md を生成 → **`qa-engineer` を dispatch して AC の網羅性 (異常系 / 境界値 / 空状態) レビュー** → **gwt.md の末尾に「## レビュー履歴」セクションを追加し dispatch log を追記 (B)** → user 承認 + commit (認識齟齬 検出ポイント②)
+  7. Phase 6: templates/pr-description.md から pr-description.md を生成 → user 承認 + commit (認識齟齬 検出ポイント③)。**pr-description は frontmatter なし 3 セクション固定 = 最小構造なのでレビュー履歴はここに追加せず、summary / design / plan / gwt 側に集約 (B 例外)**
+  8. **Phase 1 / 2 / 5 / 6 でもセキュリティ箇所が検出されたら**: `security-engineer` を任意 dispatch (Phase 3/4 の常時 dispatch とは別)、dispatch log は該当 Phase の成果物 (summary / gwt) のレビュー履歴に追記 (B)
   9. STOP POINT 1 (実装フェーズ) を user に明示して終了。**実装中の推奨 agent 利用パターンを案内** (実装 AI / user が任意で `software-architect` / `code-reviewer` / `security-engineer` を dispatch)
 - **規律明示 (SKILL.md に記載)**:
   - 5 成果物の命名 `{YYYY-MM-DD}-{slug}-{suffix}.md`
@@ -112,51 +117,62 @@ CONTEXT-MAP.md に並列で索引する。
   - コードコメント方針 (WHY のみ、JSDoc 抑制)
   - pr-description Spec フェーズ先行作成の意義
   - 各 Phase で agent を **能動 dispatch** する (silent failure 回避、取り込むだけで使わない pattern を作らない)
+  - **agent dispatch log は該当 5 成果物の「レビュー履歴」セクションに必ず追記 (B)、形式は ADR-0007 で定める**
+  - **Phase 3 で機微情報チェックリスト + 適用規制 trigger を提示 (E)**
+  - **Phase 4 で依存ライブラリのライセンスチェックを実施 (G)**
+  - **各 skill の Step 1 で `.ai-restrictions.md` を Read して AI 利用ポリシーを案内 (H)、ファイル無ければスキップ**
 
 #### gwt-test 詳細
 
 - **invoke trigger**: 実装完了後、ユーザーが `gwt-test` を呼ぶ or enhance-brainstorming からの再開連鎖
 - **動作**:
-  1. プロジェクトルートの README を Read (テストアカウント / 起動コマンド把握)
+  1. プロジェクトルートの README を Read (テストアカウント / 起動コマンド把握) + **`.ai-restrictions.md` を Read して AI 利用ポリシーを user に案内 (H)**
   2. dev server / docker を AI が起動 (`lsof -i :<port>` / `docker ps` で重複確認 → 重複あれば 1 問確認)
   3. agent-browser で各 AC 検証 (フォールバックで chrome-devtools-mcp、未導入なら install 是非を 1 問確認)
   4. AC 達成 → `gwt.md` チェックリストを `- [x]` に更新
-  5. AC 未達 → **`qa-engineer` を dispatch して差し戻し findings の言語化 + テストコード同期確認** → `gwt.md` 変更履歴に逆時系列追記 → 実装差し戻し提案
+  5. AC 未達 → **`qa-engineer` を dispatch して差し戻し findings の言語化 + テストコード同期確認** → `gwt.md` 変更履歴に逆時系列追記 → **gwt.md のレビュー履歴セクションに dispatch log 追記 (B)** → 実装差し戻し提案
   6. dev server / docker を必ず停止 (`lsof` / `docker ps` で残存確認)
-  7. STOP POINT 2 (code-review skill 手動実行) を user に明示する際、**「`code-review` (CodeRabbit) の実行に加えて `security-engineer` を能動 dispatch して security-focused なコードレビューを 1 回実施する」** ことを案内に必ず含める (実装後の機械的レビュー = CodeRabbit、人格を持つ専門家レビュー = security-engineer、の両輪で実装フェーズのセキュリティを担保)
+  7. STOP POINT 2 (code-review skill 手動実行) を user に明示する際、**「`code-review` (CodeRabbit) の実行に加えて `security-engineer` を能動 dispatch して security-focused なコードレビューを 1 回実施する」** ことを案内に必ず含める (実装後の機械的レビュー = CodeRabbit、人格を持つ専門家レビュー = security-engineer、の両輪で実装フェーズのセキュリティを担保)。**security-engineer dispatch 結果は write-review-response 内で review-response.md のレビュー履歴セクションに追記 (B)**
 - **規律明示**:
   - agent-browser → chrome-devtools-mcp → 相談 の優先順序
   - 実装修正 → テストコード同期確認 (不要時も 1 行根拠)
   - AC 未達発覚時は qa-engineer 能動 dispatch (自己判断で済まさず職種境界に通す)
   - STOP POINT 2 案内に security-engineer によるコードセキュリティレビューを必ず含める
+  - dispatch log は gwt.md / review-response.md のレビュー履歴セクションに追記 (B)
+  - Step 1 で AI 利用ポリシー (.ai-restrictions.md) を Read して案内 (H)
 
 #### write-review-response 詳細
 
 - **invoke trigger**: code-review skill 実行後、ユーザーが `write-review-response` を呼ぶ or gwt-test からの再開連鎖
 - **動作**:
-  1. templates/review-response.md を読み込み
+  1. templates/review-response.md を読み込み + **`.ai-restrictions.md` を Read して AI 利用ポリシーを user に案内 (H)**
   2. CodeRabbit 指摘 (ローカル + PR 上 unresolved) を 採用/Skip の 2 値判定 (保留禁止、全件判定必須)
      - 判定迷い時は **`code-reviewer` を dispatch して採用/Skip 補助** (特に false positive 疑い時)
      - セキュリティ系指摘は **`security-engineer` を dispatch して採用判定にセキュリティ観点を追加**
   3. ID を CodeRabbit 分類に揃える (`M1...` / `Mi1...` / `T1...`)
-  4. **上書き運用** で `{date}-{slug}-review-response.md` を保存 (最新ラウンドのみ保持)
-  5. 採用分を実装に反映 (← user 作業 or AI 作業) → **再 push 前に `code-reviewer` を dispatch して修正コードの差し戻しレビュー**
+  4. **上書き運用** で `{date}-{slug}-review-response.md` を保存 (最新ラウンドのみ保持) → **review-response.md の末尾「## レビュー履歴」セクションに dispatch log を追記 (B)、gwt-test の STOP POINT 2 で実施した security-engineer のコードセキュリティレビュー結果もここに集約**
+  5. 採用分を実装に反映 (← user 作業 or AI 作業) → **再 push 前に `code-reviewer` を dispatch して修正コードの差し戻しレビュー** → **dispatch log を review-response.md レビュー履歴に追記 (B)**
 - **規律明示**:
   - CodeRabbit へのリプライは送らない (修正 push → 自動 resolve → 残 unresolved のみ判定)
   - 採用/Skip 2 値 (保留禁止)
   - 採用後の実装修正でテストコード同期不要時は 1 行根拠を残す
   - 判定迷い・セキュリティ系・採用後修正の 3 タイミングで agent を能動 dispatch (silent failure 回避)
+  - dispatch log を review-response.md のレビュー履歴セクションに追記 (B、gwt-test の security-engineer コードレビュー結果もここに集約)
+  - Step 1 で AI 利用ポリシー (.ai-restrictions.md) を Read して案内 (H)
 
 #### finish-spec-pr 詳細
 
 - **invoke trigger**: レビュー対応完了後、ユーザーが `finish-spec-pr` を呼ぶ or write-review-response からの再開連鎖
 - **動作**:
-  1. `docs/superpowers/{branch}/*-pr-description.md` を Read
+  1. `docs/superpowers/{branch}/*-pr-description.md` を Read + **`.ai-restrictions.md` を Read して AI 利用ポリシーを user に案内 (H)**
   2. `## やったこと` を実装結果に整える、`## 補足` 内容なければ削除
   3. commit 差分一覧を確認 (`git log origin/main..HEAD --oneline`)
   4. PR title を user に 1 問確認 (Conventional Commits 形式または既存 repo 規約)
   5. `shared/skills/finish-stage-pr` を **`body-source-path={pr-description.md path}` 指定で**呼ぶ
   6. finish-stage-pr の Step 8 (PR 作成最終確認) でユーザー最終確認 → push + gh pr create
+- **規律明示**:
+  - Step 1 で AI 利用ポリシー (.ai-restrictions.md) を Read して案内 (H)
+  - finish-spec-pr 自体は agent dispatch しない (mechanical な操作のみ)、dispatch log 追記もなし
 
 ### 取り込み agent (4 体)
 
@@ -207,25 +223,26 @@ CONTEXT-MAP.md に並列で索引する。
 
 各 skill の各ステップで **能動 dispatch** する agent を明示。「import するだけで使わない」silent failure pattern を回避するため、ドキュメントレビューと実装後コードレビューに専門家観点を入れる。
 
-| skill / ステップ | 専門家 agent | dispatch 種別 | 目的 |
-|---|---|---|---|
-| enhance-brainstorming Phase 1 (アプローチ提示) | `software-architect` | 能動 | アプローチ案の Clean Architecture + SOLID 整合性レビュー |
-| enhance-brainstorming Phase 2 (summary 生成後) | `software-architect` | 能動 | 「方式の要点」「効いている設計判断」を SOLID/YAGNI 観点でレビュー |
-| enhance-brainstorming Phase 3 (design 生成後) | `software-architect` + **`security-engineer`** | 能動 (両方) | software-architect: SOLID / モジュール境界レビュー / **security-engineer: design のセキュリティレビュー (認証 / 認可 / データ取扱 / 外部入力 / シークレット / 通信 / コード実行 等)** |
-| enhance-brainstorming Phase 4 (plan 生成後) | `qa-engineer` + **`security-engineer`** | 能動 (両方) | qa-engineer: テスト戦略の段取り妥当性 / **security-engineer: plan のセキュリティテスト / 脅威モデリングの段取り / 機微データ取扱の手順** |
-| enhance-brainstorming Phase 5 (gwt 生成後) | `qa-engineer` | 能動 | AC の網羅性 (異常系 / 境界値 / 空状態) レビュー |
-| enhance-brainstorming Phase 6 (pr-description 生成後) | (なし) | — | 動作確認方法は user が責任を持つ |
-| enhance-brainstorming Phase 1 / 2 / 5 / 6 (セキュリティ箇所検出時) | `security-engineer` | 任意 | Phase 3/4 の常時 dispatch とは別、検出時のみ追加 dispatch |
-| **STOP POINT 1 (実装フェーズ)** | (user / 実装 AI が任意で dispatch) | 案内 | enhance-brainstorming が **推奨 agent 利用パターンを案内** (`software-architect` / `code-reviewer` / `security-engineer`)。本コレクションは実装 skill を持たないので、`superpowers:executing-plans` / 人間実装 / その他実装 skill のいずれを使う場合でも、ここで案内したパターンを参照する |
-| gwt-test (AC 達成時) | (なし) | — | チェックリスト更新のみ |
-| gwt-test (AC 未達発覚時) | `qa-engineer` | 能動 | 差し戻し findings の言語化、テストコード同期確認 |
-| **STOP POINT 2 (code-review skill 手動実行)** | **`security-engineer`** + (CodeRabbit) | **案内 + 能動 dispatch** | gwt-test の終端で「code-review (CodeRabbit) の実行に加えて security-engineer を能動 dispatch して security-focused なコードレビューを 1 回実施」を案内。機械的レビュー (CodeRabbit) と人格を持つ専門家レビュー (security-engineer) の両輪で実装フェーズのセキュリティを担保 |
-| write-review-response (判定迷い時) | `code-reviewer` | 能動 | 採用/Skip 判定の補助 (特に false positive 疑い時) |
-| write-review-response (セキュリティ系指摘) | `security-engineer` | 能動 | 採用判定にセキュリティ観点を追加 |
-| write-review-response (採用後の修正、再 push 前) | `code-reviewer` | 能動 | 修正コードの差し戻しレビュー |
-| finish-spec-pr (PR 作成全工程) | (なし) | — | mechanical な操作のみ |
+| skill / ステップ | 専門家 agent | dispatch 種別 | 目的 | dispatch log 追記先 (B) |
+|---|---|---|---|---|
+| enhance-brainstorming Phase 1 (アプローチ提示) | `software-architect` | 能動 | アプローチ案の Clean Architecture + SOLID 整合性レビュー | summary.md (Phase 2 で追記) |
+| enhance-brainstorming Phase 2 (summary 生成後) | `software-architect` | 能動 | 「方式の要点」「効いている設計判断」を SOLID/YAGNI 観点でレビュー | summary.md |
+| enhance-brainstorming Phase 3 (design 生成後) | `software-architect` + **`security-engineer`** | 能動 (両方) | software-architect: SOLID / モジュール境界 / **security-engineer: design セキュリティレビュー + 機微情報チェックリスト (E) → 適用規制 trigger 提示** | design.md |
+| enhance-brainstorming Phase 4 (plan 生成後) | `qa-engineer` + **`security-engineer`** | 能動 (両方) | qa-engineer: テスト戦略 / **security-engineer: plan セキュリティ観点 + 依存ライブラリのライセンスチェック (G) → 制限ライセンス warning** | plan.md |
+| enhance-brainstorming Phase 5 (gwt 生成後) | `qa-engineer` | 能動 | AC の網羅性 (異常系 / 境界値 / 空状態) レビュー | gwt.md |
+| enhance-brainstorming Phase 6 (pr-description 生成後) | (なし) | — | 動作確認方法は user が責任を持つ。**pr-description は最小構造維持のためレビュー履歴を追記しない (B 例外)** | (追記なし) |
+| enhance-brainstorming Phase 1 / 2 / 5 / 6 (セキュリティ箇所検出時) | `security-engineer` | 任意 | Phase 3/4 の常時 dispatch とは別、検出時のみ追加 dispatch | 該当 Phase の成果物 |
+| **STOP POINT 1 (実装フェーズ)** | (user / 実装 AI が任意で dispatch) | 案内 | **推奨 agent 利用パターンを案内** (`software-architect` / `code-reviewer` / `security-engineer`) | 実装側に委ねる (本コレクション管理外) |
+| gwt-test (AC 達成時) | (なし) | — | チェックリスト更新のみ | (なし) |
+| gwt-test (AC 未達発覚時) | `qa-engineer` | 能動 | 差し戻し findings の言語化、テストコード同期確認 | gwt.md |
+| **STOP POINT 2 (code-review skill 手動実行)** | **`security-engineer`** + (CodeRabbit) | **案内 + 能動 dispatch** | code-review (CodeRabbit) 実行 + security-engineer の security-focused コードレビューの両輪 | review-response.md (write-review-response で集約) |
+| write-review-response (判定迷い時) | `code-reviewer` | 能動 | 採用/Skip 判定の補助 (特に false positive 疑い時) | review-response.md |
+| write-review-response (セキュリティ系指摘) | `security-engineer` | 能動 | 採用判定にセキュリティ観点を追加 | review-response.md |
+| write-review-response (採用後の修正、再 push 前) | `code-reviewer` | 能動 | 修正コードの差し戻しレビュー | review-response.md |
+| finish-spec-pr (PR 作成全工程) | (なし) | — | mechanical な操作のみ | (なし) |
+| 全 skill Step 1 (H) | (agent dispatch なし、ファイル Read のみ) | — | `.ai-restrictions.md` を Read して AI 利用ポリシーを案内 (ファイル無ければスキップ) | (該当成果物の Step 1 ログには記録するが、専門家 dispatch ではないため B の対象外) |
 
-統一原則: **「agent を取り込んだら、必ず使う場面を skill ステップに織り込む」**。任意 dispatch 表現は (a) STOP POINT のような skill 制御外、または (b) 検出条件付きの追加 dispatch (Phase 3/4 以外の Phase でのセキュリティ箇所検出時等) でのみ許容。
+統一原則: **「agent を取り込んだら、必ず使う場面を skill ステップに織り込む」+ 「dispatch したら必ず該当成果物のレビュー履歴セクションに追記する」(B)**。任意 dispatch 表現は (a) STOP POINT のような skill 制御外、または (b) 検出条件付きの追加 dispatch (Phase 3/4 以外の Phase でのセキュリティ箇所検出時等) でのみ許容。
 
 ## データフロー
 
@@ -331,6 +348,10 @@ enhance-brainstorming
 | 0004 | shared-skills-finish-stage-pr-extension (body-source-path 引数追加の後方互換改修) |
 | 0005 | agent-vendoring (4 agent 取り込みの選定理由) |
 | 0006 | superpowers-brainstorming-context-delegation (Y 方式 = summary context を渡して design 委譲、Z fallback への移行条件) |
+| 0007 | audit-trail-dispatch-log (agent dispatch log を 5 成果物のレビュー履歴セクションに追記する形式と運用) |
+| 0008 | sensitive-data-check-in-spec-phase (Phase 3 で機微情報チェックリスト + 適用規制 trigger 提示の手順) |
+| 0009 | license-check-in-plan-phase (Phase 4 で依存ライブラリのライセンスチェックと制限ライセンス warning の手順) |
+| 0010 | ai-utilization-policy-loading (各 skill Step 1 で .ai-restrictions.md を Read して案内する仕様、ファイル形式と未存在時挙動) |
 
 ## shared/skills/finish-stage-pr 改修
 
