@@ -6,7 +6,7 @@ description: |
   ゲートレポート要約を args で渡し、本 skill が draft/ready 判定・
   user 最終確認・gh pr create を担当する。汎用なので indie-studio
   以外の collection からも利用可。
-argument-hint: "<title-suggestion>  # body 用情報は呼び出し側 SKILL.md の prose で渡す"
+argument-hint: "<title-suggestion> [body-source-path]  # body-source-path 未指定なら内蔵テンプレ、指定ならそのファイル内容を body にする"
 allowed-tools:
   - Bash
   - Read
@@ -83,6 +83,13 @@ gh pr list --head <current-branch> --json number,title
 - `⚠️ 残数 == 0` → **ready**
 
 ### Step 7: PR body を組み立て
+
+呼び出し側から `body-source-path` (任意引数) が渡された場合:
+- そのファイルを Read で読み込み、内容を body として使う (改行・セクション構造をそのまま渡す)
+- ファイルが存在しなければ error 報告 + 中断 ("body-source-path で指定されたファイルが見つかりません: <path>")
+
+渡されていない場合 (default、indie-studio 経由など):
+- 以下の内蔵テンプレで body を構築 (既存挙動と完全互換)
 
 テンプレ：
 
