@@ -7,14 +7,14 @@
 | コレクション | 概要 | CONTEXT | ADR |
 |---|---|---|---|
 | [`indie-studio`](indie-studio/) | 個人開発のサービス設計〜デザイン〜開発をオールインで回す AI 自律開発ハーネス（G1 アンカー / S1 企画→ブリーフ / S2 プロトタイプ / S3 技術設計 / S4 分解 / S5 実装） | [`indie-studio/CONTEXT.md`](indie-studio/CONTEXT.md) | [`indie-studio/docs/adr/`](indie-studio/docs/adr/) |
-| [`spec-first-superpowers`](spec-first-superpowers/) | superpowers (公式) を base に、Spec フェーズで 5 成果物 (summary/design/plan/gwt/pr-description) を summary-first 順序で確定、後工程 (gwt-test / write-review-response / finish-spec-pr) を連鎖駆動。agent 能動 dispatch + 監査ログ (dispatch log) + セキュリティレビュー (2 層) + コンプライアンス trigger (機微情報 / ライセンス / AI 利用ポリシー) を内包 | [`spec-first-superpowers/CONTEXT.md`](spec-first-superpowers/CONTEXT.md) | [`spec-first-superpowers/docs/adr/`](spec-first-superpowers/docs/adr/) |
+| [`enhance-superpowers`](enhance-superpowers/) | superpowers (公式) を base に、Spec フェーズで 5 成果物 (summary/design/plan/gwt/pr-description) を summary-first 順序で確定、後工程 (gwt-test / write-review-response / finish-spec-pr) を連鎖駆動。agent 能動 dispatch + 監査ログ (dispatch log) + セキュリティレビュー (2 層) + コンプライアンス trigger (機微情報 / ライセンス / AI 利用ポリシー) を内包 | [`enhance-superpowers/CONTEXT.md`](enhance-superpowers/CONTEXT.md) | [`enhance-superpowers/docs/adr/`](enhance-superpowers/docs/adr/) |
 
 ## shared/
 
 - 真実源として `shared/agents/` と `shared/skills/` を持つ。コレクションではなく **vendoring の元データ**（ADR-0004 / ADR-0005）。
 - 各コレクションが `dependencies.json` で pick し、`make sync` で `<collection>/agents/` および `<collection>/skills/` に generated file として展開される。
-- agents の現状の中身：engineering 系 13 エージェント（executor 5 + quality 4 + leadership 4）。indie-studio は全 13 体、spec-first-superpowers は 4 体 (code-reviewer / qa-engineer / software-architect / security-engineer) を取り込み。
-- skills の現状の中身：start-stage-branch (branch + worktree helper) / finish-stage-pr (push + PR open helper、spec-first-superpowers 取り込み時に body-source-path 引数拡張で後方互換改修)。
+- agents の現状の中身：engineering 系 13 エージェント（executor 5 + quality 4 + leadership 4）。indie-studio は全 13 体、enhance-superpowers は 4 体 (code-reviewer / qa-engineer / software-architect / security-engineer) を取り込み。
+- skills の現状の中身：start-stage-branch (branch + worktree helper) / finish-stage-pr (push + PR open helper、enhance-superpowers 取り込み時に body-source-path 引数拡張で後方互換改修)。
 - 配布対象外（marketplace.json には列挙しない）。install 先には流れない。
 
 ## repo 横断

@@ -40,6 +40,7 @@
 ## 既存コレクション
 
 - **`indie-studio`**：個人開発のサービス設計〜デザイン〜開発を自律で回すハーネス。設計の真実源は `indie-studio/CONTEXT.md` と `indie-studio/docs/adr/`。
+- **`enhance-superpowers`**：公式 superpowers plugin の直線フロー (brainstorming → writing-plans → executing-plans) に、5 成果物 Spec フェーズ確定 / agent 能動 dispatch / 監査ログ / コンプライアンス trigger を被せた強化版。設計の真実源は `enhance-superpowers/CONTEXT.md` と `enhance-superpowers/docs/adr/`。
 
 ## リリースノート運用
 

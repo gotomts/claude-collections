@@ -22,7 +22,7 @@ CLAUDE.local.md の運用では Spec フェーズで 5 つの成果物 (design /
 | 4 | gwt.md | enhance-brainstorming (templates) |
 | 5 | pr-description.md | enhance-brainstorming (templates) |
 
-templates は `spec-first-superpowers/templates/` に同梱 (PC 以外でも使う前提)。CodeRabbit 前提文言は残す (汎用化しない、ADR-0001 のスコープ判断と整合)。
+templates は `enhance-superpowers/templates/` に同梱 (PC 以外でも使う前提)。CodeRabbit 前提文言は残す (汎用化しない、ADR-0001 のスコープ判断と整合)。
 
 ## Consequences
 
