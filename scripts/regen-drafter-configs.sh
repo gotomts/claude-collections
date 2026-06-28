@@ -46,17 +46,18 @@ for dir in */; do
 done
 
 if [ "${#collections[@]}" -eq 0 ]; then
-  echo "No collections found." >&2
-  exit 0
+  echo "No collections found; pruning generated drafter configs (if any)." >&2
+  # 注: ここで早期 exit してはいけない。最後の collection を消すケースで
+  # stale config が残ってしまう。下の prune 処理に処理を引き継ぐ。
+else
+  # サニティ: collection 名は kebab-case 系のみ ([a-z0-9][a-z0-9_-]*)
+  for c in "${collections[@]}"; do
+    if ! [[ "$c" =~ ^[a-z0-9][a-z0-9_-]*$ ]]; then
+      echo "error: invalid collection name '$c' — must match [a-z0-9][a-z0-9_-]*" >&2
+      exit 2
+    fi
+  done
 fi
-
-# サニティ: collection 名は kebab-case 系のみ ([a-z0-9][a-z0-9_-]*)
-for c in "${collections[@]}"; do
-  if ! [[ "$c" =~ ^[a-z0-9][a-z0-9_-]*$ ]]; then
-    echo "error: invalid collection name '$c' — must match [a-z0-9][a-z0-9_-]*" >&2
-    exit 2
-  fi
-done
 
 # 既存の per-collection config を全削除 (古い collection の残骸防止)
 # template と collection に対応するものだけが残るようにする
@@ -98,18 +99,21 @@ done
 
 if $CHECK_MODE; then
   # CI モード: git で差分があれば fail
-  if ! git diff --quiet --exit-code -- .github/release-drafter-*.yml 2>/dev/null; then
+  # 注: glob は shell ではなく git に展開させる (quote する)。shell 側で展開すると
+  # 削除された tracked file (= stale config の prune) が pathspec から落ちて
+  # 削除差分を検知できないバグになる。
+  if ! git diff --quiet --exit-code -- '.github/release-drafter-*.yml' 2>/dev/null; then
     echo ""
     echo "ERROR: drafter configs are out of sync with template / collections" >&2
     echo "Run 'make regen-drafter-configs' and commit the result." >&2
     echo ""
-    git diff -- .github/release-drafter-*.yml >&2 || true
+    git diff -- '.github/release-drafter-*.yml' >&2 || true
     exit 1
   fi
-  if [ -n "$(git ls-files --others --exclude-standard -- .github/release-drafter-*.yml 2>/dev/null)" ]; then
+  if [ -n "$(git ls-files --others --exclude-standard -- '.github/release-drafter-*.yml' 2>/dev/null)" ]; then
     echo ""
     echo "ERROR: untracked drafter configs detected (new collection without committed config?)" >&2
-    git ls-files --others --exclude-standard -- .github/release-drafter-*.yml >&2 || true
+    git ls-files --others --exclude-standard -- '.github/release-drafter-*.yml' >&2 || true
     exit 1
   fi
   echo ""
