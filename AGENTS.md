@@ -44,7 +44,7 @@
 
 ## リリースノート運用
 
-各コレクションの変更履歴は GitHub Releases に集約する (リポジトリ内 `CHANGELOG.md` ファイルは持たない)。ツールは [release-drafter@v6](https://github.com/release-drafter/release-drafter)、collection 単位に config + workflow を分離 (`.github/release-drafter-<collection>.yml` / `.github/workflows/release-drafter-<collection>.yml`)。設計判断は [`docs/adr/0004`](docs/adr/0004-release-notes-workflow.md)。
+各コレクションの変更履歴は GitHub Releases に集約する (リポジトリ内 `CHANGELOG.md` ファイルは持たない)。ツールは [release-drafter@v6](https://github.com/release-drafter/release-drafter)、**単一の workflow + テンプレ config** (`.github/workflows/release-drafter.yml` + `.github/release-drafter-template.yml`) で repo top-level を auto-discover して各コレクション専用の draft を作成する。コレクション追加時に drafter 設定の手作業は不要 (`<new>/.claude-plugin/plugin.json` が main に乗れば次の push trigger で drafter が自動認識)。設計判断は [`docs/adr/0004`](docs/adr/0004-release-notes-workflow.md) (ノート運用全体) と [`docs/adr/0006`](docs/adr/0006-release-drafter-auto-discovery.md) (auto-discovery + テンプレ化)。
 
 ### tag 命名
 
