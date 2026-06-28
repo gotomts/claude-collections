@@ -95,6 +95,7 @@ maintainer: gotomts
 
 ## 関連
 
+- ADR-0001 (collection-scope-and-naming, STOP POINT 2 のセキュリティレビュー 2 層)
 - ADR-0007 (audit-trail-dispatch-log)
 - ADR-0010 (ai-utilization-policy-loading)
 - enhance-brainstorming SKILL.md (起点 skill)

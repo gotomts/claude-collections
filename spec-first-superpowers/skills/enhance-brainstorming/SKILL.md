@@ -125,6 +125,7 @@ spec-first-superpowers コレクションの起点 skill。ユーザーが意識
 - ADR-0001 (collection-scope-and-naming)
 - ADR-0002 (five-deliverables-and-order)
 - ADR-0003 (skill-chain-and-stop-points)
+- ADR-0004 (shared-skills-finish-stage-pr-extension, finish-spec-pr が consume)
 - ADR-0005 (agent-vendoring)
 - ADR-0006 (superpowers-brainstorming-context-delegation, Y 方式)
 - ADR-0007 (audit-trail-dispatch-log)
