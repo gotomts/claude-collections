@@ -5,30 +5,27 @@
 #   (B) autolabeler: PR open/update 時に Conventional Commits prefix から
 #       label (feat/fix/refactor/docs/test/chore) を自動付与
 #
+# 設計判断:
+#   release-drafter@v6 の action は config を default branch (= main) から
+#   API 経由で読む制約がある。runtime に sed で render したファイルは API から
+#   見えないため使えない。よって per-collection の config を main に commit し、
+#   `scripts/regen-drafter-configs.sh` (Makefile target: `regen-drafter-configs`)
+#   で template (.github/release-drafter-template.yml) から自動再生成する。
+#   `verify-drafter-configs` target を CI で実行することで drift を構造的に検出。
+#
 # drafter (push 起点):
 #   1. discover ジョブが repo top-level を走査して
 #      <dir>/.claude-plugin/plugin.json を持つ dir = コレクションと判定
 #   2. matrix で各コレクションごとに draft ジョブを並列起動
-#   3. draft ジョブはテンプレ config (.github/release-drafter-template.yml) の
-#      {{COLLECTION}} を sed で実コレクション名に置換し、
-#      .github/release-drafter-rendered-<collection>.yml として書き出して
-#      release-drafter に渡す
+#   3. draft ジョブは commit 済み config (.github/release-drafter-<collection>.yml)
+#      を release-drafter に渡す
 #
 # autolabeler (pull_request_target 起点):
 #   - autolabeler ルールは collection 非依存なので discover 不要
-#   - 同じテンプレ config をダミー collection 名で render して release-drafter に
-#     `disable-releaser: true` で渡す (drafter 抑制、autolabeler のみ実行)
-#   - pull_request_target は base 側 (main) のコードで実行されるので、
-#     PR の HEAD コードを checkout せず main の template を使う (security)
-#
-# 利点:
-#   - 新コレクション追加時に drafter config / workflow の手作業ゼロ
-#     (<collection>/.claude-plugin/plugin.json が main に乗った時点で
-#      次の push trigger で drafter が自動認識して動き出す)
-#   - per-collection の drafter 設定不要 = 設定漏れ事故が構造的に発生しない
-#   - autolabeler が PR open 時に動くので、Conventional Commits prefix がついた
-#     PR は自動で label が付き、drafter が ✨ Features / 🐛 Fixes 等に
-#     正しく分類できる (以前は label が付かず default の flat list だった)
+#   - 既存の per-collection config (どれか 1 つ) を `disable-releaser: true` で
+#     release-drafter に渡す → drafter 抑制、autolabeler のみ実行
+#   - pull_request_target は base (main) のコードで実行されるので、
+#     PR の HEAD コードを checkout せず main の commit 済み config を使う (security)
 #
 # 前提: リポジトリ Settings → Actions → General → Workflow permissions を
 #       "Read and write permissions" にしておく (contents: write +
@@ -51,8 +48,6 @@ permissions:
 jobs:
   autolabel:
     # PR 起点: autolabeler のみ実行 (drafter は disable-releaser で抑制)。
-    # pull_request_target なので base (main) のコードで動く → PR の HEAD は
-    # checkout しない (security)。autolabeler はラベル付与 = PR メタデータ操作のみ。
     if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     permissions:
@@ -60,16 +55,26 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - name: Render template (autolabeler は COLLECTION 非依存だがテンプレ構文上必要)
+      - name: Pick any per-collection config (autolabeler rules are collection-independent)
         shell: bash
         run: |
-          sed "s|{{COLLECTION}}|_autolabel_|g" \
-            .github/release-drafter-template.yml \
-            > .github/release-drafter-autolabel.yml
+          # 任意の collection config を使う (autolabeler セクションは全 config で同一)。
+          # アルファベット順で最初のものを採用 (deterministic、コレクション削除で
+          # 動かなくなる事故防止のため、ls の結果から template を除外)。
+          cfg=$(ls .github/release-drafter-*.yml 2>/dev/null \
+            | grep -v 'release-drafter-template\.yml$' \
+            | sort \
+            | head -1)
+          if [ -z "$cfg" ]; then
+            echo "::error::No collection config found in .github/release-drafter-*.yml"
+            exit 1
+          fi
+          echo "Using config: $cfg"
+          echo "AUTOLABEL_CONFIG=$(basename "$cfg")" >> "$GITHUB_ENV"
       - name: Run autolabeler
         uses: release-drafter/release-drafter@v6
         with:
-          config-name: release-drafter-autolabel.yml
+          config-name: ${{ env.AUTOLABEL_CONFIG }}
           disable-releaser: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -123,7 +128,7 @@ jobs:
       COLLECTION: ${{ matrix.collection }}
     steps:
       - uses: actions/checkout@v4
-      - name: Render config from template
+      - name: Sanity check collection name
         shell: bash
         run: |
           # COLLECTION は discover ジョブで filesystem の dir 名から取った値で
@@ -133,15 +138,14 @@ jobs:
             echo "::error::Invalid collection name '${COLLECTION}' — must match [a-z0-9][a-z0-9_-]*"
             exit 1
           fi
-          rendered=".github/release-drafter-rendered-${COLLECTION}.yml"
-          sed "s|{{COLLECTION}}|${COLLECTION}|g" \
-            .github/release-drafter-template.yml \
-            > "$rendered"
-          echo "--- Rendered config for ${COLLECTION}:"
-          cat "$rendered"
+          cfg=".github/release-drafter-${COLLECTION}.yml"
+          if [ ! -f "$cfg" ]; then
+            echo "::error::Config file not found: $cfg (run 'make regen-drafter-configs')"
+            exit 1
+          fi
       - name: Run release-drafter
         uses: release-drafter/release-drafter@v6
         with:
-          config-name: release-drafter-rendered-${{ env.COLLECTION }}.yml
+          config-name: release-drafter-${{ env.COLLECTION }}.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (2026-06-28). ADR-0004 (release-notes-workflow) を extends し、per-collection の drafter 設定を unified 構造に置換する。
+Accepted (2026-06-28). ADR-0004 (release-notes-workflow) を extends し、per-collection の drafter 設定を unified 構造に置換する。Revised (2026-06-29): release-drafter@v6 が config を default branch (main) から API 経由で読む制約があるため、当初の「runtime sed render」アプローチは機能せず PR #18 merge 後の workflow が `Invalid config file` で fail。**per-collection config を commit する形に方針転換**: template + 自動再生成スクリプト (`scripts/regen-drafter-configs.sh`) + Makefile target (`regen-drafter-configs` / `verify-drafter-configs`) + CI guard で「再生成忘れ」を構造的に塞ぐ。
 
 ## Context
 
@@ -22,11 +22,14 @@ per-collection の drafter ファイルを全廃し、**単一の workflow + 単
   - **drafter** (push to main / workflow_dispatch 起点):
     1. `discover` ジョブが top-level dir を走査して `<dir>/.claude-plugin/plugin.json` を持つ dir をコレクションと判定
     2. `draft` ジョブが matrix でコレクション数だけ並列起動
-    3. 各 draft ジョブは `.github/release-drafter-template.yml` の `{{COLLECTION}}` プレースホルダを sed で実際のコレクション名に置換し、`.github/release-drafter-rendered-<collection>.yml` として書き出し、release-drafter に渡す
+    3. 各 draft ジョブは commit 済み `.github/release-drafter-<collection>.yml` を release-drafter に渡す
   - **autolabeler** (pull_request_target 起点):
     - autolabeler ルールは collection 非依存なので discover 不要
-    - 同じテンプレを `_autolabel_` というダミー collection 名で render して `disable-releaser: true` で release-drafter に渡す (drafter 抑制、autolabeler のみ実行)
-    - pull_request_target は base (main) のコードで実行されるため、PR の HEAD を checkout せず main の template を使う (security: 悪意ある PR がテンプレを書き換えても autolabel ジョブは触れない)
+    - 既存の per-collection config (アルファベット順で最初のもの) を `disable-releaser: true` で release-drafter に渡す → drafter 抑制、autolabeler のみ実行
+    - pull_request_target は base (main) のコードで実行されるため、PR の HEAD を checkout せず main の commit 済み config を使う (security)
+- `scripts/regen-drafter-configs.sh` (新規): top-level の collection 一覧を検出して template の `{{COLLECTION}}` を sed 置換した per-collection config (`.github/release-drafter-<collection>.yml`) を生成。古い collection の config は自動削除。`--check` モードで「再生成後に diff があれば exit 1」(CI 用)
+- `Makefile` target: `make regen-drafter-configs` (再生成) / `make verify-drafter-configs` (drift 検証、CI 用)
+- 生成済み config の先頭には「GENERATED FILE — DO NOT EDIT」コメントを差し込み、手編集を抑止
 - `.github/release-drafter-template.yml` (新規・単一): `name-template` / `tag-template` / `include-paths` / `template` (Full Changelog URL) に `{{COLLECTION}}` を埋め込んだテンプレ
 - 既存の per-collection ファイル (`release-drafter-indie-studio.yml` + `release-drafter-enhance-superpowers.yml` + 対応 workflow) を全部削除
 

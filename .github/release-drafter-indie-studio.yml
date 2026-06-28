@@ -1,7 +1,10 @@
+# !!! GENERATED FILE — DO NOT EDIT !!!
+# Source: .github/release-drafter-template.yml
+# Regenerate: make regen-drafter-configs
 # release-drafter のテンプレ config (ADR-0006)。
 #
 # `scripts/regen-drafter-configs.sh` (Makefile target: `regen-drafter-configs`)
-# が本テンプレの {{COLLECTION}} を実際の名前に置換し、
+# が本テンプレの indie-studio を実際の名前に置換し、
 # `.github/release-drafter-<collection>.yml` を生成して commit する。
 # 生成された config は release-drafter@v6 が default branch (main) から
 # API 経由で読む (本仕組みは ADR-0006 Revised 節を参照)。
@@ -15,15 +18,15 @@
 # 「特定コレクションだけ override」の仕組み (例: <collection>/.release-drafter.yml
 #  を見て merge) を検討する。
 
-name-template: "{{COLLECTION}}/v$RESOLVED_VERSION"
-tag-template: "{{COLLECTION}}/v$RESOLVED_VERSION"
+name-template: "indie-studio/v$RESOLVED_VERSION"
+tag-template: "indie-studio/v$RESOLVED_VERSION"
 
-# {{COLLECTION}}/ 配下と vendoring 元 (shared/skills/finish-stage-pr) に
+# indie-studio/ 配下と vendoring 元 (shared/skills/finish-stage-pr) に
 # 触れた PR のみ集約。collection 間の draft 漏れを構造的に隔離。
 # 将来、共有 skill が増えたら本セクションを (テンプレ全体ではなく)
 # collection ごとの override 機構で吸収する。
 include-paths:
-  - "{{COLLECTION}}/"
+  - "indie-studio/"
   - "shared/skills/finish-stage-pr/"
 
 categories:
@@ -77,4 +80,4 @@ template: |
 
   $CHANGES
 
-  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...{{COLLECTION}}/v$RESOLVED_VERSION
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...indie-studio/v$RESOLVED_VERSION
