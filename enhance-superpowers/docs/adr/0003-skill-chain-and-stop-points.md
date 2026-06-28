@@ -6,7 +6,7 @@ Accepted (2026-06-25)
 
 ## Context
 
-spec-first-superpowers は 4 skill (enhance-brainstorming / gwt-test / write-review-response / finish-spec-pr) で構成される。ユーザーが意識的に呼ぶ skill を最小化したい (理想は 1 skill のみ)、かつ各 skill の責任境界は明確にしたい。superpowers (公式) の brainstorming → writing-plans → executing-plans が「ユーザーは brainstorming 1 つだけ呼べば連鎖で進む」設計なので、これと同じ思想にしたい。
+enhance-superpowers は 4 skill (enhance-brainstorming / gwt-test / write-review-response / finish-spec-pr) で構成される。ユーザーが意識的に呼ぶ skill を最小化したい (理想は 1 skill のみ)、かつ各 skill の責任境界は明確にしたい。superpowers (公式) の brainstorming → writing-plans → executing-plans が「ユーザーは brainstorming 1 つだけ呼べば連鎖で進む」設計なので、これと同じ思想にしたい。
 
 ## Decision
 

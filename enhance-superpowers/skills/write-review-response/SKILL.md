@@ -29,7 +29,7 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 ### Step 1: 前提確認 + テンプレ読み込み + AI 利用ポリシー案内 (ADR-0010)
 
 1. `git rev-parse --show-toplevel` で git repo 確認
-2. `spec-first-superpowers/templates/review-response.md` を Read
+2. `enhance-superpowers/templates/review-response.md` を Read
 3. プロジェクトルートの `.ai-restrictions.md` を Read (存在すれば user に案内)
 4. review-source の確定 (argument 経由 or 直近の code-review skill 出力 or PR URL から CodeRabbit unresolved コメント取得)
 

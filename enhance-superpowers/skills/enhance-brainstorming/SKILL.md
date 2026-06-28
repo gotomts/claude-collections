@@ -1,7 +1,7 @@
 ---
 name: enhance-brainstorming
 description: |
-  spec-first-superpowers コレクションの起点 skill。superpowers:brainstorming + writing-plans を内部 invoke し、
+  enhance-superpowers コレクションの起点 skill。superpowers:brainstorming + writing-plans を内部 invoke し、
   Spec フェーズで 5 成果物 (summary / design / plan / gwt / pr-description) を summary-first 順序で確定。
   各 Phase で specialist agent (software-architect / qa-engineer / security-engineer) を能動 dispatch、
   dispatch log は 5 成果物のレビュー履歴セクションに追記 (ADR-0007)。
@@ -22,7 +22,7 @@ maintainer: gotomts
 
 # enhance-brainstorming
 
-spec-first-superpowers コレクションの起点 skill。ユーザーが意識的に呼ぶ唯一の skill。superpowers:brainstorming の責任を拡張し、5 成果物の Spec フェーズ確定 + 後工程連鎖駆動を担う。
+enhance-superpowers コレクションの起点 skill。ユーザーが意識的に呼ぶ唯一の skill。superpowers:brainstorming の責任を拡張し、5 成果物の Spec フェーズ確定 + 後工程連鎖駆動を担う。
 
 ## 動作 (9 ステップ)
 
@@ -43,7 +43,7 @@ spec-first-superpowers コレクションの起点 skill。ユーザーが意識
 
 ### Step 3: Phase 2 — summary.md 生成 (認識齟齬検出 ①)
 
-1. user 合意済みアプローチを base に、`spec-first-superpowers/templates/summary.md` を Read
+1. user 合意済みアプローチを base に、`enhance-superpowers/templates/summary.md` を Read
 2. テンプレのプレースホルダー (`{機能名}` / `{slug}` / `{方式 1}` 等) を埋めて summary.md を生成
 3. ファイル名: `{YYYY-MM-DD}-{slug}-summary.md`、配置: `docs/superpowers/{branch}/`
 4. frontmatter の `design: ./{date}-{slug}-design.md` を先行記載 (実 design.md は Phase 3 で生成)
@@ -72,7 +72,7 @@ spec-first-superpowers コレクションの起点 skill。ユーザーが意識
 
 ### Step 6: Phase 5 — gwt.md 生成 (認識齟齬検出 ②)
 
-1. `spec-first-superpowers/templates/gwt.md` を Read
+1. `enhance-superpowers/templates/gwt.md` を Read
 2. design + plan の内容から AC (Given-When-Then 形式) を生成
 3. `qa-engineer` を能動 dispatch — AC の網羅性 (異常系 / 境界値 / 空状態) レビュー
 4. gwt.md 末尾「## レビュー履歴」セクションに dispatch log を追記
@@ -80,7 +80,7 @@ spec-first-superpowers コレクションの起点 skill。ユーザーが意識
 
 ### Step 7: Phase 6 — pr-description.md 生成 (認識齟齬検出 ③)
 
-1. `spec-first-superpowers/templates/pr-description.md` を Read
+1. `enhance-superpowers/templates/pr-description.md` を Read
 2. 「## やったこと」を plan.md 由来の計画スコープで下書き、「## 補足」を既知の判断理由で下書き、「## 動作確認方法」を gwt.md の AC を base に user 確認しながら確定
 3. **pr-description はレビュー履歴セクションを追加しない** (B 例外、ADR-0007、最小構造維持のため)
 4. user 承認 → commit
