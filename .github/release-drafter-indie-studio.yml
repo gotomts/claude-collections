@@ -1,0 +1,79 @@
+# !!! GENERATED FILE — DO NOT EDIT !!!
+# Source: .github/release-drafter-template.yml
+# Regenerate: make regen-drafter-configs
+# release-drafter のテンプレ config (ADR-0006)。
+#
+# .github/workflows/release-drafter.yml が repo top-level を走査して
+# <collection>/.claude-plugin/plugin.json を持つ dir をコレクションと判定し、
+# 本 template の indie-studio を実際の名前に置換 (sed) して
+# 一時 config `.github/release-drafter-rendered-<collection>.yml` を作り、
+# 各コレクション単位で release-drafter を並列実行する。
+#
+# 編集の影響範囲: 本テンプレを変更すると全コレクションの drafter 挙動が変わる。
+# コレクション固有のカスタマイズが必要になった時点で本 ADR を extends する形で
+# 「特定コレクションだけ override」の仕組み (例: <collection>/.release-drafter.yml
+#  を見て merge) を検討する。
+
+name-template: "indie-studio/v$RESOLVED_VERSION"
+tag-template: "indie-studio/v$RESOLVED_VERSION"
+
+# indie-studio/ 配下と vendoring 元 (shared/skills/finish-stage-pr) に
+# 触れた PR のみ集約。collection 間の draft 漏れを構造的に隔離。
+# 将来、共有 skill が増えたら本セクションを (テンプレ全体ではなく)
+# collection ごとの override 機構で吸収する。
+include-paths:
+  - "indie-studio/"
+  - "shared/skills/finish-stage-pr/"
+
+categories:
+  - title: "✨ Features"
+    labels: ["feat"]
+  - title: "🐛 Fixes"
+    labels: ["fix"]
+  - title: "♻️ Refactor"
+    labels: ["refactor"]
+  - title: "📝 Docs"
+    labels: ["docs"]
+  - title: "✅ Tests"
+    labels: ["test"]
+  - title: "🔧 Chore"
+    labels: ["chore"]
+
+change-template: "- $TITLE (#$NUMBER) @$AUTHOR"
+change-title-escapes: '\<*_&'
+
+# テスト期 (現在): 全 label patch 固定で v0.0.x 系厳守
+# 安定化フェーズで本セクションを feat→minor / major→major に書き換え
+# (ADR-0004 を extends する新 ADR で切替判断)
+version-resolver:
+  patch:
+    labels: ["feat", "fix", "refactor", "docs", "test", "chore", "major"]
+  default: patch
+
+# Conventional Commits prefix から自動 label 付与
+autolabeler:
+  - label: "feat"
+    title:
+      - "/^feat(\\(.+\\))?:/"
+  - label: "fix"
+    title:
+      - "/^fix(\\(.+\\))?:/"
+  - label: "refactor"
+    title:
+      - "/^refactor(\\(.+\\))?:/"
+  - label: "docs"
+    title:
+      - "/^docs(\\(.+\\))?:/"
+  - label: "test"
+    title:
+      - "/^test(\\(.+\\))?:/"
+  - label: "chore"
+    title:
+      - "/^chore(\\(.+\\))?:/"
+
+template: |
+  ## 変更点
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...indie-studio/v$RESOLVED_VERSION
