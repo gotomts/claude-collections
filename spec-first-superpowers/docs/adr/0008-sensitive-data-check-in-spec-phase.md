@@ -25,7 +25,7 @@ enhance-brainstorming Phase 3 の `security-engineer` 常時 dispatch (ADR-0005 
    - 医療 → HIPAA (米国) / 医療法 (日本)
    - 認証情報 → OWASP ASVS / 各種セキュリティ標準
 3. user に「適用規制を確認の上、本 PR スコープで対応 / 別 PR / Skip のいずれかを判断してください」と促す
-4. dispatch log (ADR-0007) として design.md のレビュー履歴に「machinery 情報チェック結果 + user 判断」を記録
+4. dispatch log (ADR-0007) として design.md のレビュー履歴に「機微情報チェック結果 + user 判断」を記録
 
 具体的な規制チェック (GDPR の article 別検証 / PCI-DSS の SAQ 別検証等) は **本コレクションのスコープ外**、外部ツール (Privado / Bearer / GitLab Compliance Center 等) または法務に委ねる。
 
