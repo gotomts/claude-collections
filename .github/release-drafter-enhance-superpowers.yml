@@ -1,20 +1,19 @@
-# indie-studio コレクション専用の release-drafter 設定 (ADR-0004)。
-# tag-template: indie-studio/v$RESOLVED_VERSION (slash 区切り、ADR-0004 採用)
+# enhance-superpowers コレクション専用の release-drafter 設定 (ADR-0004 準拠)。
+# tag-template: enhance-superpowers/v$RESOLVED_VERSION (slash 区切り、indie-studio と同形)
 # version-resolver: テスト期は全 label patch 固定 (0.1.0 自動突入を抑制)
 # 安定化フェーズ移行時に ADR-0004 を extends する新 ADR で feat→minor に書き換え
 # autolabeler: Conventional Commits prefix から自動 label 付与
-# include-paths: indie-studio/** または共有依存 (shared/skills/finish-stage-pr) に
-#                触れた PR のみ draft に含める (他コレクション専用 PR を吸い込まないため、
-#                enhance-superpowers/v0.0.1 リリース時に発覚した misleading draft への構造的修正)
+# include-paths: enhance-superpowers/** または共有依存 (shared/skills/finish-stage-pr) に
+#                触れた PR のみ draft に含める (indie-studio 専用 PR を吸い込まないため)
 # 導入 PR は autolabeler が動かない (config を main から読むため) → 導入 PR のみ手動 label
 
-name-template: "indie-studio/v$RESOLVED_VERSION"
-tag-template: "indie-studio/v$RESOLVED_VERSION"
+name-template: "enhance-superpowers/v$RESOLVED_VERSION"
+tag-template: "enhance-superpowers/v$RESOLVED_VERSION"
 
-# indie-studio/ 配下と indie-studio が vendoring する shared/skills/finish-stage-pr に
-# 触れた PR のみ集約。他コレクション専用 PR を取り込まない構造的隔離。
+# enhance-superpowers/ 配下と enhance-superpowers が vendoring する shared/skills/finish-stage-pr に
+# 触れた PR のみ集約。他コレクション専用の PR を取り込まない構造的隔離。
 include-paths:
-  - "indie-studio/"
+  - "enhance-superpowers/"
   - "shared/skills/finish-stage-pr/"
 
 categories:
@@ -67,4 +66,4 @@ template: |
 
   $CHANGES
 
-  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...indie-studio/v$RESOLVED_VERSION
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...enhance-superpowers/v$RESOLVED_VERSION

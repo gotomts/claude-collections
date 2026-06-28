@@ -1,0 +1,42 @@
+# enhance-superpowers コレクションの release-drafter ワークフロー (ADR-0004 準拠)。
+# main マージごとに draft Release を自動更新。publish は手動 (Claude Code が
+# ユーザー承認下で gh release edit を実行)。
+#
+# paths filter で enhance-superpowers/** または vendoring 元 (shared/skills/finish-stage-pr) に
+# 触れた PR のみ workflow を起動。さらに drafter config 側の include-paths で
+# PR 内容も同条件で絞り込むので、indie-studio 専用 PR を draft に取り込まない。
+# config 自身や本 workflow 自身の変更でも draft を更新する (設定修正の即時反映)。
+#
+# 前提：リポジトリ Settings → Actions → General → Workflow permissions を
+# 「Read and write permissions」にしておく (read-only だと contents: write が
+# 403 で失敗)。詳細は ADR-0004 Consequences 参照。
+#
+# workflow_dispatch は設定修正後にドラフトを作り直したい時の手動再実行用。
+
+name: Release Drafter (enhance-superpowers)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "enhance-superpowers/**"
+      - "shared/skills/finish-stage-pr/**"
+      - ".github/release-drafter-enhance-superpowers.yml"
+      - ".github/workflows/release-drafter-enhance-superpowers.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update_release_draft:
+    permissions:
+      contents: write     # draft Release の作成/更新
+      pull-requests: read # release-drafter がノート生成のためマージ済み PR を読む
+    runs-on: ubuntu-latest
+    steps:
+      - uses: release-drafter/release-drafter@v6
+        with:
+          config-name: release-drafter-enhance-superpowers.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
