@@ -77,8 +77,10 @@ release-drafter は config をデフォルトブランチ (main) から読むた
 本リポジトリ内では PreToolUse hook が `git push` の挙動を **authoritative に決定**する:
 
 - 非 force / 非 protected branch (`main` / `master` / `*/main` / `*/master`) の push → `permissionDecision: allow` で auto-run
-- `--force` / `--force-with-lease` / `-f` / `--force=…` / refspec 先頭 `+` の force shorthand → `permissionDecision: ask` で都度承認
-- `main` / `master` / `refs/heads/main` 等の protected branch を target にする push → `permissionDecision: ask` で都度承認
+- `--force` / `--force-with-lease` / `-f` / `--force=…` / refspec 先頭 `+` の force shorthand → `permissionDecision: deny` で **prompt 無しで hard block**
+- `main` / `master` / `refs/heads/main` 等の protected branch を target にする push → `permissionDecision: deny` で **prompt 無しで hard block**
+
+deny を選んだのは「prompt を出すと誤クリックで通過する事故が起きうる」ため。意図的に push したいときは hook を一時編集するか、Claude Code 外 (terminal) から実行する。
 
 実装:
 - hook logic: `.claude/hooks/allow-safe-push.sh` (committed)

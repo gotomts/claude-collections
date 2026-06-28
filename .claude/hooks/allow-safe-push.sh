@@ -2,7 +2,9 @@
 # PreToolUse hook: authoritative decision for `git push`.
 #   - non-force push to a non-protected branch → permissionDecision: allow
 #   - force-push variants / protected branches (main, master, */main, */master)
-#     → permissionDecision: ask  (user must confirm explicitly)
+#     → permissionDecision: deny  (hard block — no prompt is shown so an
+#                                  accidental click cannot bypass the guard).
+#     To intentionally push these, edit this hook or push from outside Claude.
 # Self-sufficient: does not rely on any user-scope deny rule firing.
 set -u
 
@@ -15,9 +17,9 @@ emit() {
   exit 0
 }
 
-# 1. Force-push flag variants — require explicit confirmation.
+# 1. Force-push flag variants — hard block.
 if printf '%s' "$cmd" | grep -qE -- '(--force([= ]|$)|--force-with-lease|(^|[[:space:]])-f([[:space:]]|$))'; then
-  emit ask "force-push variant detected — manual confirmation required"
+  emit deny "force-push variant detected — blocked by claude-collections hook"
 fi
 
 # 2. Tokenize args after `git push`, dropping option flags and surrounding quotes.
@@ -32,11 +34,11 @@ for tok in $args; do
   esac
 done
 
-# 3. Refspec with leading `+` is force-push shorthand — require confirmation.
+# 3. Refspec with leading `+` is force-push shorthand — hard block.
 if [ "${#positional[@]}" -ge 2 ]; then
   for ref in "${positional[@]:1}"; do
     case "$ref" in
-      +*) emit ask "force-push shorthand (+refspec) detected — manual confirmation required" ;;
+      +*) emit deny "force-push shorthand (+refspec) detected — blocked by claude-collections hook" ;;
     esac
   done
 fi
@@ -53,7 +55,7 @@ if [ "${#positional[@]}" -ge 2 ]; then
     dst=$(normalize_dst "$ref")
     case "$dst" in
       main|master|*/main|*/master)
-        emit ask "push targets protected branch ($dst) — manual confirmation required"
+        emit deny "push targets protected branch ($dst) — blocked by claude-collections hook"
         ;;
     esac
   done
@@ -61,7 +63,7 @@ else
   dst=$(git symbolic-ref --short HEAD 2>/dev/null || true)
   case "$dst" in
     main|master|*/main|*/master)
-      emit ask "current branch is protected ($dst) — manual confirmation required"
+      emit deny "current branch is protected ($dst) — blocked by claude-collections hook"
       ;;
   esac
 fi
