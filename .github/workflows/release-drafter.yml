@@ -1,6 +1,11 @@
 # claude-collections の単一 release-drafter ワークフロー (ADR-0006)。
 #
-# 動作:
+# 役割は 2 つ:
+#   (A) drafter: main マージ後に各コレクションの draft Release を更新
+#   (B) autolabeler: PR open/update 時に Conventional Commits prefix から
+#       label (feat/fix/refactor/docs/test/chore) を自動付与
+#
+# drafter (push 起点):
 #   1. discover ジョブが repo top-level を走査して
 #      <dir>/.claude-plugin/plugin.json を持つ dir = コレクションと判定
 #   2. matrix で各コレクションごとに draft ジョブを並列起動
@@ -9,14 +14,25 @@
 #      .github/release-drafter-rendered-<collection>.yml として書き出して
 #      release-drafter に渡す
 #
+# autolabeler (pull_request_target 起点):
+#   - autolabeler ルールは collection 非依存なので discover 不要
+#   - 同じテンプレ config をダミー collection 名で render して release-drafter に
+#     `disable-releaser: true` で渡す (drafter 抑制、autolabeler のみ実行)
+#   - pull_request_target は base 側 (main) のコードで実行されるので、
+#     PR の HEAD コードを checkout せず main の template を使う (security)
+#
 # 利点:
 #   - 新コレクション追加時に drafter config / workflow の手作業ゼロ
 #     (<collection>/.claude-plugin/plugin.json が main に乗った時点で
 #      次の push trigger で drafter が自動認識して動き出す)
 #   - per-collection の drafter 設定不要 = 設定漏れ事故が構造的に発生しない
+#   - autolabeler が PR open 時に動くので、Conventional Commits prefix がついた
+#     PR は自動で label が付き、drafter が ✨ Features / 🐛 Fixes 等に
+#     正しく分類できる (以前は label が付かず default の flat list だった)
 #
 # 前提: リポジトリ Settings → Actions → General → Workflow permissions を
-#       "Read and write permissions" にしておく (contents: write 用)。
+#       "Read and write permissions" にしておく (contents: write +
+#       pull-requests: write 用)。
 #
 # workflow_dispatch は設定修正後にドラフトを再生成したい時の手動再実行用。
 
@@ -25,13 +41,42 @@ name: Release Drafter
 on:
   push:
     branches: [main]
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
+  autolabel:
+    # PR 起点: autolabeler のみ実行 (drafter は disable-releaser で抑制)。
+    # pull_request_target なので base (main) のコードで動く → PR の HEAD は
+    # checkout しない (security)。autolabeler はラベル付与 = PR メタデータ操作のみ。
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Render template (autolabeler は COLLECTION 非依存だがテンプレ構文上必要)
+        shell: bash
+        run: |
+          sed "s|{{COLLECTION}}|_autolabel_|g" \
+            .github/release-drafter-template.yml \
+            > .github/release-drafter-autolabel.yml
+      - name: Run autolabeler
+        uses: release-drafter/release-drafter@v6
+        with:
+          config-name: release-drafter-autolabel.yml
+          disable-releaser: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   discover:
+    # main push or 手動再実行: コレクションを発見して draft ジョブへ matrix で渡す。
+    if: github.event_name != 'pull_request_target'
     runs-on: ubuntu-latest
     outputs:
       collections: ${{ steps.list.outputs.collections }}
@@ -65,7 +110,7 @@ jobs:
 
   draft:
     needs: discover
-    if: needs.discover.outputs.has_any == 'true'
+    if: github.event_name != 'pull_request_target' && needs.discover.outputs.has_any == 'true'
     strategy:
       fail-fast: false
       matrix:

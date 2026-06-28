@@ -16,12 +16,17 @@ ADR-0004 で導入した release-drafter は **collection ごとに config + wor
 
 ## Decision
 
-per-collection の drafter ファイルを全廃し、**単一の workflow + 単一のテンプレ config** に統一する:
+per-collection の drafter ファイルを全廃し、**単一の workflow + 単一のテンプレ config** に統一する。さらに同 workflow で autolabeler も実行する (旧 indie-studio workflow は `push` trigger のみで autolabeler が dead code だった既存バグも併せて修正):
 
-- `.github/workflows/release-drafter.yml` (新規・単一): main への push 時に
-  1. `discover` ジョブが top-level dir を走査して `<dir>/.claude-plugin/plugin.json` を持つ dir をコレクションと判定
-  2. `draft` ジョブが matrix でコレクション数だけ並列起動
-  3. 各 draft ジョブは `.github/release-drafter-template.yml` の `{{COLLECTION}}` プレースホルダを sed で実際のコレクション名に置換し、`.github/release-drafter-rendered-<collection>.yml` として書き出し、release-drafter に渡す
+- `.github/workflows/release-drafter.yml` (新規・単一): 2 つの起点を持つ
+  - **drafter** (push to main / workflow_dispatch 起点):
+    1. `discover` ジョブが top-level dir を走査して `<dir>/.claude-plugin/plugin.json` を持つ dir をコレクションと判定
+    2. `draft` ジョブが matrix でコレクション数だけ並列起動
+    3. 各 draft ジョブは `.github/release-drafter-template.yml` の `{{COLLECTION}}` プレースホルダを sed で実際のコレクション名に置換し、`.github/release-drafter-rendered-<collection>.yml` として書き出し、release-drafter に渡す
+  - **autolabeler** (pull_request_target 起点):
+    - autolabeler ルールは collection 非依存なので discover 不要
+    - 同じテンプレを `_autolabel_` というダミー collection 名で render して `disable-releaser: true` で release-drafter に渡す (drafter 抑制、autolabeler のみ実行)
+    - pull_request_target は base (main) のコードで実行されるため、PR の HEAD を checkout せず main の template を使う (security: 悪意ある PR がテンプレを書き換えても autolabel ジョブは触れない)
 - `.github/release-drafter-template.yml` (新規・単一): `name-template` / `tag-template` / `include-paths` / `template` (Full Changelog URL) に `{{COLLECTION}}` を埋め込んだテンプレ
 - 既存の per-collection ファイル (`release-drafter-indie-studio.yml` + `release-drafter-enhance-superpowers.yml` + 対応 workflow) を全部削除
 
