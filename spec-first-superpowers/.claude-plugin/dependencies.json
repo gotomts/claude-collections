@@ -1,0 +1,13 @@
+{
+  "shared": {
+    "agents": [
+      "code-reviewer",
+      "qa-engineer",
+      "software-architect",
+      "security-engineer"
+    ],
+    "skills": [
+      "finish-stage-pr"
+    ]
+  }
+}

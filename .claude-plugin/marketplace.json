@@ -12,6 +12,12 @@
       "source": "./indie-studio",
       "description": "AI 自律開発ハーネス：個人開発のサービス設計〜デザイン〜開発をオールインで回す（G1 アンカー / S1 企画→ブリーフ / S2 プロトタイプ / S3 技術設計 / S4 分解 / S5 実装）。",
       "category": "development-workflow"
+    },
+    {
+      "name": "spec-first-superpowers",
+      "source": "./spec-first-superpowers",
+      "description": "superpowers 拡張: Spec フェーズで 5 成果物 (summary/design/plan/gwt/pr-description) を確定、後工程 (gwt-test/write-review-response/finish-spec-pr) を連鎖駆動。agent 能動 dispatch + 監査ログ + セキュリティレビュー + コンプライアンス trigger を内包。",
+      "category": "development-workflow"
     }
   ]
 }

@@ -6,15 +6,15 @@ description: |
   ゲートレポート要約を args で渡し、本 skill が draft/ready 判定・
   user 最終確認・gh pr create を担当する。汎用なので indie-studio
   以外の collection からも利用可。
-argument-hint: "<title-suggestion>  # body 用情報は呼び出し側 SKILL.md の prose で渡す"
+argument-hint: "<title-suggestion> [body-source-path]  # body-source-path 未指定なら内蔵テンプレ、指定ならそのファイル内容を body にする"
 allowed-tools:
   - Bash
   - Read
 maintainer: gotomts
 x-source: shared/skills/finish-stage-pr/SKILL.md
-x-source-hash: sha256:6c1177780d43ae18dafd57428f3d00b567e3c05b462fe4fb0ea9142aa17a8393
-x-body-hash: sha256:ea37531dba0d5e99a36c15d169a5200bdf2ade2a9f14d4cd86263d8d8dd0ccf3
-x-synced-at: 2026-06-23T11:13:43Z
+x-source-hash: sha256:25d934f5c03613fa2ef98cd2166e1278450c64823c5e5362f5923967d47468ea
+x-body-hash: sha256:0d361ac3325fedaa925481cdd4bad95caf8728a83dd58f0b976c6d49d7ee7445
+x-synced-at: 2026-06-28T03:34:50Z
 ---
 
 # finish-stage-pr
@@ -87,6 +87,13 @@ gh pr list --head <current-branch> --json number,title
 - `⚠️ 残数 == 0` → **ready**
 
 ### Step 7: PR body を組み立て
+
+呼び出し側から `body-source-path` (任意引数) が渡された場合:
+- そのファイルを Read で読み込み、内容を body として使う (改行・セクション構造をそのまま渡す)
+- ファイルが存在しなければ error 報告 + 中断 ("body-source-path で指定されたファイルが見つかりません: <path>")
+
+渡されていない場合 (default、indie-studio 経由など):
+- 以下の内蔵テンプレで body を構築 (既存挙動と完全互換)
 
 テンプレ：
 

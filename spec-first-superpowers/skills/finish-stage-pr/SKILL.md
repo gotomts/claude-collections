@@ -11,6 +11,10 @@ allowed-tools:
   - Bash
   - Read
 maintainer: gotomts
+x-source: shared/skills/finish-stage-pr/SKILL.md
+x-source-hash: sha256:25d934f5c03613fa2ef98cd2166e1278450c64823c5e5362f5923967d47468ea
+x-body-hash: sha256:0d361ac3325fedaa925481cdd4bad95caf8728a83dd58f0b976c6d49d7ee7445
+x-synced-at: 2026-06-28T03:30:41Z
 ---
 
 # finish-stage-pr
