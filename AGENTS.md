@@ -74,24 +74,33 @@ release-drafter は config をデフォルトブランチ (main) から読むた
 
 ## git push の repo-local 例外 (Claude Code)
 
-ユーザースコープ (`~/.claude/settings.local.json`) の `Bash(git push:*)` deny を、本リポジトリに限り **非 force / 非 main の push のみ** auto-allow する。実装は `.claude/hooks/allow-safe-push.sh` (committed) と `.claude/settings.local.json` (gitignored)。
+本リポジトリ内では PreToolUse hook が `git push` の挙動を **authoritative に決定**する:
 
-- 対象外 (引き続き deny → 都度承認): `--force` / `--force-with-lease` / `-f`、`origin main` / `HEAD:main` / 現在 branch が `main`、`master` も同様
-- 他の repo は触らない: user-scope deny が default のままなので、claude-collections 外では従来通り都度承認
-- worktree / 別 checkout で有効化したいとき: `.claude/settings.local.json` を以下の内容で作成 (hook script は git 同期されるためコピー不要)
-  ```json
-  {
-    "$schema": "https://json.schemastore.org/claude-code-settings.json",
-    "hooks": {
-      "PreToolUse": [{
-        "matcher": "Bash",
-        "hooks": [{
-          "type": "command",
-          "if": "Bash(git push:*)",
-          "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/allow-safe-push.sh"
-        }]
+- 非 force / 非 protected branch (`main` / `master` / `*/main` / `*/master`) の push → `permissionDecision: allow` で auto-run
+- `--force` / `--force-with-lease` / `-f` / `--force=…` / refspec 先頭 `+` の force shorthand → `permissionDecision: ask` で都度承認
+- `main` / `master` / `refs/heads/main` 等の protected branch を target にする push → `permissionDecision: ask` で都度承認
+
+実装:
+- hook logic: `.claude/hooks/allow-safe-push.sh` (committed)
+- hook 起動: `.claude/settings.local.json` (gitignored)
+- 他の repo は触らない: user-scope の `~/.claude/settings.local.json` の `Bash(git push *)` deny がそちらの safety net として残る
+
+worktree / 別 checkout で有効化したいとき: `.claude/settings.local.json` を以下の内容で作成 (hook script は git 同期されるためコピー不要)
+
+```json
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Bash",
+      "hooks": [{
+        "type": "command",
+        "if": "Bash(git push *)",
+        "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/allow-safe-push.sh"
       }]
-    }
+    }]
   }
-  ```
-- 設計判断: markdown 注意書きだけに頼った時期に事故った経緯から、enforcement は settings/hook で行い AGENTS.md は背景説明に留める。
+}
+```
+
+設計判断: markdown 注意書きだけに頼った時期に事故った経緯から、enforcement は settings/hook で行い AGENTS.md は背景説明に留める。さらに hook を authoritative にして `permissionDecision` を明示することで、user-scope 設定差異 (deny 有無 / syntax 差) に依存しない可搬性を確保する。

@@ -1,21 +1,26 @@
 #!/usr/bin/env bash
-# PreToolUse hook: lift the user-scope `Bash(git push:*)` deny only when the
-# push is (a) not a force variant and (b) not targeting main/master.
-# Anything riskier is left to fall through to the existing deny rules so the
-# usual prompt / block fires.
+# PreToolUse hook: authoritative decision for `git push`.
+#   - non-force push to a non-protected branch → permissionDecision: allow
+#   - force-push variants / protected branches (main, master, */main, */master)
+#     → permissionDecision: ask  (user must confirm explicitly)
+# Self-sufficient: does not rely on any user-scope deny rule firing.
 set -u
 
 input=$(cat)
 cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null)
 [ -z "$cmd" ] && exit 0
 
-# 1. Force-push variants — never auto-allow.
-if printf '%s' "$cmd" | grep -qE -- '(--force([= ]|$)|--force-with-lease|(^|[[:space:]])-f([[:space:]]|$))'; then
+emit() {
+  printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"%s","permissionDecisionReason":"%s"}}\n' "$1" "$2"
   exit 0
+}
+
+# 1. Force-push flag variants — require explicit confirmation.
+if printf '%s' "$cmd" | grep -qE -- '(--force([= ]|$)|--force-with-lease|(^|[[:space:]])-f([[:space:]]|$))'; then
+  emit ask "force-push variant detected — manual confirmation required"
 fi
 
-# 2. Tokenize args after `git push`, dropping option flags and surrounding
-#    quotes so things like `git push -u origin "main"` resolve correctly.
+# 2. Tokenize args after `git push`, dropping option flags and surrounding quotes.
 args=$(printf '%s' "$cmd" | sed -nE 's/.*git[[:space:]]+push[[:space:]]*(.*)/\1/p')
 positional=()
 for tok in $args; do
@@ -27,39 +32,39 @@ for tok in $args; do
   esac
 done
 
-# 3. Refspec starting with `+` is force-push shorthand — never auto-allow,
-#    even when the destination would otherwise be a non-main branch.
+# 3. Refspec with leading `+` is force-push shorthand — require confirmation.
 if [ "${#positional[@]}" -ge 2 ]; then
   for ref in "${positional[@]:1}"; do
     case "$ref" in
-      +*) exit 0 ;;
+      +*) emit ask "force-push shorthand (+refspec) detected — manual confirmation required" ;;
     esac
   done
 fi
 
-# 4. Defer if any push target resolves to main/master.
-#    Normalize: drop refspec sigil, take part after last `:`, strip refs/heads/.
-#    positional = [remote, refspec1, refspec2, ...]; no refspec → current branch.
+# 4. Reject if any push target resolves to a protected branch.
 normalize_dst() {
   local d="${1#+}"
   d="${d##*:}"
   d="${d#refs/heads/}"
   printf '%s' "$d"
 }
-check_dst() {
-  case "$1" in
-    main|master|*/main|*/master) exit 0 ;;
-  esac
-}
 if [ "${#positional[@]}" -ge 2 ]; then
   for ref in "${positional[@]:1}"; do
     dst=$(normalize_dst "$ref")
-    check_dst "$dst"
+    case "$dst" in
+      main|master|*/main|*/master)
+        emit ask "push targets protected branch ($dst) — manual confirmation required"
+        ;;
+    esac
   done
 else
   dst=$(git symbolic-ref --short HEAD 2>/dev/null || true)
-  check_dst "$dst"
+  case "$dst" in
+    main|master|*/main|*/master)
+      emit ask "current branch is protected ($dst) — manual confirmation required"
+      ;;
+  esac
 fi
 
-# 4. Otherwise: explicit allow.
-printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","permissionDecisionReason":"claude-collections: non-main / non-force push auto-allowed"}}'
+# 5. Safe push — auto-allow.
+emit allow "claude-collections: non-protected, non-force push auto-allowed"
