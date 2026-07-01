@@ -55,7 +55,7 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 ### Step 4: 採用分を実装に反映 + 再 push 前の差し戻しレビュー
 
 1. user 確認 → 採用分を実装に反映 (← user 作業 or AI 作業)
-2. テストコード同期確認 (CLAUDE.local.md の指摘対応規律): 実装コード修正に伴うテストコード修正要否を確認、不要時も 1 行根拠を残す (review-response.md に記録)
+2. テストコード同期確認: 実装コード修正に伴うテストコード修正要否を確認、不要時も 1 行根拠を残す (review-response.md に記録)
 3. **再 push 前に `code-reviewer` を能動 dispatch** — 修正コードの差し戻しレビュー
 4. dispatch log を review-response.md レビュー履歴に追記 (ADR-0007)
 5. 問題なければ user 承認 → push
@@ -69,7 +69,7 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 
 - CodeRabbit へのリプライは送らない (修正 push → 自動 resolve → 残 unresolved のみ判定)
 - 採用/Skip 2 値 (保留禁止、全件判定必須)
-- 採用後の実装修正でテストコード同期不要時は 1 行根拠を残す (CLAUDE.local.md 指摘対応規律)
+- 採用後の実装修正でテストコード同期不要時は 1 行根拠を残す
 - 判定迷い・セキュリティ系・採用後修正の 3 タイミングで agent を能動 dispatch (silent failure 回避)
 - dispatch log を review-response.md のレビュー履歴セクションに追記 (ADR-0007、gwt-test の security-engineer コードレビュー結果もここに集約)
 - 上書き運用 (最新ラウンドのみ保持、過去ラウンドは git log で追跡)
