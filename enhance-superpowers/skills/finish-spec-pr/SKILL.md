@@ -70,7 +70,7 @@ maintainer: gotomts
 - finish-spec-pr 自体は agent dispatch しない (mechanical な操作のみ)、dispatch log 追記もなし (Agent dispatch matrix で「(なし)」)
 - main 直作業を拒否、未 commit のまま PR を作らない
 - title は Conventional Commits 形式 (リポジトリ既存規約があればそちら優先)、 user 1 問確認は必須
-- body は pr-description.md を **そのまま**渡す (新規生成しない、Spec フェーズの先行作成物を再利用)、`.github/PULL_REQUEST_TEMPLATE.md` は使わない (CLAUDE.local.md の SSOT 思想)
+- body は pr-description.md を **そのまま**渡す (新規生成しない、Spec フェーズの先行作成物を再利用)、`.github/PULL_REQUEST_TEMPLATE.md` は使わない (pr-description.md を SSOT とする)
 
 ## 失敗時の挙動
 
