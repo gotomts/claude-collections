@@ -49,6 +49,6 @@ summary: ./{YYYY-MM-DD}-{slug}-summary.md
 
 ## レビュー履歴
 
-> enhance-brainstorming Phase 5 + gwt-test の AC 未達発覚時に dispatch した agent の log を追記。形式は ADR-0007 参照。
+> enhance-brainstorming Phase 3 (gwt 関連) + gwt-test の AC 未達発覚時に dispatch した agent の log を追記。形式は ADR-0007 参照。
 
-- {YYYY-MM-DD HH:MM} - `{agent-name}` を {Phase 5 / gwt-test} で dispatch (目的: {目的}) → 「{回答要約}」
+- {YYYY-MM-DD HH:MM} - `{agent-name}` を {Phase 3 / gwt-test} で dispatch (目的: {目的}) → 「{回答要約}」

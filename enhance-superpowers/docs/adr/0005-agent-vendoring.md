@@ -13,7 +13,7 @@ Accepted (2026-06-25)
 initial で取り込む agent は **4 体** に絞る:
 
 - `software-architect` — enhance-brainstorming Phase 1-3 (アプローチ / summary / design レビュー)、実装フェーズの任意 dispatch 案内
-- `qa-engineer` — enhance-brainstorming Phase 4 (plan のテスト戦略) + Phase 5 (gwt の AC 網羅性) + gwt-test の AC 未達発覚時
+- `qa-engineer` — enhance-brainstorming Phase 3 (gwt の AC 網羅性) + Phase 4 (plan のテスト戦略) + gwt-test の AC 未達発覚時
 - `code-reviewer` — write-review-response の判定迷い時 / 採用後修正の再 push 前 + 実装フェーズの任意 dispatch 案内
 - `security-engineer` — enhance-brainstorming Phase 3/4 で常時能動 dispatch (セキュリティレビュー + 機微情報チェック) + write-review-response のセキュリティ系指摘 + STOP POINT 2 (code-review に加えて security-focused コードレビュー)
 

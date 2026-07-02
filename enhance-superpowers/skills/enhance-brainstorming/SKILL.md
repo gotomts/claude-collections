@@ -2,7 +2,8 @@
 name: enhance-brainstorming
 description: |
   enhance-superpowers コレクションの起点 skill。superpowers:brainstorming + writing-plans を内部 invoke し、
-  Spec フェーズで 5 成果物 (summary / design / plan / gwt / pr-description) を summary-first 順序で確定。
+  Spec フェーズで 5 成果物 (summary / design / gwt / pr-description / plan) を plan-last 順序で確定
+  (design / gwt / pr-description は Phase 3 で連続生成、3 file 揃って user 承認 1 回、ADR-0011)。
   各 Phase で specialist agent (software-architect / qa-engineer / security-engineer) を能動 dispatch、
   dispatch log は 5 成果物のレビュー履歴セクションに追記 (ADR-0007)。
   Phase 3 で機微情報チェック (ADR-0008)、Phase 4 でライセンスチェック (ADR-0009) を組み込む。
@@ -24,7 +25,7 @@ maintainer: gotomts
 
 enhance-superpowers コレクションの起点 skill。ユーザーが意識的に呼ぶ唯一の skill。superpowers:brainstorming の責任を拡張し、5 成果物の Spec フェーズ確定 + 後工程連鎖駆動を担う。
 
-## 動作 (9 ステップ)
+## 動作 (7 ステップ)
 
 ### Step 1: 前提確認 + AI 利用ポリシー案内 (ADR-0010)
 
@@ -51,15 +52,39 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 6. **summary.md 末尾「## レビュー履歴」セクションに Phase 1 + Phase 2 の dispatch log を追記** (ADR-0007)
 7. user 承認 → commit (Conventional Commits 形式)
 
-### Step 4: Phase 3 — design.md 生成 + セキュリティレビュー + 機微情報チェック
+### Step 4: Phase 3 — design + gwt + pr-description まとめ生成 (認識齟齬検出 ② ③ 統合、ADR-0011)
+
+3 file を連続生成し、**3 file 揃ってから user 承認 1 回**。各 file 生成時の agent dispatch は個別に行う。差し戻し時は該当 file のみ再生成 → 3 file 揃えて再提示。
+
+**4-a. design.md 生成 + セキュリティレビュー + 機微情報チェック**
 
 1. 合意済み summary.md を context として `superpowers:brainstorming` を invoke (Y 方式 / ADR-0006)
 2. superpowers:brainstorming に「以下が合意済み summary、design.md として詳細展開して」と委譲
 3. design.md が生成されたら、`software-architect` を能動 dispatch — design 全体の SOLID / モジュール境界レビュー
 4. 続けて `security-engineer` を **常時能動 dispatch** — design のセキュリティレビュー (認証 / 認可 / データ取扱 / 外部入力 / シークレット / 通信 / コード実行 等の観点)
 5. **機微情報チェックリスト** (ADR-0008): 個人情報 / 決済データ / 医療データ / 認証情報を扱う設計か? 該当したら適用規制 (GDPR / 個人情報保護法 / PCI-DSS / HIPAA 等) を提示 → user に「適用規制を確認の上、本 PR スコープで対応 / 別 PR / Skip のいずれかを判断してください」と促す
-6. design.md 末尾「## レビュー履歴」セクションに Phase 3 の dispatch log を追記 (機微情報チェック結果含む)
-7. user 承認 → commit
+6. design.md 末尾「## レビュー履歴」セクションに Phase 3 (design 関連) の dispatch log を追記 (機微情報チェック結果含む、ADR-0007)
+
+**4-b. gwt.md 生成**
+
+1. `enhance-superpowers/templates/gwt.md` を Read
+2. design.md + summary.md の内容から AC (Given-When-Then 形式) を生成
+3. `qa-engineer` を能動 dispatch — AC の網羅性 (異常系 / 境界値 / 空状態) レビュー
+4. gwt.md 末尾「## レビュー履歴」セクションに Phase 3 (gwt 関連) の dispatch log を追記 (ADR-0007)
+
+**4-c. pr-description.md 生成**
+
+1. `enhance-superpowers/templates/pr-description.md` を Read
+2. 「## やったこと」を **design.md のスコープ** で下書き (plan は未生成のため design.md ベース、実装完了後 finish-spec-pr で実装結果に合わせて整える)
+3. 「## 補足」を既知の判断理由で下書き (内容がなければセクションごと削除)
+4. 「## 動作確認方法」を gwt.md の AC を base に下書き
+5. **pr-description はレビュー履歴セクションを追加しない** (B 例外、ADR-0007、最小構造維持のため)
+
+**4-d. 3 file 一括 user 承認 (認識齟齬検出 ② + ③ 統合)**
+
+1. 3 file (design.md / gwt.md / pr-description.md) 揃ったら user に「AC (gwt) と動作確認方法 (pr-description) が design と整合しているか一括で確認してください」と提示
+2. user 承認 → 3 file まとめて commit (Conventional Commits 形式)
+3. 差し戻しが発生した場合、該当 file のみ再生成 → 3 file 揃えて再提示 (承認単位は 3 file 一括を維持)
 
 ### Step 5: Phase 4 — plan.md 生成 + ライセンスチェック
 
@@ -67,29 +92,14 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 2. plan.md が生成されたら、`qa-engineer` を能動 dispatch — plan のテスト戦略の段取り妥当性レビュー
 3. 続けて `security-engineer` を **常時能動 dispatch** — plan のセキュリティ観点 (セキュリティテスト / 脅威モデリングの段取り / 機微データ取扱の手順) レビュー
 4. **ライセンスチェック** (ADR-0009): plan で追加予定の依存ライブラリ一覧を抽出、各ライブラリのライセンスを確認 (license-checker 等を推奨案内)、制限ライセンス (GPL / AGPL / SSPL / 商用制限) が含まれる場合は user に警告 + 1 問確認
-5. plan.md 末尾「## レビュー履歴」セクションに dispatch log を追記
+5. plan.md 末尾「## レビュー履歴」セクションに Phase 4 の dispatch log を追記 (ADR-0007)
 6. user 承認 → commit
 
-### Step 6: Phase 5 — gwt.md 生成 (認識齟齬検出 ②)
+### Step 6: Phase 1 / 2 の任意セキュリティ dispatch
 
-1. `enhance-superpowers/templates/gwt.md` を Read
-2. design + plan の内容から AC (Given-When-Then 形式) を生成
-3. `qa-engineer` を能動 dispatch — AC の網羅性 (異常系 / 境界値 / 空状態) レビュー
-4. gwt.md 末尾「## レビュー履歴」セクションに dispatch log を追記
-5. user 承認 → commit
+Phase 1 / 2 でセキュリティ箇所が検出されたら `security-engineer` を任意 dispatch (Phase 3 / 4 の常時 dispatch とは別)。dispatch log は該当 Phase の成果物 (summary.md) のレビュー履歴に追記。Phase 3 は既に security-engineer 常時 dispatch が design / gwt / pr-description を包含するため、追加の任意 dispatch は不要。
 
-### Step 7: Phase 6 — pr-description.md 生成 (認識齟齬検出 ③)
-
-1. `enhance-superpowers/templates/pr-description.md` を Read
-2. 「## やったこと」を plan.md 由来の計画スコープで下書き、「## 補足」を既知の判断理由で下書き、「## 動作確認方法」を gwt.md の AC を base に user 確認しながら確定
-3. **pr-description はレビュー履歴セクションを追加しない** (B 例外、ADR-0007、最小構造維持のため)
-4. user 承認 → commit
-
-### Step 8: Phase 1 / 2 / 5 / 6 の任意セキュリティ dispatch
-
-各 Phase でセキュリティ箇所が検出されたら `security-engineer` を任意 dispatch (Phase 3/4 の常時 dispatch とは別)。dispatch log は該当 Phase の成果物 (summary / gwt) のレビュー履歴に追記。
-
-### Step 9: STOP POINT 1 (実装フェーズ) の案内
+### Step 7: STOP POINT 1 (実装フェーズ) の案内
 
 1. user に「Spec フェーズが完了しました。次は実装です」と明示
 2. **実装中の推奨 agent 利用パターンを案内**:
@@ -101,6 +111,7 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 ## 規律明示
 
 - 5 成果物の命名: `{YYYY-MM-DD}-{slug}-{suffix}.md`、配置: `docs/superpowers/{branch}/`
+- **生成順**: plan-last (`summary → design → gwt → pr-description → plan`)、design / gwt / pr-description は Phase 3 で連続生成 + 承認 1 回 (ADR-0011)
 - 設計思想: Clean Architecture + Modular Monolith / YAGNI/DRY/KISS/SOLID / SOLID 最優先 / テスト DRY 一部許容
 - コードコメント方針: WHY のみ、JSDoc 抑制
 - pr-description Spec フェーズ先行作成の意義 (動作確認方法を Spec で確定 = 認識齟齬を実装後に検出する手戻りを防ぐ)
@@ -117,13 +128,15 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 | git repo 外 | error 報告 + 中断 (Step 1 で検知) |
 | Phase 1 で情報不足 | 1 問ずつ追加質問 → 情報揃ったら Phase 2 へ |
 | Phase 2 で大枠ズレ発覚 | Phase 1 に戻って再議論 → summary 書き直して再合意 |
+| Phase 3 で 3 file 一括レビュー時に差し戻し | 該当 file のみ再生成 → 3 file 揃えて再提示 (承認単位は一括のまま、ADR-0011) |
 | Phase 3 で superpowers:brainstorming が summary context を無視して会話を再開 | 「合意済みです」を再伝達 → なお続行なら受け入れる。dogfood で運用上の問題があれば Z 方式 (自前実装) に移行 (ADR-0006 を update) |
+| Phase 4 で AC / 動作確認方法の再修正要求 | Phase 3 の該当 file (gwt / pr-description) に戻って修正 → 3 file 一括再合意 → plan へ戻る |
 | 5 成果物の整合性チェックで矛盾発覚 | 矛盾点を user に提示 → 修正対象 1 問確認 → 修正 → 再提示 |
 
 ## 関連
 
 - ADR-0001 (collection-scope-and-naming)
-- ADR-0002 (five-deliverables-and-order)
+- ADR-0002 (five-deliverables-and-order — Superseded by ADR-0011)
 - ADR-0003 (skill-chain-and-stop-points)
 - ADR-0004 (shared-skills-finish-stage-pr-extension, finish-spec-pr が consume)
 - ADR-0005 (agent-vendoring)
@@ -132,4 +145,5 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 - ADR-0008 (sensitive-data-check-in-spec-phase)
 - ADR-0009 (license-check-in-plan-phase)
 - ADR-0010 (ai-utilization-policy-loading)
+- ADR-0011 (plan-last-order-and-design-gwt-prd-merged) — 本 skill が反映する生成順
 - CONTEXT.md (ユビキタス言語、indie-studio 禁止語彙)

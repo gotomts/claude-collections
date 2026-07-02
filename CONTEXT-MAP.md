@@ -7,7 +7,7 @@
 | コレクション | 概要 | CONTEXT | ADR |
 |---|---|---|---|
 | [`indie-studio`](indie-studio/) | 個人開発のサービス設計〜デザイン〜開発をオールインで回す AI 自律開発ハーネス（G1 アンカー / S1 企画→ブリーフ / S2 プロトタイプ / S3 技術設計 / S4 分解 / S5 実装） | [`indie-studio/CONTEXT.md`](indie-studio/CONTEXT.md) | [`indie-studio/docs/adr/`](indie-studio/docs/adr/) |
-| [`enhance-superpowers`](enhance-superpowers/) | superpowers (公式) を base に、Spec フェーズで 5 成果物 (summary/design/plan/gwt/pr-description) を summary-first 順序で確定、後工程 (gwt-test / write-review-response / finish-spec-pr) を連鎖駆動。agent 能動 dispatch + 監査ログ (dispatch log) + セキュリティレビュー (2 層) + コンプライアンス trigger (機微情報 / ライセンス / AI 利用ポリシー) を内包 | [`enhance-superpowers/CONTEXT.md`](enhance-superpowers/CONTEXT.md) | [`enhance-superpowers/docs/adr/`](enhance-superpowers/docs/adr/) |
+| [`enhance-superpowers`](enhance-superpowers/) | superpowers (公式) を base に、Spec フェーズで 5 成果物 (summary/design/gwt/pr-description/plan) を plan-last 順序で確定 (design/gwt/pr-description は Phase 3 でまとめ生成、ADR-0011)、後工程 (gwt-test / write-review-response / finish-spec-pr) を連鎖駆動。agent 能動 dispatch + 監査ログ (dispatch log) + セキュリティレビュー (2 層) + コンプライアンス trigger (機微情報 / ライセンス / AI 利用ポリシー) を内包 | [`enhance-superpowers/CONTEXT.md`](enhance-superpowers/CONTEXT.md) | [`enhance-superpowers/docs/adr/`](enhance-superpowers/docs/adr/) |
 
 ## shared/
 
