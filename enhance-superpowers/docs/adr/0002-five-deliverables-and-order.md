@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted (2026-06-25)
+Superseded by ADR-0011 (2026-07-02). Accepted (2026-06-25).
+
+> 本 ADR は summary-first 順序 (`summary → design → plan → gwt → pr-description`) を採用した。運用の結果、plan の再作コストと認識齟齬レビューの分散という課題が顕在化したため、ADR-0011 で **plan-last 順序** (`summary → design → gwt → pr-description → plan`、design + gwt + pr-description は Phase 3 でまとめ生成) に変更。以降の設計判断は ADR-0011 を参照すること。
 
 ## Context
 

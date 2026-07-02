@@ -16,7 +16,7 @@
     {
       "name": "enhance-superpowers",
       "source": "./enhance-superpowers",
-      "description": "superpowers 拡張: Spec フェーズで 5 成果物 (summary/design/plan/gwt/pr-description) を確定、後工程 (gwt-test/write-review-response/finish-spec-pr) を連鎖駆動。agent 能動 dispatch + 監査ログ + セキュリティレビュー + コンプライアンス trigger を内包。",
+      "description": "superpowers 拡張: Spec フェーズで 5 成果物 (summary/design/gwt/pr-description/plan) を plan-last 順序で確定、後工程 (gwt-test/write-review-response/finish-spec-pr) を連鎖駆動。agent 能動 dispatch + 監査ログ + セキュリティレビュー + コンプライアンス trigger を内包。",
       "category": "development-workflow"
     }
   ]
