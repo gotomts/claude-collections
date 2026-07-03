@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (2026-06-25)
+Accepted (2026-06-25). Updated (2026-07-04): 既知制約 (dogfood 時の語彙ドリフト) を **解消**。root ADR-0004 の中立語彙原則 (2026-07-04 追加) に従って `shared/agents/` 13 file を collection 非依存の中立語彙に書き直し、enhance-superpowers の CONTEXT.md「indie-studio との禁止語彙」との衝突を除去。
 
 ## Context
 
@@ -25,7 +25,7 @@ initial で取り込む agent は **4 体** に絞る:
 - reviewer / tech-lead / engineering-manager / principal-engineer は indie-studio 専用色が強く initial では取り込まない
 - 4 体に絞ったことで `enhance-superpowers/agents/` がコンパクトで読みやすい、indie-studio の 13 体 vendoring と棲み分け可能
 - 増減基準: enhance-brainstorming / gwt-test / write-review-response の各タイミングで「能動 dispatch すべき職種」を識別したとき、その職種が agent としてあれば追加 sync、なければ新規 shared/agents/ に追加してから sync
-- **既知制約 (dogfood 時の語彙ドリフト)**: `shared/agents/` の現行 body は indie-studio 由来の語彙 (`S1`〜`S5` ステージ番号 / `ハーネス` / `ディレクター` / `self-grill` / `docs/indie-studio/...` パス等) を含んでおり、本コレクションの CONTEXT.md「indie-studio との禁止語彙」と衝突する。本 ADR では generated file の **手編集禁止** ルールを優先するため、これは vendoring の構造的副作用として受け入れる (initial release)。実用上の問題: enhance-brainstorming Phase 1 で `software-architect` が dispatch された時、agent body 冒頭の自己紹介文が「S3 のソフトウェアアーキテクト」を名乗る等の不整合が表面化する。解決策は本 ADR を extends する新 ADR で検討する (案: a. `shared/agents/` の body を中立語彙に直して全 collection を再 sync / b. `make sync` に per-collection 語彙置換レイヤを追加 / c. `enhance-superpowers/agents/` をハンドメイドに切り替えて vendoring 対象外にする)。本 PR merge 後の follow-up issue としてトラッキング
+- **既知制約 (dogfood 時の語彙ドリフト) — 2026-07-04 解消**: 元 Accept 時点では `shared/agents/` の body が indie-studio 由来語彙塗れで、本コレクション CONTEXT.md「indie-studio との禁止語彙」と衝突していた。2026-07-04 に root ADR-0004 の中立語彙原則追加 + 案 a (`shared/agents/` を中立語彙に書き直し全 collection 再 sync) を採用して解消。enhance-brainstorming Phase 1 で `software-architect` を dispatch しても、agent body が「S3 のソフトウェアアーキテクト」を名乗る不整合は起きなくなった。invocation 時に呼び出し元 skill が context (architecture 規約 / 参照 docs / 進行 protocol) を prompt で渡す設計に変更 (root ADR-0004 参照)。indie-studio 側は同じ shared/ から re-sync され、SKILL 側に context 追加が必要になるが、本 PR (shared/agents/ 中立化) スコープでは skill 更新は含めない (indie-studio 側の SKILL 更新は follow-up PR で対応)
 
 ## Alternatives Considered
 
