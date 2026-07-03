@@ -7,8 +7,10 @@ description: |
   各 Phase で specialist agent (software-architect / qa-engineer / security-engineer) を能動 dispatch、
   dispatch log は 5 成果物のレビュー履歴セクションに追記 (ADR-0007)。
   Phase 3 で機微情報チェック (ADR-0008)、Phase 4 でライセンスチェック (ADR-0009) を組み込む。
+  Step 0 で状態判定 (docs/superpowers/{branch}/ の既存 file から現在 Phase を判定、ADR-0012)。
   Step 1 で .ai-restrictions.md を Read して AI 利用ポリシーを案内 (ADR-0010)。
-  後工程 (gwt-test / write-review-response / finish-spec-pr) を連鎖駆動。
+  Spec フェーズ完了後は Step 7 で enhance-executing-plans skill を chain invoke (ADR-0012)、
+  その後 gwt-test / write-review-response / finish-spec-pr を連鎖駆動。
 argument-hint: "[topic]  # 開発したい機能 / 課題のキーワード (任意、省略時は会話で詰める)"
 allowed-tools:
   - Read
@@ -25,7 +27,30 @@ maintainer: gotomts
 
 enhance-superpowers コレクションの起点 skill。ユーザーが意識的に呼ぶ唯一の skill。superpowers:brainstorming の責任を拡張し、5 成果物の Spec フェーズ確定 + 後工程連鎖駆動を担う。
 
-## 動作 (7 ステップ)
+## Phase 定義 (ADR-0012 D3)
+
+| Phase | 前提 file | 出力 file | 出力条件 |
+|---|---|---|---|
+| 0 | `docs/superpowers/{branch}/` (作成 or 既存) | (判定) | 状態判定完了、Step 番号を確定 |
+| 1 | (なし) | (会話合意 = 内部状態) | 2-3 アプローチ提示 + user 合意 |
+| 2 | Phase 1 合意 | `{date}-{slug}-summary.md` | user 承認 + commit |
+| 3 | summary.md | `{date}-{slug}-design.md` + `-gwt.md` + `-pr-description.md` | 3 file 揃って user 承認 1 回 + commit (ADR-0011) |
+| 4 | design.md + gwt.md + pr-description.md | `{date}-{slug}-plan.md` | ライセンスチェック済 + user 承認 + commit |
+| STOP POINT 1 | plan.md | (enhance-executing-plans skill を chain invoke) | 実装フェーズに chain 遷移 (ADR-0012) |
+
+## 動作 (8 ステップ)
+
+### Step 0: 状態判定 (ADR-0012 D2)
+
+1. `git rev-parse --abbrev-ref HEAD` で現ブランチ取得 → サニタイズ (`/` → `-`)
+2. `docs/superpowers/{branch}/` を Glob で列挙、`summary/design/gwt/pr-description/plan` の 5 成果物の存在有無を確認
+3. `handoff.md` が同ディレクトリにあれば Read して state summary を取得 (補助情報)
+4. 上表 Phase 定義に従って現在 Phase / 適切な Step を判定:
+   - 5 成果物すべて未存在 → Phase 1 (Step 2 から)
+   - summary.md のみ存在 → Phase 3 (Step 4 から)
+   - summary + design/gwt/pr-desc 揃い、plan.md 未存在 → Phase 4 (Step 5 から)
+   - plan.md 存在 → STOP POINT 1 (Step 7 で enhance-executing-plans chain)
+5. 判定結果を user に「現在 Phase = X、Step Y から再開します」と明示、user 1 問確認 (誤検出時の catch)
 
 ### Step 1: 前提確認 + AI 利用ポリシー案内 (ADR-0010)
 
@@ -99,14 +124,17 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 
 Phase 1 / 2 でセキュリティ箇所が検出されたら `security-engineer` を任意 dispatch (Phase 3 / 4 の常時 dispatch とは別)。dispatch log は該当 Phase の成果物 (summary.md) のレビュー履歴に追記。Phase 3 は既に security-engineer 常時 dispatch が design / gwt / pr-description を包含するため、追加の任意 dispatch は不要。
 
-### Step 7: STOP POINT 1 (実装フェーズ) の案内
+### Step 7: STOP POINT 1 (実装フェーズ) → `enhance-executing-plans` skill chain (ADR-0012)
 
 1. user に「Spec フェーズが完了しました。次は実装です」と明示
-2. **実装中の推奨 agent 利用パターンを案内**:
-   - 実装方針が大きく変わるとき → `software-architect` を dispatch
-   - コード書く前後でレビューが要るとき → `code-reviewer` を dispatch
-   - セキュリティ箇所を実装するとき → `security-engineer` を dispatch
-3. 実装完了後の再開方法を案内: 「(a) enhance-brainstorming を再 invoke (状態判定して続きから)、または (b) `gwt-test` skill を直接 invoke」
+2. `Skill` tool で `enhance-executing-plans` skill を **chain invoke** (ADR-0012 D1):
+   - 実装前 = `software-architect` 能動 dispatch (実装方針 review)
+   - 実装本体 = `superpowers:executing-plans` を invoke (Y 方式、ADR-0006 と同型)
+   - slice 単位 = `code-reviewer` 能動 dispatch (実装コード review)
+   - セキュリティ箇所 = `security-engineer` 常時 能動 dispatch
+   - dispatch log は plan.md 末尾レビュー履歴に追記 (ADR-0007)
+   - 完了後 = `gwt-test` skill に自動連鎖
+3. 中断時の再開方法を案内: 「(a) `enhance-brainstorming` を再 invoke (Step 0 で状態判定して続きから)、(b) `enhance-executing-plans` を直接 invoke、または (c) `gwt-test` skill を直接 invoke」
 
 ## 規律明示
 
@@ -137,7 +165,7 @@ Phase 1 / 2 でセキュリティ箇所が検出されたら `security-engineer`
 
 - ADR-0001 (collection-scope-and-naming)
 - ADR-0002 (five-deliverables-and-order — Superseded by ADR-0011)
-- ADR-0003 (skill-chain-and-stop-points)
+- ADR-0003 (skill-chain-and-stop-points — Superseded by ADR-0012)
 - ADR-0004 (shared-skills-finish-stage-pr-extension, finish-spec-pr が consume)
 - ADR-0005 (agent-vendoring)
 - ADR-0006 (superpowers-brainstorming-context-delegation, Y 方式)
@@ -146,4 +174,6 @@ Phase 1 / 2 でセキュリティ箇所が検出されたら `security-engineer`
 - ADR-0009 (license-check-in-plan-phase)
 - ADR-0010 (ai-utilization-policy-loading)
 - ADR-0011 (plan-last-order-and-design-gwt-prd-merged) — 本 skill が反映する生成順
+- ADR-0012 (implementation-phase-skill-and-state-detection) — Step 0 状態判定と Step 7 の enhance-executing-plans chain
 - CONTEXT.md (ユビキタス言語、indie-studio 禁止語彙)
+- enhance-executing-plans SKILL.md: Step 7 で chain invoke する後工程 skill

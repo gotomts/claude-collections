@@ -21,7 +21,26 @@ maintainer: gotomts
 
 レビュー対応完了後に呼び出し、Spec フェーズの pr-description.md を body として PR を作成する skill。write-review-response からの連鎖、または user が直接 invoke のどちらでも動作。
 
-## 動作 (6 ステップ)
+## Phase 定義 (ADR-0012 D3)
+
+| Phase | 前提 file | 出力 | 出力条件 |
+|---|---|---|---|
+| 0 | `docs/superpowers/{branch}/*-pr-description.md` 存在 + `review-response.md` 存在 (優先) | (判定) | 状態判定完了、Step 番号を確定 |
+| 整え | pr-description.md | 実装結果に整えた pr-description.md | `## やったこと` が実装 diff と揃う (user 確認済) |
+| 作成 | pr-description.md + 未 push commit | GitHub PR | shared/skills/finish-stage-pr で作成完了 |
+
+## 動作 (7 ステップ)
+
+### Step 0: 状態判定 (ADR-0012 D2)
+
+1. `git rev-parse --abbrev-ref HEAD` で現ブランチ取得、サニタイズ (`/` → `-`)
+2. `docs/superpowers/{branch}/` を Glob で列挙、`*-pr-description.md` / `*-review-response.md` の存在有無を確認
+3. **前提**: pr-description.md が存在すること (Spec フェーズ完了)。無ければ error "pr-description.md がありません。enhance-brainstorming Phase 3 を完了させてください" + 中断
+4. **前提**: `git branch --show-current` が `main` でないこと。main なら error "main 直作業では PR を出せません" + 中断
+5. review-response.md 存在 = レビュー対応まで完了、pr-description.md「## やったこと」が実装 diff と齟齬ないかを判定に含める
+6. 既存 PR check: `gh pr list --head <current-branch>` で同 branch の open PR が既にあるか確認 (あれば「既存 PR に上書き push だけで良いか、新規 PR 作成か」を user に 1 問確認)
+7. `handoff.md` が同ディレクトリにあれば Read (補助情報)
+8. 判定結果を user に「現在 Phase = X、Step Y から再開します」と明示、user 1 問確認
 
 ### Step 1: 前提確認 + pr-description.md 読み込み + AI 利用ポリシー案内 (ADR-0010)
 
@@ -86,5 +105,6 @@ maintainer: gotomts
 
 - ADR-0004 (shared-skills-finish-stage-pr-extension)
 - ADR-0010 (ai-utilization-policy-loading)
+- ADR-0012 (implementation-phase-skill-and-state-detection) — Step 0 状態判定
 - write-review-response SKILL.md (前工程 sub-skill)
 - shared/skills/finish-stage-pr SKILL.md (本 skill が body-source-path 指定で invoke)
