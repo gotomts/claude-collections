@@ -6,6 +6,18 @@ collection 間で共通利用したいエージェント（engineer 系・review
 
 accepted（[ADR-0003](0003-plugin-marketplace-distribution.md) を extends：plugin 境界をまたいで agent を共有する手段を追加）
 
+Updated (2026-07-04): shared/agents/ の body を **collection 非依存の中立語彙で書く** ことを追加原則として明文化。
+
+## 中立語彙原則 (2026-07-04 追加)
+
+`shared/agents/` は「複数 collection が vendoring する真実源」なので、body に特定 collection の内部語彙 (ステージ番号 / collection 固有 file パス / collection 固有 ADR 番号 / collection 固有 protocol 名 等) を **混入しない**。
+
+- **職種の core 責務は agent body に書く** (role は collection を跨いで一定)
+- **collection 固有の context** (ステージ番号 / 参照 docs パス / ADR 参照 / 進行 protocol / 差し戻し protocol の使用有無 / observation セット / タグ体系 等) は **呼び出し元 skill が invocation 時に prompt で渡す** 責務とする
+- agent 側は「呼び出し元 skill が指定する context に従う」を規律として明記する
+
+これにより、同じ shared/agents/ を複数 collection が vendoring しても、それぞれの collection の CONTEXT.md 「禁止語彙」と衝突しない構造を保証する。
+
 ## Considered Options
 
 ### 共有手段

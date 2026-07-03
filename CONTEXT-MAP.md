@@ -13,7 +13,7 @@
 
 - 真実源として `shared/agents/` と `shared/skills/` を持つ。コレクションではなく **vendoring の元データ**（ADR-0004 / ADR-0005）。
 - 各コレクションが `dependencies.json` で pick し、`make sync` で `<collection>/agents/` および `<collection>/skills/` に generated file として展開される。
-- agents の現状の中身：engineering 系 13 エージェント（executor 5 + quality 4 + leadership 4）。indie-studio は全 13 体、enhance-superpowers は 4 体 (code-reviewer / qa-engineer / software-architect / security-engineer) を取り込み。enhance-superpowers 内の 5 skill (enhance-brainstorming / enhance-executing-plans / gwt-test / write-review-response / finish-spec-pr) が 4 体を能動 dispatch する。
+- agents の現状の中身：13 エージェント。実装 5 体 (backend-engineer / frontend-engineer / mobile-engineer / infrastructure-engineer / performance-engineer) + レビュー 4 体 (code-reviewer / reviewer / qa-engineer / security-engineer) + 設計・統括 4 体 (software-architect / tech-lead / engineering-manager / principal-engineer)。indie-studio は全 13 体、enhance-superpowers は 4 体 (code-reviewer / qa-engineer / software-architect / security-engineer) を取り込み。enhance-superpowers 内の 5 skill (enhance-brainstorming / enhance-executing-plans / gwt-test / write-review-response / finish-spec-pr) が能動 dispatch する。**shared/agents/ は collection 非依存の中立語彙で書く** (root ADR-0004 の中立語彙原則、2026-07-04 追加)。collection 固有 context (ステージ番号 / 参照 docs パス / 進行 protocol 等) は呼び出し元 skill が invocation 時に prompt で渡す。
 - skills の現状の中身：start-stage-branch (branch + worktree helper) / finish-stage-pr (push + PR open helper、enhance-superpowers 取り込み時に body-source-path 引数拡張で後方互換改修)。
 - 配布対象外（marketplace.json には列挙しない）。install 先には流れない。
 

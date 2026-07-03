@@ -12,6 +12,14 @@ input=$(cat)
 cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null)
 [ -z "$cmd" ] && exit 0
 
+# 0. Early exit unless the command actually invokes `git push`.
+#    Without this, downstream checks (`--force` regex, HEAD fallback) fire on
+#    unrelated commands like `git worktree remove --force` or `git branch -D`
+#    executed from main — both of which are legitimate cleanup operations.
+if ! printf '%s' "$cmd" | grep -qE 'git[[:space:]]+push([[:space:]]|$)'; then
+  exit 0
+fi
+
 emit() {
   printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"%s","permissionDecisionReason":"%s"}}\n' "$1" "$2"
   exit 0
