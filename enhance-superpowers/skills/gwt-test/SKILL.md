@@ -98,13 +98,13 @@ maintainer: gotomts
 ### Step 8: STOP POINT 2 = code-review skill auto-invoke + security-engineer 能動 dispatch (ADR-0013 D2)
 
 1. user に「テストフェーズが完了しました。次はセルフレビューです」と明示
-2. **code-review skill auto-invoke の 課金前 1 問確認** (ADR-0013 D2):
+2. **code-review skill 課金前 1 問確認** (ADR-0013 D2、M4 fix 2026-07-04: **scope は code-review のみ**、security-engineer と write-review-response chain は独立):
    - 「code-review skill (CodeRabbit) を自動 invoke します、続けてよいですか? user account に課金されます」を user に提示
-   - yes → 次へ / no → skip して user 手動判断に委ねる
+   - yes → 3 へ / no → 3 を skip、gwt.md レビュー履歴に「STOP POINT 2 で code-review skip (user 選択、user 手動 invoke へ委譲)」を追記して 4 へ (silent failure 回避のため security-engineer + write-review-response chain は必ず実行)
 3. `Skill` tool で `code-review` skill を **auto-invoke** (CodeRabbit の機械的レビュー、ADR-0013 D2)
-4. 続けて `security-engineer` を **能動 dispatch** して security-focused なコードレビューを 1 回実施
-5. dispatch log は write-review-response 内で review-response.md のレビュー履歴に追記されるが、gwt-test 内でも「STOP POINT 2 実行完了」を gwt.md レビュー履歴に追記 (再開判定 hint)
-6. `Skill` tool で `write-review-response` skill を chain invoke
+4. **`security-engineer` を能動 dispatch** (評価 mode、Step 2 の yes/no と独立、必ず実行) — security-focused なコードレビューを 1 回実施 (silent failure 回避、ADR-0013 D2 scope)
+5. dispatch log は write-review-response 内で review-response.md のレビュー履歴に集約されるが、gwt-test 内でも「STOP POINT 2 実行完了 (code-review = {実行 / skip}、security-engineer = 実行)」を gwt.md レビュー履歴に追記 (再開判定 hint)
+6. `Skill` tool で `write-review-response` skill を chain invoke (常に実行、silent failure 回避)
 
 ## 規律明示
 

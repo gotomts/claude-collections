@@ -1,10 +1,15 @@
 {
   "shared": {
     "agents": [
+      "backend-engineer",
       "code-reviewer",
+      "frontend-engineer",
+      "infrastructure-engineer",
+      "mobile-engineer",
+      "performance-engineer",
       "qa-engineer",
-      "software-architect",
-      "security-engineer"
+      "security-engineer",
+      "software-architect"
     ],
     "skills": [
       "finish-stage-pr"

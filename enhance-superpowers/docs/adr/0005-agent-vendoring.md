@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (2026-06-25). Updated (2026-07-04): 既知制約 (dogfood 時の語彙ドリフト) を **解消**。root ADR-0004 の中立語彙原則 (2026-07-04 追加) に従って `shared/agents/` 13 file を collection 非依存の中立語彙に書き直し、enhance-superpowers の CONTEXT.md「indie-studio との禁止語彙」との衝突を除去。
+Accepted (2026-06-25). Updated (2026-07-04): 既知制約 (dogfood 時の語彙ドリフト) を **解消**。root ADR-0004 の中立語彙原則 (2026-07-04 追加) に従って `shared/agents/` 13 file を collection 非依存の中立語彙に書き直し、enhance-superpowers の CONTEXT.md「indie-studio との禁止語彙」との衝突を除去。 Updated (2026-07-04): ADR-0012 D1 redesign で `enhance-executing-plans` skill が **executor 系 5 体** (backend-engineer / frontend-engineer / mobile-engineer / infrastructure-engineer / performance-engineer) を追加 vendoring した。vendoring 総数は 4 → 9 体に増加 (initial 4 + executor 5)。executor は実装フェーズ Step 3 の能動 dispatch 対象で、shared/agents/ が中立化されたので indie-studio 語彙を持ち込まずに済む。
 
 ## Context
 

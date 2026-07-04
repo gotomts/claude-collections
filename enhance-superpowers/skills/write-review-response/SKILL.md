@@ -39,10 +39,18 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 1. `git rev-parse --abbrev-ref HEAD` で現ブランチ取得、サニタイズ (`/` → `-`)
 2. `docs/superpowers/{branch}/` を Glob で列挙、`*-gwt.md` / `*-review-response.md` の存在有無を確認
 3. **前提**: gwt.md checklist が全 `- [x]` であること (gwt-test の Step 6 まで完了)。未達なら error "gwt-test を完了させてください" + 中断
-4. review-response.md 状態を判定:
+4. review-response.md 状態を判定 (M5 fix 2026-07-04: remote 状態確認を追加、rev-list 方向を正しく):
    - 未生成 → Step 1 (前提確認) から
    - 生成済み、採用分未反映 (git status / commit 履歴で確認) → Step 4 (反映) から
-   - 生成済み、採用分反映済 (再 push 済み) → Step 5 (finish-spec-pr chain) から
+   - 生成済み、採用分反映済 → 以下 3 面確認 (いずれか false なら Step 4 に戻す):
+     a. review-response.md の「## 採用」節に採用項目が記録されている
+     b. `git fetch origin && git rev-list origin/{raw-branch}..HEAD` が **0** (`origin..HEAD` の方向、unpushed commit が無いこと)
+        - fetch 失敗時 (offline / remote 未設定 等): user に 1 問確認「オフラインで push 判定不能、Step 5 に進みますか?」
+     c. `gh pr view --json state,number --head {raw-branch}` で PR 存在確認
+        - PR あり: review-response.md 保存 timestamp 以降の commit が PR HEAD 側にあることを `gh pr view --json commits` で確認
+        - PR なし: 「PR 未作成、Step 5 (finish-spec-pr chain) で作成します」と user 明示
+     → 全 pass → Step 5 (finish-spec-pr chain)
+     → 判定失敗時は user に「原因: {a/b/c} が {理由}」と明示して Step 4 に戻す
 5. `handoff.md` が同ディレクトリにあれば Read (補助情報)
 6. 判定結果を user に「現在 Phase = X、Step Y から再開します」と明示、user 1 問確認
 
