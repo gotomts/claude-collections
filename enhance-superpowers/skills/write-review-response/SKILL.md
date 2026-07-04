@@ -24,7 +24,35 @@ maintainer: gotomts
 
 code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記録する skill。gwt-test からの連鎖、または user が直接 invoke のどちらでも動作。
 
-## 動作 (5 ステップ)
+## Phase 定義 (ADR-0012 D3)
+
+| Phase | 前提 file | 出力 | 出力条件 |
+|---|---|---|---|
+| 0 | gwt.md checklist 全 `- [x]` + code-review skill 出力 or PR unresolved comments | (判定) | 状態判定完了、Step 番号を確定 |
+| 判定 | CodeRabbit 指摘一覧 (ローカル + PR unresolved) | `{date}-{slug}-review-response.md` | 全指摘を採用/Skip 判定完了 (保留禁止) |
+| 反映 | review-response.md 採用分 | 修正コード + 再 push | code-reviewer 差し戻し review OK + user 承認 |
+
+## 動作 (6 ステップ)
+
+### Step 0: 状態判定 (ADR-0012 D2)
+
+1. `git rev-parse --abbrev-ref HEAD` で現ブランチ取得、サニタイズ (`/` → `-`)
+2. `docs/superpowers/{branch}/` を Glob で列挙、`*-gwt.md` / `*-review-response.md` の存在有無を確認
+3. **前提**: gwt.md checklist が全 `- [x]` であること (gwt-test の Step 6 まで完了)。未達なら error "gwt-test を完了させてください" + 中断
+4. review-response.md 状態を判定 (M5 fix 2026-07-04: remote 状態確認を追加、rev-list 方向を正しく):
+   - 未生成 → Step 1 (前提確認) から
+   - 生成済み、採用分未反映 (git status / commit 履歴で確認) → Step 4 (反映) から
+   - 生成済み、採用分反映済 → 以下 3 面確認 (いずれか false なら Step 4 に戻す):
+     a. review-response.md の「## 採用」節に採用項目が記録されている
+     b. `git fetch origin && git rev-list origin/{raw-branch}..HEAD` が **0** (`origin..HEAD` の方向、unpushed commit が無いこと)
+        - fetch 失敗時 (offline / remote 未設定 等): user に 1 問確認「オフラインで push 判定不能、Step 5 に進みますか?」
+     c. `gh pr view --json state,number --head {raw-branch}` で PR 存在確認
+        - PR あり: review-response.md 保存 timestamp 以降の commit が PR HEAD 側にあることを `gh pr view --json commits` で確認
+        - PR なし: 「PR 未作成、Step 5 (finish-spec-pr chain) で作成します」と user 明示
+     → 全 pass → Step 5 (finish-spec-pr chain)
+     → 判定失敗時は user に「原因: {a/b/c} が {理由}」と明示して Step 4 に戻す
+5. `handoff.md` が同ディレクトリにあれば Read (補助情報)
+6. 判定結果を user に「現在 Phase = X、Step Y から再開します」と明示、user 1 問確認
 
 ### Step 1: 前提確認 + テンプレ読み込み + AI 利用ポリシー案内 (ADR-0010)
 
@@ -38,8 +66,9 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 1. CodeRabbit 指摘 (ローカル + PR 上 unresolved) を一覧化
 2. ID を CodeRabbit 分類に揃える: Major `M1, M2, ...` / Minor `Mi1, Mi2, ...` / Trivial `T1, T2, ...`
 3. 各指摘について 採用 / Skip を判定:
-   - **判定迷い時**: `code-reviewer` を能動 dispatch (特に false positive 疑い時)、dispatch log を review-response.md レビュー履歴に追記 (ADR-0007)
-   - **セキュリティ系指摘**: `security-engineer` を能動 dispatch して採用判定にセキュリティ観点を追加、dispatch log 追記
+   - **判定迷い時**: `code-reviewer` を能動 dispatch (判定 aid 専用、false positive 疑い時等)、dispatch log を review-response.md レビュー履歴に追記 (ADR-0007)
+   - **セキュリティ系指摘**: `security-engineer` を能動 dispatch (評価 mode) して採用判定にセキュリティ観点を追加、dispatch log 追記
+   - **大規模 refactor 系指摘 or 設計妥当性の疑い**: `reviewer` を能動 dispatch (独立観点評価、真実源整合 / 内部一貫性)、dispatch log 追記
 4. **保留は禁止**、全件を採用 / Skip のいずれかに判定する
 5. Skip 判定時は理由を明記 (別 PR で対応 / プロジェクト規約で enforce されてない / 他の採用済み指摘で自動消化 等)
 
@@ -52,18 +81,19 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
    - Step 2 の code-reviewer / security-engineer dispatch 結果
    - **gwt-test の STOP POINT 2 で実施した security-engineer のコードセキュリティレビュー結果もここに集約** (ADR-0007)
 
-### Step 4: 採用分を実装に反映 + 再 push 前の差し戻しレビュー
+### Step 4: 採用分を実装に反映 + 再 push 前レビュー (code-review skill 方針 2026-07-04)
 
 1. user 確認 → 採用分を実装に反映 (← user 作業 or AI 作業)
 2. テストコード同期確認: 実装コード修正に伴うテストコード修正要否を確認、不要時も 1 行根拠を残す (review-response.md に記録)
-3. **再 push 前に `code-reviewer` を能動 dispatch** — 修正コードの差し戻しレビュー
-4. dispatch log を review-response.md レビュー履歴に追記 (ADR-0007)
+3. **再 push 前に `code-review` skill を invoke** (課金前 1 問確認、user が yes → `Skill` tool で code-review 実行、no → skip して user 手動レビューに委譲)。`code-reviewer` agent は判定 aid 専用に予約したため、コードレビュー activity には `code-review` skill を使う (ADR-0013 拡張)
+4. dispatch log (code-review 実行 / skip、結果要約) を review-response.md レビュー履歴に追記 (ADR-0007)
 5. 問題なければ user 承認 → push
 
-### Step 5: 次工程 (finish-spec-pr) への案内
+### Step 5: 次工程 (finish-spec-pr) への chain (skill chain 継続)
 
 1. user に「レビュー対応が完了しました。次は PR 作成です」と明示
-2. 再開方法を案内: 「(a) enhance-brainstorming を再 invoke、または (b) `finish-spec-pr` skill を直接 invoke」
+2. `Skill` tool で `finish-spec-pr` skill を chain invoke
+3. 中断時の再開方法を案内: 「(a) `enhance-brainstorming` を再 invoke (Step 0 で状態判定して続きから)、または (b) `finish-spec-pr` skill を直接 invoke」
 
 ## 規律明示
 
@@ -87,5 +117,7 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 
 - ADR-0007 (audit-trail-dispatch-log)
 - ADR-0010 (ai-utilization-policy-loading)
-- gwt-test SKILL.md (前工程 sub-skill、STOP POINT 2 で security-engineer コードレビューを実施)
+- ADR-0012 (implementation-phase-skill-and-state-detection) — Step 0 状態判定
+- ADR-0013 (gwt-test-qa-engineer-always-dispatch-and-code-review-auto-invoke) — gwt-test Step 8 の code-review skill auto-invoke 結果を本 skill が引き継ぐ
+- gwt-test SKILL.md (前工程 sub-skill、STOP POINT 2 で code-review auto-invoke + security-engineer コードレビューを実施)
 - finish-spec-pr SKILL.md (次工程 sub-skill)

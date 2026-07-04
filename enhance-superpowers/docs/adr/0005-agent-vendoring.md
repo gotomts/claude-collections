@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (2026-06-25). Updated (2026-07-04): 既知制約 (dogfood 時の語彙ドリフト) を **解消**。root ADR-0004 の中立語彙原則 (2026-07-04 追加) に従って `shared/agents/` 13 file を collection 非依存の中立語彙に書き直し、enhance-superpowers の CONTEXT.md「indie-studio との禁止語彙」との衝突を除去。
+Accepted (2026-06-25). Updated (2026-07-04): 既知制約 (dogfood 時の語彙ドリフト) を **解消**。root ADR-0004 の中立語彙原則 (2026-07-04 追加) に従って `shared/agents/` 13 file を collection 非依存の中立語彙に書き直し、enhance-superpowers の CONTEXT.md「indie-studio との禁止語彙」との衝突を除去。 Updated (2026-07-04): ADR-0012 D1 redesign で `enhance-executing-plans` skill が **executor 系 5 体** を追加 vendoring した (initial 4 → 9 体)。 Updated (2026-07-04): user 指摘「未 vendoring 4 体も別工程で使えるのでは」を受け、**残り 4 体 (reviewer / tech-lead / engineering-manager / principal-engineer) も追加 vendoring**、vendoring 総数は **全 13 体** に。旧「initial は 4 体に絞る」判断の理由 (indie-studio 専用色) は中立語彙化で失効。加えて **コードレビュー activity は `code-review` skill (CodeRabbit) を default** に、`code-reviewer` agent は判定 aid 専用に予約する運用に方針統一 (ADR-0013 拡張)。
 
 ## Context
 

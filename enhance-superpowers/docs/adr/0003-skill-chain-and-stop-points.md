@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted (2026-06-25)
+Superseded by ADR-0012 (2026-07-04). Accepted (2026-06-25).
+
+> 本 ADR は 4 skill 構成と 2 STOP POINT (実装フェーズ / セルフレビュー) を定義したが、STOP POINT 1 (実装) を「skill 化しない = 人間/実装 AI に委ねる」設計にしたため、ADR-0001 / ADR-0005 のコンセプト「agent 能動 dispatch で silent failure 回避」と矛盾していた。加えて「stop 後の再開は状態判定して続きから」を規定しつつ状態判定ロジックを skill 内に実装しなかったため、ハンドオフ再開 / 別セッション再 invoke で順序破壊事故が発生していた。ADR-0012 で実装フェーズも skill 化 (`enhance-executing-plans` 新設)、全 skill に Step 0 状態判定を追加する形に整理。以降の設計判断は ADR-0012 を参照。
 
 ## Context
 
