@@ -17,7 +17,7 @@ skill 連鎖の中で agent 能動 dispatch を強制する境目。本コレク
 
 **skill 一覧** (5 skill、ADR-0012 で `enhance-executing-plans` を追加):
 1. `enhance-brainstorming` — 起点、Spec 5 成果物確定
-2. `enhance-executing-plans` — 実装フェーズ (superpowers:executing-plans 委譲 + agent 能動 dispatch 強制)
+2. `enhance-executing-plans` — 実装フェーズ (2026-07-04 redesign: skill 側から executor agent を直接 dispatch、superpowers 委譲は廃止 = silent failure の言い換えだった)
 3. `gwt-test` — AC 検証 + qa-engineer 常時 dispatch (ADR-0013) + STOP POINT 2 実行 (code-review auto-invoke + security-engineer)
 4. `write-review-response` — CodeRabbit 指摘の採用/Skip 判定
 5. `finish-spec-pr` — PR 作成 (mechanical)
@@ -53,7 +53,7 @@ dispatch log の追記先 mapping は ADR-0007 参照。
 5 成果物の末尾に追加される `## レビュー履歴` セクション。agent dispatch log (時刻 / agent / 目的 / 回答要約) をここに集約 (B = 監査ログ)。形式は ADR-0007 で定める。
 
 **Y 方式**:
-enhance-brainstorming Phase 3 で合意済み summary を context として `superpowers:brainstorming` に委譲し design.md を生成させる実装方式。fallback (Z 方式 = 自前実装) は ADR-0006 に明記。enhance-executing-plans も同型 (superpowers:executing-plans を invoke)。
+enhance-brainstorming Phase 3 で合意済み summary を context として `superpowers:brainstorming` に委譲し design.md を生成させる実装方式。fallback (Z 方式 = 自前実装) は ADR-0006 に明記。**enhance-executing-plans は 2026-07-04 D1 redesign で委譲を廃止**、Y 方式は brainstorming (Phase 3) のみ継続。executing-plans は skill 側から executor 直接 dispatch (silent failure 回避)。
 
 **状態判定 (Step 0)**:
 全 skill 冒頭に配置される Step 0。`docs/superpowers/{branch}/` の既存 file 有無から現在 Phase を判定し、適切な Step から再開する仕組み (ADR-0012 D2)。SKILL.md 冒頭の Phase 定義 table (ADR-0012 D3) を再開判定の仕様源とする。ハンドオフ再開 / 別セッション再 invoke 時のドキュメント生成順序破壊を構造的に防止。

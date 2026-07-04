@@ -136,11 +136,10 @@ Phase 1 / 2 でセキュリティ箇所が検出されたら `security-engineer`
 ### Step 7: STOP POINT 1 (実装フェーズ) → `enhance-executing-plans` skill chain (ADR-0012)
 
 1. user に「Spec フェーズが完了しました。次は実装です」と明示
-2. `Skill` tool で `enhance-executing-plans` skill を **chain invoke** (ADR-0012 D1):
+2. `Skill` tool で `enhance-executing-plans` skill を **chain invoke** (ADR-0012 D1 redesign 2026-07-04):
    - 実装前 = `software-architect` 能動 dispatch (実装方針 review)
-   - 実装本体 = `superpowers:executing-plans` を invoke (Y 方式、ADR-0006 と同型)
-   - slice 単位 = `code-reviewer` 能動 dispatch (実装コード review)
-   - セキュリティ箇所 = `security-engineer` 常時 能動 dispatch
+   - 実装本体 = skill 側から **executor agent (backend/frontend/mobile/infrastructure-engineer) を直接 dispatch** (superpowers:executing-plans 委譲は D1 redesign で廃止 = silent failure の言い換えだった)
+   - slice 単位 = `code-review` skill (optional 1問確認、default skip) + `security-engineer` (該当 slice で常時) + `performance-engineer` (該当 slice で)
    - dispatch log は plan.md 末尾レビュー履歴に追記 (ADR-0007)
    - 完了後 = `gwt-test` skill に自動連鎖
 3. 中断時の再開方法を案内: 「(a) `enhance-brainstorming` を再 invoke (Step 0 で状態判定して続きから)、(b) `enhance-executing-plans` を直接 invoke、または (c) `gwt-test` skill を直接 invoke」

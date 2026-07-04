@@ -83,6 +83,6 @@ STOP POINT 1 の性質を変更: 「人間 / 実装 AI に完全委譲」→ 「
 ## Alternatives Considered
 
 - **STOP POINT 1 の性質を維持し Step 7 に "user に実装前後で agent dispatch するよう促す" 強い prompt を追加** — 「案内文言だけ」の域を出ず、silent failure 回避は user の記憶依存 = コンセプト違反継続。却下
-- **自前の実装 loop skill (superpowers:executing-plans に依存しない)** — superpowers 公式との直線フロー統合が壊れる。executing-plans に細かい改良が入っても取り込めない。却下
+- **自前の実装 loop skill (superpowers:executing-plans に依存しない)** — Accept 時点 (2026-07-04 D1 initial) では「superpowers 公式との直線フロー統合が壊れる」を理由に却下。しかし D1 redesign (2026-07-04) で **本案が採用**に転換 (executor agent を skill 側から直接 dispatch)。転換理由: 委譲設計は「実装本体で誰が dispatch されるか」を skill 側で保証できず silent failure コンセプト違反、redesign で解消。「superpowers 直線フローとの整合」は「委譲」ではなく「3 段目相当の役割を enhance-superpowers 側で silent failure なく実装する」形で保つ
 - **状態判定を skill 外部 (handoff.md 等) に委ねる** — handoff.md は user 環境依存で、file が無い場合の default が不定 = 順序破壊の温床。skill 内に判定ロジックを組み込む方が安定。却下
 - **状態判定を新 skill (`enhance-resume` 等) に分離** — 全 skill から重複ロジックが除ける利点はあるが、Skill 呼び出し追加のオーバーヘッド + 呼び忘れリスク。各 skill 冒頭に inline で持つ方が silent failure 回避のコンセプトと整合

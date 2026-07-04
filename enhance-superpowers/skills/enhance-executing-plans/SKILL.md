@@ -3,9 +3,9 @@ name: enhance-executing-plans
 description: |
   enhance-superpowers コレクションの実装フェーズ skill (ADR-0012 で新設)。
   STOP POINT 1 (実装フェーズ) を skill 化し、実装前後で agent 能動 dispatch を強制。
-  実装本体は superpowers:executing-plans を invoke (Y 方式、ADR-0006 と同型)。
-  実装前 = software-architect (実装方針 review)、slice ごと = code-reviewer (コード review)、
-  セキュリティ箇所 = security-engineer 常時 dispatch。dispatch log は plan.md のレビュー履歴に集約 (ADR-0007)。
+  実装本体は skill 側から executor agent (backend/frontend/mobile/infrastructure-engineer) を **直接 dispatch** (2026-07-04 D1 redesign、superpowers 委譲は silent failure 回避のため廃止)。
+  実装前 = software-architect (実装方針 review)、slice ごと = code-review skill (optional 1問確認) + security-engineer + performance-engineer 能動 dispatch。
+  dispatch log は plan.md のレビュー履歴に集約 (ADR-0007)。
   Step 0 で状態判定 (ADR-0012 D2)、Step 1 で .ai-restrictions.md を Read して AI 利用ポリシー案内 (ADR-0010)。
   完了後は gwt-test skill を chain invoke。
 argument-hint: "[plan-file-path]  # plan.md のパス (省略時は docs/superpowers/{branch}/ から自動検出)"
@@ -114,7 +114,7 @@ plan.md 内の各 slice について、以下を順次実行:
 
 - 実装前後の agent 能動 dispatch を必ず実行 (silent failure 回避、ADR-0001 コンセプト、ADR-0012)
 - dispatch log は plan.md の「## レビュー履歴」セクションに集約 (ADR-0007)
-- 実装本体は superpowers:executing-plans に委譲 (自前の実装 loop は作らない、ADR-0006 の Y 方式と同型)
+- 実装本体は skill 側から executor agent (backend/frontend/mobile/infrastructure-engineer) を直接 dispatch (2026-07-04 D1 redesign)。superpowers:executing-plans への委譲は silent failure の言い換えだったため廃止
 - Step 0 状態判定で再開可能な skill 設計 (ADR-0012 D2)、SKILL.md 冒頭の Phase 定義 table を再開判定の仕様源 (ADR-0012 D3) とする
 - Step 1 で `.ai-restrictions.md` を Read して AI 利用ポリシーを案内 (ADR-0010、ファイル無ければスキップ)
 
@@ -125,7 +125,7 @@ plan.md 内の各 slice について、以下を順次実行:
 | plan.md 未生成 | error 報告 + 中断 ("enhance-brainstorming Phase 4 を完了させてください") |
 | Step 0 で判定結果が不明瞭 | user に「summary/design/gwt/plan の状態が想定と異なります、どこから再開しますか?」と 1 問確認 |
 | software-architect が実装方針の重大 issue を検出 | plan.md 修正が必要 → user 承認 → plan.md Edit → 再 dispatch |
-| superpowers:executing-plans が slice 境界で停止しない | 「slice 単位で停止するよう」を追加 prompt して retry。なお回避不可なら全 slice 完了後にまとめて code-reviewer / security-engineer dispatch (fallback) |
+| executor dispatch が slice 境界で完了報告を返さない | 呼び出し元 skill (本 skill) が「担当 slice のみ実装、完了時に呼び出し元へ報告」を prompt に明示。なお不整合ある場合は user に相談 |
 | code-reviewer / security-engineer が blocker 検出 | 実装修正 → 再 review dispatch。修正できなければ user に相談 |
 
 ## 関連
@@ -133,10 +133,10 @@ plan.md 内の各 slice について、以下を順次実行:
 - ADR-0001 (collection-scope-and-naming): コンセプト = silent failure 回避
 - ADR-0003 (skill-chain-and-stop-points — Superseded by ADR-0012): 本 skill で STOP POINT 1 を置き換え
 - ADR-0005 (agent-vendoring): dispatch 対象 agent
-- ADR-0006 (superpowers-brainstorming-context-delegation, Y 方式): 本 skill でも同型 (executing-plans 委譲)
+- ADR-0006 (superpowers-brainstorming-context-delegation, Y 方式): brainstorming では継続、本 skill (executing-plans) では D1 redesign で委譲を廃止し executor 直接 dispatch に
 - ADR-0007 (audit-trail-dispatch-log): dispatch log 集約先 = plan.md
 - ADR-0010 (ai-utilization-policy-loading): Step 1 で Read
 - ADR-0012 (implementation-phase-skill-and-state-detection): 本 skill を規定する ADR
 - enhance-brainstorming SKILL.md: 前工程 skill、実装フェーズ chain 起動元
 - gwt-test SKILL.md: 後工程 skill、Step 5 で chain invoke
-- `superpowers:executing-plans` skill: Step 3 で invoke (実装本体を委譲)
+- `superpowers:executing-plans` skill: 従来 Step 3 で invoke していたが D1 redesign で廃止 (2026-07-04)。参考として名前のみ残置
