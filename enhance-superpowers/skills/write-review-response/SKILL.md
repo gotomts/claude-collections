@@ -66,8 +66,9 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 1. CodeRabbit 指摘 (ローカル + PR 上 unresolved) を一覧化
 2. ID を CodeRabbit 分類に揃える: Major `M1, M2, ...` / Minor `Mi1, Mi2, ...` / Trivial `T1, T2, ...`
 3. 各指摘について 採用 / Skip を判定:
-   - **判定迷い時**: `code-reviewer` を能動 dispatch (特に false positive 疑い時)、dispatch log を review-response.md レビュー履歴に追記 (ADR-0007)
-   - **セキュリティ系指摘**: `security-engineer` を能動 dispatch して採用判定にセキュリティ観点を追加、dispatch log 追記
+   - **判定迷い時**: `code-reviewer` を能動 dispatch (判定 aid 専用、false positive 疑い時等)、dispatch log を review-response.md レビュー履歴に追記 (ADR-0007)
+   - **セキュリティ系指摘**: `security-engineer` を能動 dispatch (評価 mode) して採用判定にセキュリティ観点を追加、dispatch log 追記
+   - **大規模 refactor 系指摘 or 設計妥当性の疑い**: `reviewer` を能動 dispatch (独立観点評価、真実源整合 / 内部一貫性)、dispatch log 追記
 4. **保留は禁止**、全件を採用 / Skip のいずれかに判定する
 5. Skip 判定時は理由を明記 (別 PR で対応 / プロジェクト規約で enforce されてない / 他の採用済み指摘で自動消化 等)
 
@@ -80,12 +81,12 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
    - Step 2 の code-reviewer / security-engineer dispatch 結果
    - **gwt-test の STOP POINT 2 で実施した security-engineer のコードセキュリティレビュー結果もここに集約** (ADR-0007)
 
-### Step 4: 採用分を実装に反映 + 再 push 前の差し戻しレビュー
+### Step 4: 採用分を実装に反映 + 再 push 前レビュー (code-review skill 方針 2026-07-04)
 
 1. user 確認 → 採用分を実装に反映 (← user 作業 or AI 作業)
 2. テストコード同期確認: 実装コード修正に伴うテストコード修正要否を確認、不要時も 1 行根拠を残す (review-response.md に記録)
-3. **再 push 前に `code-reviewer` を能動 dispatch** — 修正コードの差し戻しレビュー
-4. dispatch log を review-response.md レビュー履歴に追記 (ADR-0007)
+3. **再 push 前に `code-review` skill を invoke** (課金前 1 問確認、user が yes → `Skill` tool で code-review 実行、no → skip して user 手動レビューに委譲)。`code-reviewer` agent は判定 aid 専用に予約したため、コードレビュー activity には `code-review` skill を使う (ADR-0013 拡張)
+4. dispatch log (code-review 実行 / skip、結果要約) を review-response.md レビュー履歴に追記 (ADR-0007)
 5. 問題なければ user 承認 → push
 
 ### Step 5: 次工程 (finish-spec-pr) への chain (skill chain 継続)

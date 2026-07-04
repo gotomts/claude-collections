@@ -65,7 +65,8 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 2. 1 ターン 1 問の質問で要件・制約・成功基準を詰める
 3. 2-3 アプローチを推奨案 + メリデメで提示
 4. `software-architect` を能動 dispatch (ADR-0005) — アプローチ案の Clean Architecture + SOLID 整合性レビュー
-5. dispatch log (時刻 / agent / 目的 / 回答要約) を保持 (Phase 2 の summary.md に追記する)
+5. **`reviewer` を能動 dispatch** (2026-07-04 追加) — アプローチの妥当性を独立観点で評価 (真実源整合 / カバレッジ逆引き / 内部一貫性、必要なら反証可能性 3 行併記 Steelman / Fails if / Kill criteria を skill 側から use 宣言)
+6. dispatch log (時刻 / agent / 目的 / 回答要約) を保持 (Phase 2 の summary.md に追記する)
 
 ### Step 3: Phase 2 — summary.md 生成 (認識齟齬検出 ①)
 
@@ -74,8 +75,9 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 3. ファイル名: `{YYYY-MM-DD}-{slug}-summary.md`、配置: `docs/superpowers/{branch}/`
 4. frontmatter の `design: ./{date}-{slug}-design.md` を先行記載 (実 design.md は Phase 3 で生成)
 5. `software-architect` を能動 dispatch — 方式の要点 / 効いている設計判断を SOLID/YAGNI 観点でレビュー
-6. **summary.md 末尾「## レビュー履歴」セクションに Phase 1 + Phase 2 の dispatch log を追記** (ADR-0007)
-7. user 承認 → commit (Conventional Commits 形式)
+6. **`reviewer` を能動 dispatch** (2026-07-04 追加) — summary の反証可能性観点 (Steelman / Fails if / Kill criteria の 3 行併記が summary の "効いている設計判断" に埋まっているか、真実源整合)
+7. **summary.md 末尾「## レビュー履歴」セクションに Phase 1 + Phase 2 の dispatch log を追記** (ADR-0007)
+8. user 承認 → commit (Conventional Commits 形式)
 
 ### Step 4: Phase 3 — design + gwt + pr-description まとめ生成 (認識齟齬検出 ② ③ 統合、ADR-0011)
 
@@ -87,8 +89,9 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 2. superpowers:brainstorming に「以下が合意済み summary、design.md として詳細展開して」と委譲
 3. design.md が生成されたら、`software-architect` を能動 dispatch — design 全体の SOLID / モジュール境界レビュー
 4. 続けて `security-engineer` を **常時能動 dispatch** — design のセキュリティレビュー (認証 / 認可 / データ取扱 / 外部入力 / シークレット / 通信 / コード実行 等の観点)
-5. **機微情報チェックリスト** (ADR-0008): 個人情報 / 決済データ / 医療データ / 認証情報を扱う設計か? 該当したら適用規制 (GDPR / 個人情報保護法 / PCI-DSS / HIPAA 等) を提示 → user に「適用規制を確認の上、本 PR スコープで対応 / 別 PR / Skip のいずれかを判断してください」と促す
-6. design.md 末尾「## レビュー履歴」セクションに Phase 3 (design 関連) の dispatch log を追記 (機微情報チェック結果含む、ADR-0007)
+5. **`principal-engineer` を能動 dispatch** (2026-07-04 追加) — 技術設計の独立評価 (architecture 規約整合 / 真実源整合 / 機能識別子カバレッジ / 内部一貫性、差し戻し protocol を skill 側から use 宣言)
+6. **機微情報チェックリスト** (ADR-0008): 個人情報 / 決済データ / 医療データ / 認証情報を扱う設計か? 該当したら適用規制 (GDPR / 個人情報保護法 / PCI-DSS / HIPAA 等) を提示 → user に「適用規制を確認の上、本 PR スコープで対応 / 別 PR / Skip のいずれかを判断してください」と促す
+7. design.md 末尾「## レビュー履歴」セクションに Phase 3 (design 関連) の dispatch log を追記 (機微情報チェック結果含む、ADR-0007)
 
 **4-b. gwt.md 生成**
 
@@ -116,7 +119,10 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 1. `superpowers:writing-plans` を invoke
 2. plan.md が生成されたら、`qa-engineer` を能動 dispatch — plan のテスト戦略の段取り妥当性レビュー
 3. 続けて `security-engineer` を **常時能動 dispatch** — plan のセキュリティ観点 (セキュリティテスト / 脅威モデリングの段取り / 機微データ取扱の手順) レビュー
-4. **ライセンスチェック** (ADR-0009): plan で追加予定の依存ライブラリ一覧を抽出、各ライブラリのライセンスを確認 (license-checker 等を推奨案内)、制限ライセンス (GPL / AGPL / SSPL / 商用制限) が含まれる場合は user に警告 + 1 問確認
+4. **`tech-lead` を能動 dispatch** (2026-07-04 追加) — plan のスタック / テスト戦略 / build vs buy 判断 (呼び出し元 skill 指定 mode = 開発体制準備)
+5. **`engineering-manager` を能動 dispatch** (2026-07-04 追加) — plan の slice 分解の妥当性 (垂直スライス / 依存順 / capability 束ね / タグ体系)
+6. **`principal-engineer` を能動 dispatch** (2026-07-04 追加) — 分解の独立評価 (機能識別子カバレッジ / 分解単位 / capability 束ね妥当性、差し戻し protocol を skill 側から use 宣言)
+7. **ライセンスチェック** (ADR-0009): plan で追加予定の依存ライブラリ一覧を抽出、各ライブラリのライセンスを確認 (license-checker 等を推奨案内)、制限ライセンス (GPL / AGPL / SSPL / 商用制限) が含まれる場合は user に警告 + 1 問確認
 5. plan.md 末尾「## レビュー履歴」セクションに Phase 4 の dispatch log を追記 (ADR-0007)
 6. user 承認 → commit
 

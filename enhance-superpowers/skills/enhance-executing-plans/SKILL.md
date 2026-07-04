@@ -87,15 +87,18 @@ plan.md 内の各 slice について、以下を順次実行:
 
 **superpowers:executing-plans との関係**: 本 skill は superpowers:executing-plans に「丸投げ」しない (silent failure 回避)。enhance-superpowers 側で executor 能動 dispatch を保証。superpowers 直線フロー (brainstorming → writing-plans → executing-plans) の 3 段目相当を、enhance-superpowers 側で silent failure なく実装する形。
 
-### Step 4: slice ごとの code-reviewer + security-engineer 能動 dispatch (ADR-0012 D1)
+### Step 4: slice ごとの review dispatch (ADR-0012 D1、code-review skill 方針 2026-07-04)
 
-各 slice の実装完了時に以下を実行:
+各 slice の実装完了時に以下を実行。**コードレビュー activity は `code-review` skill (CodeRabbit) を使う** (`code-reviewer` agent は判定 aid 専用に予約、ADR-0013 拡張)。code-review skill は billed のため per-slice 実行は optional (STOP POINT 2 に集約する運用が default):
 
-1. `code-reviewer` を能動 dispatch (`Agent` tool) — 実装コードの review (機能実装 / 命名 / SOLID 準拠 / テスト有無等)。呼び出し元 skill の指定として「差し戻し protocol を使用 (round1/2/3、最大 3 ラウンド)」を prompt で宣言
+1. **code-review skill の per-slice 実行は optional** (billed):
+   - user に「本 slice で `code-review` skill を実行しますか? (default: skip、STOP POINT 2 で全体まとめて実行)」1 問確認
+   - yes → `Skill` tool で `code-review` skill を invoke (CodeRabbit の機械的レビュー)
+   - no → skip (STOP POINT 2 に code-review を集約)
 2. 実装対象 slice に auth / crypto / データ取扱 / 外部入力等の変更があれば、`security-engineer` を **常時能動 dispatch** (評価 mode、security-focused な実装 review)
 3. 大規模 UI / 大量データ処理等で性能影響が想定される slice なら、`performance-engineer` を能動 dispatch (評価 mode)
-4. dispatch log を plan.md 末尾「## レビュー履歴」セクションに追記 (ADR-0007)
-5. review 指摘がある場合、user に 1 問確認 → 該当 executor に修正 dispatch (再実装) → 再度 review dispatch → 収束
+4. dispatch log (code-review 実行 / skip、security-engineer / performance-engineer 実行結果) を plan.md 末尾「## レビュー履歴」セクションに追記 (ADR-0007)
+5. review 指摘がある場合、user に 1 問確認 → 該当 executor に修正 dispatch (再実装) → 再度 review → 収束
 6. slice 収束 → 次 slice へ (Step 3 に戻る)
 
 ### Step 5: 全 slice 完了判定 + gwt-test skill chain (M2 fix 2026-07-04: attempt-then-confirm marker + idempotent + user gate)
