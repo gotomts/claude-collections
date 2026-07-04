@@ -39,10 +39,16 @@ maintainer: gotomts
 1. `git rev-parse --abbrev-ref HEAD` で現ブランチ取得、サニタイズ (`/` → `-`)
 2. `docs/superpowers/{branch}/` を Glob で列挙、`gwt.md` の存在有無を確認
 3. **前提**: `*-gwt.md` が存在すること。無ければ error "gwt.md がありません。enhance-brainstorming Phase 3 を完了させてください" + 中断
-4. gwt.md の checklist 状態を確認:
+4. gwt.md の checklist 状態と timestamp を確認 (M3 fix 2026-07-04: AC 変更後の再検証漏れ防止):
    - checklist 全 `- [ ]` → Step 1 (初回検証) から
    - checklist 一部 `- [x]` → Step 3 (未検証 AC のみ検証) から
-   - checklist 全 `- [x]`、レビュー履歴に「AC 完了時 qa-engineer dispatch」ログ有 → Step 8 (STOP POINT 2) から
+   - checklist 全 `- [x]`:
+     a. 変更履歴の最新 entry timestamp (`## 変更履歴` セクション、逆時系列先頭、`{YYYY-MM-DD HH:MM}` format) を取得。placeholder 行 (テンプレのまま) は除外
+     b. レビュー履歴の最新 qa-engineer dispatch timestamp (`## レビュー履歴`、qa-engineer 行の最新) を取得
+     c. **変更履歴 timestamp > qa-engineer timestamp** → Step 3 (再検証、変更後 AC が対象) から
+     d. **同日同時分 or 判定不能** (日付単位のみ等) → user に 1 問確認「変更履歴の {AC} が qa-engineer 後の変更ですか? yes → Step 3、no → Step 8」
+     e. **変更履歴なし or qa-engineer が新しい** → Step 8 (STOP POINT 2) から
+   - checklist 全 `- [x]` かつ AC 数 (gwt.md 内 `## AC-` heading 数) と qa-engineer 最新 log の対象 AC 一覧に差分 → AC 追加漏れ疑い、user 1 問確認 (書き忘れ検知)
 5. `handoff.md` が同ディレクトリにあれば Read (補助情報)
 6. 判定結果を user に「現在 Phase = X、Step Y から再開します」と明示、user 1 問確認
 

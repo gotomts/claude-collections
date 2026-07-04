@@ -45,12 +45,15 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 1. `git rev-parse --abbrev-ref HEAD` で現ブランチ取得 → サニタイズ (`/` → `-`)
 2. `docs/superpowers/{branch}/` を Glob で列挙、`summary/design/gwt/pr-description/plan` の 5 成果物の存在有無を確認
 3. `handoff.md` が同ディレクトリにあれば Read して state summary を取得 (補助情報)
-4. 上表 Phase 定義に従って現在 Phase / 適切な Step を判定:
+4. 上表 Phase 定義に従って現在 Phase / 適切な Step を判定 (M1 fix 2026-07-04: Phase 3 中間状態の細分化):
    - 5 成果物すべて未存在 → Phase 1 (Step 2 から)
-   - summary.md のみ存在 → Phase 3 (Step 4 から)
-   - summary + design/gwt/pr-desc 揃い、plan.md 未存在 → Phase 4 (Step 5 から)
+   - summary.md のみ存在 (commit 済) → Phase 3 Step 4-a (design.md 生成) から
+   - summary.md + design.md 存在、gwt.md 未生成 → Phase 3 Step 4-b (gwt.md 生成) から
+   - summary.md + design.md + gwt.md 存在、pr-description.md 未生成 → Phase 3 Step 4-c (pr-description.md 生成) から
+   - summary + design + gwt + pr-desc 揃い、plan.md 未存在 → Phase 4 (Step 5 から)
    - plan.md 存在 → STOP POINT 1 (Step 7 で enhance-executing-plans chain)
-5. 判定結果を user に「現在 Phase = X、Step Y から再開します」と明示、user 1 問確認 (誤検出時の catch)
+   - **中間状態で未 commit の書きかけ file 検出時** (`git status --porcelain docs/superpowers/{branch}/` で untracked or unstaged 判定): user に「Phase 3 差し戻し中の状態のようです、どの file から再開しますか?」と 1 問確認して分岐
+5. 判定結果を user に「現在 Phase = X、Step Y-{semantic} から再開します」と明示 (例: 「Phase 3、design.md 生成から」)、user 1 問確認 (誤検出時の catch)
 
 ### Step 1: 前提確認 + AI 利用ポリシー案内 (ADR-0010)
 

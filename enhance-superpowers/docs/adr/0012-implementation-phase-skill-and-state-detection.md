@@ -73,9 +73,9 @@ STOP POINT 1 の性質を変更: 「人間 / 実装 AI に完全委譲」→ 「
 
 ## Consequences
 
-- **実装フェーズの silent failure 消滅**: 実装前後で software-architect / code-reviewer / security-engineer の dispatch が強制される
+- **実装フェーズの silent failure 消滅**: 実装前後で software-architect / executor 系 (backend/frontend/mobile/infrastructure-engineer) / code-review skill / security-engineer / performance-engineer の dispatch が強制される (D1 redesign 2026-07-04)
 - **user 意識 skill 数は変わらず 1 (enhance-brainstorming)**: enhance-executing-plans は skill chain で自動連鎖 invoke されるので、user は enhance-brainstorming を呼ぶだけ
-- **superpowers 直線フローとの整合**: enhance-executing-plans は `superpowers:executing-plans` を委譲 invoke するので、公式の直線フロー (brainstorming → writing-plans → executing-plans) に順ずる
+- **superpowers 直線フローとの整合** (2026-07-04 OD2 fix): enhance-executing-plans は **executor agent を skill 側から直接 dispatch** して実装するので、公式の直線フロー (brainstorming → writing-plans → executing-plans) の 3 段目相当を silent failure なく実装する形。superpowers:executing-plans への委譲は D1 redesign で廃止 (silent failure の言い換えだった)
 - **ハンドオフ再開の順序破壊解消**: 全 skill が Step 0 状態判定 + Phase table を持つ = 別セッションが古い context を持っていても、file 状態から現在 Phase を判定できる
 - **dispatch log 集約先の拡張**: ADR-0007 の Phase → 追記先 mapping に「enhance-executing-plans (実装 slice 単位) → plan.md」を追加する (ADR-0007 の Updated セクションで更新)
 - **ADR-0003 supersede**: 「STOP POINT 1 = skill なし」の決定は本 ADR で覆る。ADR-0003 は Status を `Superseded by ADR-0012` に更新
