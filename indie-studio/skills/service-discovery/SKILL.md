@@ -104,6 +104,10 @@ ADR-0002 / 0015。4つの**別ドキュメント**：
 
 **起動機構**：ディレクター（＝スキル本体のメインセッション）は各職種を **Agent tool**（`subagent_type` ＝ エージェントファイル名：`ux-researcher` / `product-manager` / `business-strategist` / `product-designer` / `reviewer`）で spawn する。プロンプトに mode/area・アンカーの所在・出力先・上流成果物のパスを渡す（各エージェントの入力契約参照）。差し戻しは**同じ職種を continuation で再起動**（findings を渡す・ADR-0018）。
 
+導出職種（`ux-researcher` / `product-manager` / `business-strategist` / `product-designer`）は indie-studio 独自 agent で、stage / 出力先 / self-grill / 観点 ⑤ 規約を body に持つため mode/area・所在の受け渡しで足りる。一方 **`reviewer` は `shared/agents/` 由来の中立 agent**（body に固有値を持たず「呼び出し元 skill が指定」と宣言）なので、spawn 時に次を prompt へ**明示的に埋める**（ADR-0031）。
+
+- **`reviewer`**: **評価観点セット**＝真実源整合（anchors・上流成果物）／カバレッジ逆引き（期待マニフェスト）／内部一貫性／**反証可能性（観点 ⑤）**。**観点 ⑤ の適用対象を明示指定**＝`product-manager` の `07-feature-scope` の MVP 主要機能行・`[作らない]` 行、および `12-risks-assumptions` の全 assumption（固定書式 `Steelman:` / `Fails if:` / `Kill criteria:` の欠落は `blocker`・ADR-0024）。**kill criteria の期間**＝「この週に取れる最安テスト」。**差し戻し protocol**＝round1 fresh で完全 findings マニフェスト→round2-3 continuation で解消のみ・成果物ごと最大 3R（ADR-0018）。
+
 **期待マニフェスト**（完全性ガードの基準）：横断規約の省略可否で要否を判定した上で、「このサービスで揃うべき成果物の集合」を持つ。目安＝planning（01,02,05-14,99 のうち性質で要のもの）＋ design（screens.md ＋ 各 area の screen-specs 全画面）＋ brief.md。各成果物を ✅生成合格 / ➖省略(理由) / ⚠️未達(理由) で決着させる。
 
 **並列/直列**：依存の無い成果物は並列 spawn してよいが、**同一ファイル群へ書く職種は直列**（競合回避）。依存：persona → feature-scope →（competition/pitch/monetization/marketing/kpi/risks/nfr/legal は feature-scope 後に並列可）→ screens.md →〔画面一覧レビュー〕→ screen-specs（area ごと並列可）。

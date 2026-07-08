@@ -175,6 +175,10 @@ components:                       # map<string, map<string, string>> 2 階層必
 
 **起動機構**：ディレクター（＝スキル本体のメインセッション）は各職種を **Agent tool**（`subagent_type` ＝ エージェントファイル名：`product-designer` / `visual-designer` / `reviewer` / `ui-prototyper`）で spawn する。プロンプトに mode・S1 成果物の所在・参考画像 path（あれば）・既存 DESIGN.md draft の所在（あれば）を渡す。差し戻しは**同じ職種を continuation で再起動**（findings を渡す・ADR-0018）。
 
+`product-designer` / `visual-designer` / `ui-prototyper` は indie-studio 独自 agent で mode/所在の受け渡しで足りる。一方 **`reviewer` は `shared/agents/` 由来の中立 agent**（body に固有値を持たず「呼び出し元 skill が指定」と宣言）なので、spawn 時に次を prompt へ**明示的に埋める**（ADR-0031）。
+
+- **`reviewer`**: **評価観点セット**＝**spec compliance**（DESIGN.md が Google Labs `design.md` spec (alpha) に pin・フラット map / unit suffix / hyphen variant / 英語単独セクション名 / shadows・motion の YAML top-level 不使用。違反は `blocker`・ADR-0029）／真実源整合（S1 corpus・anchors）／内部一貫性。**差し戻し protocol**＝round1 fresh で完全 findings マニフェスト→round2-3 continuation で解消のみ・最大 3R（ADR-0018）。**mock は評価対象外**（視覚確認ゲートで別軸）。観点 ⑤（Steelman/Fails if）は S1b では適用しない（design 憲法評価のため）。
+
 **期待マニフェスト**（完全性ガードの基準）：
 
 - **DESIGN.md の必須要素**：

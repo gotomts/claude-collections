@@ -69,6 +69,11 @@ docs/indie-studio/tech/stack-direction/
 
 **起動機構**：ディレクターは `tech-lead` を **Agent tool**（`subagent_type=tech-lead`）で spawn。プロンプトに `mode=stack-direction`・アンカーの所在・S1 corpus の所在・出力先（`docs/indie-studio/tech/stack-direction/`）を渡す。差し戻しは continuation で再起動（ADR-0018）。
 
+**起動 context（中立 agent への invocation 必須要素・ADR-0031）**：`shared/agents/` の `tech-lead` / `reviewer` は body に indie-studio 固有値を持たない中立 agent（入力契約で「呼び出し元 skill が指定」と宣言）。上記の mode/所在/出力先に加え、次も prompt へ**明示的に埋める**。
+
+- **`tech-lead`**: **architecture 規約**＝クリーンアーキ ＋ DDD（既定の型・スタックはこの型と矛盾させない）。**stage**＝`stage=1`（stack ＋ data-profile）→ `stage=2`（third-party ＋ build-vs-buy）を continuation で。**進行 protocol**＝停止ゼロ（条件付き発火の対話点 2 つを除く）／decide-record-proceed（根拠は担当ページ inline・ADR-0019）／未決は `⚠️繰り越し` マーカー＋候補を inline。**品質バー**＝抽象語で止めない（「クラウド」→ AWS/GCP/Vercel、3rd party hard constraints は数値・料金プランまで）。
+- **`reviewer`**: **評価観点**＝上流（アンカー・S1 corpus）整合／既約性（恣意的でないか）／prose first・tokens second／内部一貫性。**差し戻し protocol**＝成果物ごと round1 fresh→continuation・最大 3R（ADR-0018）。
+
 **期待マニフェスト**（完全性ガードの基準）：4 成果物（stack / data-profile / third-party / build-vs-buy）。各成果物を ✅生成合格 / ➖省略(理由) / ⚠️未達(理由) で決着（ADR-0011）。
 
 **並列/直列**：4 観点は依存関係が強い（stack ← data-profile → third-party → build-vs-buy）ため直列実行。`reviewer` の差し戻しは成果物単位で independent に最大 3R（ADR-0018）。
