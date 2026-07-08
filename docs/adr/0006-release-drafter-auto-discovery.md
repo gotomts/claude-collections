@@ -57,5 +57,6 @@ per-collection の drafter ファイルを全廃し、**単一の workflow + 単
 ## 関連
 
 - ADR-0004 (release-notes-workflow): 本 ADR の親。tag 命名 / publish 判断 / bootstrap の規律は ADR-0004 を継承
+- ADR-0007 (release-drafter-draft-race-tag-prefix): 本 ADR の matrix 構造で顕在化した draft race を tag-prefix で隔離する子 ADR (issue #22)
 - PR #17 (drafter setup): 本 ADR で superseded されるため close 予定
 - enhance-superpowers/v0.0.1 (PR #15 + #16) の release 判断時に発覚した問題系列
