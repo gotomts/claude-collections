@@ -1,4 +1,4 @@
-# release-drafter のテンプレ config (ADR-0006)。
+# release-drafter のテンプレ config (ADR-0006 / ADR-0007)。
 #
 # `scripts/regen-drafter-configs.sh` (Makefile target: `regen-drafter-configs`)
 # が本テンプレの {{COLLECTION}} を実際の名前に置換し、
@@ -17,6 +17,13 @@
 
 name-template: "{{COLLECTION}}/v$RESOLVED_VERSION"
 tag-template: "{{COLLECTION}}/v$RESOLVED_VERSION"
+
+# release-drafter@v6 は既存 draft / last release を tag-prefix で filter して探す
+# (findPreviousReleases)。未設定だと matrix の各 collection job が「repo 内で最初に
+# 見つかった draft」を取り違えて上書きし合う draft race が起きる (ADR-0007 / issue #22)。
+# collection ごとに固有 prefix を与えて draft 探索を隔離する。
+# prefix strip 後 (例 "indie-studio/v0.0.4" → "0.0.4") は正しい semver として version 解決される。
+tag-prefix: "{{COLLECTION}}/v"
 
 # {{COLLECTION}}/ 配下と vendoring 元 (shared/skills/finish-stage-pr) に
 # 触れた PR のみ集約。collection 間の draft 漏れを構造的に隔離。
