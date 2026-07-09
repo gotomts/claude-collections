@@ -30,6 +30,7 @@ claude-collections/
 ## コレクション
 
 - **[`indie-studio`](indie-studio/)** — 個人開発のサービス設計〜デザイン〜開発をオールインで回す AI 自律開発ハーネス。アンカー（人間が握る土台）から企画・デザイン・技術設計・分解・実装までを、人間の数ゲートだけで自律的に進める。
+- **[`enhance-superpowers`](enhance-superpowers/)** — 公式 superpowers plugin の直線フロー（brainstorming → writing-plans → executing-plans）に、5 成果物 Spec フェーズ確定・agent 能動 dispatch・監査ログ・コンプライアンス trigger を被せた強化版。
 
 ## Plugin として install して使う
 
@@ -44,16 +45,16 @@ claude-collections/
 /plugin install indie-studio@claude-collections
 ```
 
-### 別マシン・別環境から使う（private repo）
+### 別マシン・別環境から使う（GitHub repo）
 
-リポジトリは現状 private 想定。事前に `gh auth login` で GitHub 認証を済ませておく（手動 install/update には gh CLI の credential helper が使われる）。
+GitHub 経由で marketplace を登録する。public リポジトリなので事前の認証は不要（手動 install/update・auto-update いずれも認証なしで動く）。
 
 ```
 /plugin marketplace add gotomts/claude-collections
 /plugin install indie-studio@claude-collections
 ```
 
-auto-update まで有効にしたい場合は環境変数 `GITHUB_TOKEN`（または `GH_TOKEN`）を設定する。
+`GITHUB_TOKEN`（または `GH_TOKEN`）の設定は必須ではない。GitHub API の未認証レート制限を避けたい場合の任意設定。
 
 ### バージョニング方針
 

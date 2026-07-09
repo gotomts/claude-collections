@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "claude-collections",
-  "description": "Self-contained Claude Code skills/agents collections. Currently hosts the indie-studio autonomous development harness.",
+  "description": "Self-contained Claude Code skills/agents collections. Hosts the indie-studio autonomous development harness and the enhance-superpowers workflow extension.",
   "owner": {
     "name": "gotomts",
     "email": "mh.goto.web@gmail.com"
