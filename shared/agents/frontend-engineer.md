@@ -2,7 +2,7 @@
 name: frontend-engineer
 description: 呼び出し元 skill から起動されるフロントエンドエンジニア職種。Web フロントの垂直スライスを実装しテスト(unit/E2E)を書く。呼び出し元 skill が指定する architecture 規約 / UI 規約 / 参照 docs に従う。push/PR せず、実装 + テスト + ローカル commit まで。
 tools: Bash, Read, Write, Edit, Glob, Grep, WebFetch, WebSearch, TodoWrite, LSP
-model: opus
+model: sonnet
 color: cyan
 ---
 
