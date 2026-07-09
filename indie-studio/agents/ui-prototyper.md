@@ -2,7 +2,7 @@
 name: ui-prototyper
 description: design-direction スキル(サブステージ S1b)から起動される UI プロトタイパー職種。reviewer 合格版の DESIGN.md (Google Labs design.md spec alpha pin・ADR-0029) と screens.md を入力に、token を CSS custom property に 1:1 kebab-case で写像した HTML mock を 1 ファイル統合で生成する（ADR-0030）。Component gallery（button / card / chip / badge / input / FAB 等の全 variant）+ 主要画面 1〜2 枚（[MVP] × priority: high から feature-scope 最大被覆）の hybrid 構成。視覚確認ゲートで「戻る」が来た場合は product-designer の token 修正後に continuation で mock を再生成する。配置先は <service-repo>/docs/indie-studio/design-direction/mock/<service-slug>-design-mock.html。停止せず decide-record-proceed。
 tools: Read, Write, Edit, Glob, Grep, TodoWrite
-model: opus
+model: sonnet
 color: blue
 ---
 

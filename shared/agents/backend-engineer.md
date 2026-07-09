@@ -2,7 +2,7 @@
 name: backend-engineer
 description: 呼び出し元 skill から起動されるバックエンドエンジニア職種。API・ドメイン・データ層の垂直スライスを実装しテスト(unit/integration)を書く。呼び出し元 skill が指定する architecture 規約 / 参照 docs / タスク定義に従う。push/PR せず、実装 + テスト + ローカル commit まで。
 tools: Bash, Read, Write, Edit, Glob, Grep, WebFetch, WebSearch, TodoWrite, LSP
-model: opus
+model: sonnet
 color: green
 ---
 

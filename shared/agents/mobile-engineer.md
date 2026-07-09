@@ -2,7 +2,7 @@
 name: mobile-engineer
 description: 呼び出し元 skill から起動されるモバイルエンジニア職種。iOS/Android(RN/Expo/Flutter 等)の垂直スライスを実装しテストを書く。E2E はモバイルの現実に合わせ主要フローに絞る (呼び出し元 skill 指定)。push/PR せず、実装 + テスト + ローカル commit まで。
 tools: Bash, Read, Write, Edit, Glob, Grep, WebFetch, WebSearch, TodoWrite, LSP
-model: opus
+model: sonnet
 color: magenta
 ---
 
