@@ -4,7 +4,7 @@
 
 ## Status
 
-accepted（2026-07-29）。[ADR-0032](0032-s5-spec-in-harness-implementation-delegated.md) の **D2 を改定**する（extends）。D1 / D3 / D3-a / D4 / D5 と、D2 のうち suffix 以外の契約項目は**すべて有効なまま**。
+accepted（2026-07-28）。[ADR-0032](0032-s5-spec-in-harness-implementation-delegated.md) の **D2 を改定**する（extends）。D1 / D3 / D3-a / D4 / D5 と、D2 のうち suffix 以外の契約項目は**すべて有効なまま**。
 
 ## Context
 
@@ -21,7 +21,7 @@ ADR-0032 D2 は suffix に `design` を採用し、その根拠をこう書い�
 | `finish-spec-pr` | ゼロ |
 | `enhance-executing-plans` | 4 箇所あるが**いずれも必須ではない** |
 
-`enhance-executing-plans` の 4 箇所の内訳は、(a) Step 0 の glob 列挙、(b) executor へ渡す「参照 docs」のパス、(c) 失敗時メッセージ。**ハード要件は `*-plan.md` の存在のみ**で、Step 0 の判定は `plan.md` のレビュー履歴だけで行われ `design` の有無で分岐しない。
+`enhance-executing-plans` の 4 箇所の内訳は、(a) Step 0 の glob 列挙、(b) executor へ渡す「参照 docs」のパス、(c) 失敗時メッセージ。**ハード要件は `*-plan.md`（存在＋`## レビュー履歴`）だけ**で、Step 0 の判定はそのレビュー履歴で行われ `design` の有無で分岐しない。
 
 つまり **`enhance-superpowers` を変更せずに改名できる**。ADR-0032 D5（enhance-superpowers 不変）と両立する。
 
@@ -45,7 +45,7 @@ ADR-0032 D2 は suffix に `design` を採用し、その根拠をこう書い�
 
 ADR-0032 D2 は「委譲先が Step 0 で glob するため崩すと連鎖が壊れる」と 5 成果物を一律に扱っていたが、**必須度は一様でない**。実際に崩すと壊れるのは 2 つだけ：
 
-- **`*-plan.md` の存在** — `enhance-executing-plans` Step 0 が前提として要求。無ければ error 中断
+- **`*-plan.md` の存在と `## レビュー履歴` セクション** — `enhance-executing-plans` Step 0 は存在を前提として要求し（無ければ error 中断）、さらに末尾の `## レビュー履歴` を Read して再開位置を判定する。**存在するだけでは足りない**
 - **`*-gwt.md` の checklist（`- [ ] AC-N:`）と `## 変更履歴` / `## レビュー履歴`** — `gwt-test` が判定に使う
 
 `summary` / `spec` / `pr-description` は Step 0 の glob 列挙に現れるだけで、判定に使われない。

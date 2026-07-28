@@ -54,13 +54,13 @@ docs/indie-studio/implementation/{S-nn}-{slug}/
 
 **成果物の形式は `enhance-superpowers` 側の仕様**である。ただし**全てが必須なわけではない** — 実際に崩すと連鎖が壊れるのは次の 2 つで、他は緩い。
 
-- **`*-plan.md` の存在**（`enhance-executing-plans` の Step 0 が前提として要求。無ければ error 中断）
+- **`*-plan.md` の存在と `## レビュー履歴` セクション**（`enhance-executing-plans` Step 0 は存在を前提として要求し〔無ければ error 中断〕、さらに末尾の `## レビュー履歴` を Read して再開位置を判定する。**存在するだけでは足りない**）
 - **`*-gwt.md` の checklist と履歴セクション**（`gwt-test` が読んで判定に使う）
 
 | 項目 | 契約 |
 |---|---|
 | ファイル名 | `{YYYY-MM-DD}-{slug}-{suffix}.md`。suffix は `summary` / **`spec`** / `gwt` / `pr-description` / `plan` |
-| **suffix は `spec`** | 実装の詳細設計は **`spec.md`**。`design` は UI デザイン仕様に明け渡す（`design-direction` / `DESIGN.md` と衝突するため）。**委譲先はこれを要求しない** — 検証したところ `gwt-test` / `write-review-response` / `finish-spec-pr` は `design` に一切言及せず、`enhance-executing-plans` のハード要件も `*-plan.md` の存在のみ |
+| **suffix は `spec`** | 実装の詳細設計は **`spec.md`**。`design` は UI デザイン仕様に明け渡す（`design-direction` / `DESIGN.md` と衝突するため）。**委譲先はこれを要求しない** — 検証したところ `gwt-test` / `write-review-response` / `finish-spec-pr` は `design` に一切言及せず、`enhance-executing-plans` のハード要件も `*-plan.md`（存在＋`## レビュー履歴`）のみ（ADR-0034） |
 | `plan.md` | `## レビュー履歴` セクション必須（`enhance-executing-plans` の状態判定が読む） |
 | `gwt.md` | `- [ ] AC-N: ...` 形式の checklist、`## 変更履歴`（`{YYYY-MM-DD HH:MM}` 逆時系列）、`## レビュー履歴` 必須（`gwt-test` が読む） |
 | `pr-description.md` | `## やったこと` / `## 動作確認方法` は必須。**`## 補足` は内容が無ければセクションごと削除してよい**（`finish-spec-pr` 自身が「内容がなければセクションごと削除」と規定しているため、空で残すほうが契約違反） |

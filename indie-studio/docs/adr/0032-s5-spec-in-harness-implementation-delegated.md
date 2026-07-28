@@ -45,7 +45,7 @@ Spec の生成順は **enhance-superpowers の順序に合わせる**（`summary
 
 ### D2. 成果物は enhance-superpowers の入力契約に従う
 
-> **※ suffix は [ADR-0034](0034-implementation-spec-file-suffix.md) で `design` → `spec` に改定された。** 本 D2 が `design` を採った根拠（「`enhance-executing-plans` と `gwt-test` が `design` で glob する」）は**事実誤認**で、`gwt-test` は `design` に一切言及していない。必須度の記述（「崩すと連鎖が壊れる」）も過度に強く、実際のハード要件は `*-plan.md` の存在と `*-gwt.md` の checklist / 履歴セクションの 2 つ。詳細と訂正後の契約は ADR-0034 を参照。**suffix 以外の契約項目（ファイル名フォーマット・配置・必須セクション）は本 D2 のまま有効。**
+> **※ 本 D2 の入力契約は [ADR-0034](0034-implementation-spec-file-suffix.md) で改定された。最新の契約は ADR-0034 を参照。**
 
 委譲先が Step 0 の状態判定で成果物を glob するため、**形式は enhance-superpowers 側の仕様に合わせる**。これは**暗黙の契約**であり、勝手に変えると連鎖が壊れる。
 
