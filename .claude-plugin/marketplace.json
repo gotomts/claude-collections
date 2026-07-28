@@ -16,7 +16,7 @@
     {
       "name": "indie-studio",
       "source": "./indie-studio",
-      "description": "AI 自律開発ハーネス：個人開発のサービス設計〜デザイン〜開発をオールインで回す（G1 アンカー / S1 企画→ブリーフ / S2 プロトタイプ / S3 技術設計 / S4 分解 / S5 実装詳細設計→実装）。`shared` と `enhance-superpowers` の install が必須 (root ADR-0009 / indie-studio ADR-0032: S5 は enhance-superpowers へ委譲)。",
+      "description": "AI 自律開発ハーネス：個人開発のサービス設計〜デザイン〜開発をオールインで回す（G1 アンカー / S1 企画→ブリーフ / S2 プロトタイプ / S3 技術設計 / S4 分解 / S5 実装仕様→委譲）。`shared` と `enhance-superpowers` の install が必須 (root ADR-0009 / indie-studio ADR-0032: S5 の実装以降を enhance-superpowers へ委譲)。",
       "category": "development-workflow"
     },
     {

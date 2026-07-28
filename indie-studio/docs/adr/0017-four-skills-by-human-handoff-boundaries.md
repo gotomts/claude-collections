@@ -1,6 +1,6 @@
 # スキル分割は人間 handoff 境界で4スキル。横断オーケストレーターは薄い/不要
 
-> ※ 本 ADR の「4 スキル」はその後 3 度拡張された：[ADR-0023](0023-design-direction-skill.md) で **5 スキル**（S1 と S2 の間に `design-direction`）、[ADR-0026](0026-stack-direction-skill.md) で **6 スキル**（S1a `stack-direction`）、[ADR-0032](0032-s5-split-into-design-and-implementation.md) で **7 スキル**（S5 を `implementation-design` と `implementation` に分割）。本文中の 4 スキル列挙はその時点の決定として読み、現行構成は ADR-0032 を参照する。
+> ※ 本 ADR が定めるのは「スキルの境界は人間の handoff で引く」という原則であり、**本文の 4 スキル列挙はその時点のスナップショット**である。境界はその後 [ADR-0023](0023-design-direction-skill.md)（`design-direction` 追加）・[ADR-0026](0026-stack-direction-skill.md)（`stack-direction` 追加）・[ADR-0032](0032-s5-spec-in-harness-implementation-delegated.md)（S5 の再定義）で更新された。**現行のスキル構成は最新の ADR を参照すること**（数を本注記に書くと更新のたびに陳腐化するため書かない）。
 
 全自動完走はそもそも目的でない（重要な意思決定は人間・それ以外を AI に任せる）。よってスキルの境界は「1ステージ1スキル」ではなく、**人間の意思決定／環境の切れ目（＋独立チューニング・中断のしやすさ）**で引く。結果、**4スキル**：
 
