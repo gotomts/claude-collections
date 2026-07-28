@@ -92,28 +92,28 @@ ADR-0002 / 0015。4つの**別ドキュメント**：
 
 | エージェント | 担当成果物 | 依存 |
 |---|---|---|
-| `ux-researcher` | persona / usage-scenes | アンカー |
-| `product-manager` | feature-scope / roadmap / specific-topics / risks-assumptions / nfr-targets | persona・usage-scenes |
-| `business-strategist` | competition / pitch / monetization / marketing / kpi / legal | feature-scope |
-| `product-designer` | screens.md / screen-specs/&lt;area&gt;/ | feature-scope（＋ persona・design 原則） |
-| `reviewer` | 全成果物の評価・差し戻し（独立職種） | 各成果物 |
+| `indie-studio:ux-researcher` | persona / usage-scenes | アンカー |
+| `indie-studio:product-manager` | feature-scope / roadmap / specific-topics / risks-assumptions / nfr-targets | persona・usage-scenes |
+| `indie-studio:business-strategist` | competition / pitch / monetization / marketing / kpi / legal | feature-scope |
+| `indie-studio:product-designer` | screens.md / screen-specs/&lt;area&gt;/ | feature-scope（＋ persona・design 原則） |
+| `shared:reviewer` | 全成果物の評価・差し戻し（独立職種） | 各成果物 |
 
 依存順の目安：persona → feature-scope → （competition/pitch ほか並列）→ screens.md →〔画面一覧レビュー〕→ screen-specs。独立な成果物は並列起動してよい。
 
 ## ディレクター制御フロー
 
-**起動機構**：ディレクター（＝スキル本体のメインセッション）は各職種を **Agent tool**（`subagent_type` ＝ エージェントファイル名：`ux-researcher` / `product-manager` / `business-strategist` / `product-designer` / `reviewer`）で spawn する。プロンプトに mode/area・アンカーの所在・出力先・上流成果物のパスを渡す（各エージェントの入力契約参照）。差し戻しは**同じ職種を continuation で再起動**（findings を渡す・ADR-0018）。
+**起動機構**：ディレクター（＝スキル本体のメインセッション）は各職種を **Agent tool** で spawn する。`subagent_type` は **`plugin:agent` 形式の修飾名**を使う（bare name は解決されない・root ADR-0009）：`indie-studio:ux-researcher` / `indie-studio:product-manager` / `indie-studio:business-strategist` / `indie-studio:product-designer` / `shared:reviewer`。プロンプトに mode/area・アンカーの所在・出力先・上流成果物のパスを渡す（各エージェントの入力契約参照）。差し戻しは**同じ職種を continuation で再起動**（findings を渡す・ADR-0018）。
 
-導出職種（`ux-researcher` / `product-manager` / `business-strategist` / `product-designer`）は indie-studio 独自 agent で、stage / 出力先 / self-grill / 観点 ⑤ 規約を body に持つため mode/area・所在の受け渡しで足りる。一方 **`reviewer` は `shared/agents/` 由来の中立 agent**（body に固有値を持たず「呼び出し元 skill が指定」と宣言）なので、spawn 時に次を prompt へ**明示的に埋める**（ADR-0031）。
+導出職種（`indie-studio:ux-researcher` / `indie-studio:product-manager` / `indie-studio:business-strategist` / `indie-studio:product-designer`）は indie-studio 独自 agent で、stage / 出力先 / self-grill / 観点 ⑤ 規約を body に持つため mode/area・所在の受け渡しで足りる。一方 **`shared:reviewer` は `shared` plugin の中立 agent**（body に固有値を持たず「呼び出し元 skill が指定」と宣言）なので、spawn 時に次を prompt へ**明示的に埋める**（ADR-0031）。
 
-- **`reviewer`**: **評価観点セット**＝真実源整合（anchors・上流成果物）／カバレッジ逆引き（期待マニフェスト）／内部一貫性／**反証可能性（観点 ⑤）**。**観点 ⑤ の適用対象を明示指定**＝`product-manager` の `07-feature-scope` の MVP 主要機能行・`[作らない]` 行、および `12-risks-assumptions` の全 assumption（固定書式 `Steelman:` / `Fails if:` / `Kill criteria:` の欠落は `blocker`・ADR-0024）。**kill criteria の期間**＝「この週に取れる最安テスト」。**差し戻し protocol**＝round1 fresh で完全 findings マニフェスト→round2-3 continuation で解消のみ・成果物ごと最大 3R（ADR-0018）。
+- **`shared:reviewer`**: **評価観点セット**＝真実源整合（anchors・上流成果物）／カバレッジ逆引き（期待マニフェスト）／内部一貫性／**反証可能性（観点 ⑤）**。**観点 ⑤ の適用対象を明示指定**＝`indie-studio:product-manager` の `07-feature-scope` の MVP 主要機能行・`[作らない]` 行、および `12-risks-assumptions` の全 assumption（固定書式 `Steelman:` / `Fails if:` / `Kill criteria:` の欠落は `blocker`・ADR-0024）。**kill criteria の期間**＝「この週に取れる最安テスト」。**差し戻し protocol**＝round1 fresh で完全 findings マニフェスト→round2-3 continuation で解消のみ・成果物ごと最大 3R（ADR-0018）。
 
 **期待マニフェスト**（完全性ガードの基準）：横断規約の省略可否で要否を判定した上で、「このサービスで揃うべき成果物の集合」を持つ。目安＝planning（01,02,05-14,99 のうち性質で要のもの）＋ design（screens.md ＋ 各 area の screen-specs 全画面）＋ brief.md。各成果物を ✅生成合格 / ➖省略(理由) / ⚠️未達(理由) で決着させる。
 
 **並列/直列**：依存の無い成果物は並列 spawn してよいが、**同一ファイル群へ書く職種は直列**（競合回避）。依存：persona → feature-scope →（competition/pitch/monetization/marketing/kpi/risks/nfr/legal は feature-scope 後に並列可）→ screens.md →〔画面一覧レビュー〕→ screen-specs（area ごと並列可）。
 
-1. **インクリメンタル＋依存順ゲーティング**（ADR-0018）：担当職種が成果物を出す → `reviewer` が即評価 → 合格してから依存下流を起動。バッチ評価しない。
-2. **評価ループ**（ADR-0018）：成果物ごとに最大3ラウンド差し戻し。round1 の `reviewer` は fresh で完全な findings マニフェスト、round2-3 は continuation で解消のみ検証（スコープ凍結）。担当職種は continuation 再起動。finding ごとに ✅解消／➖省略(理由)／⚠️未達(理由) を返す。
+1. **インクリメンタル＋依存順ゲーティング**（ADR-0018）：担当職種が成果物を出す → `shared:reviewer` が即評価 → 合格してから依存下流を起動。バッチ評価しない。
+2. **評価ループ**（ADR-0018）：成果物ごとに最大3ラウンド差し戻し。round1 の `shared:reviewer` は fresh で完全な findings マニフェスト、round2-3 は continuation で解消のみ検証（スコープ凍結）。担当職種は continuation 再起動。finding ごとに ✅解消／➖省略(理由)／⚠️未達(理由) を返す。
 3. **上流再オープン**（ADR-0018）：下流評価中に上流の構造的欠陥（`blocker`）が判明したら、ディレクター判断で上流を1段だけ再オープン（深さ1・上流自身の残り3R を消費）。枯渇なら decide-record-proceed。
 4. **完全性ガード**（ADR-0011）：期待マニフェストを持ち、各成果物を ✅/➖/⚠️ で決着。
 5. **ゲートレポート**：ゲート（画面一覧レビュー）で、➖省略/⚠️未達（ギャップレポート）＋ ⚠️繰り越し マーカー一覧（繰り越し決定）を人間に提示（ADR-0019）。黙って欠落を通さない。
@@ -126,7 +126,7 @@ ADR-0002 / 0015。4つの**別ドキュメント**：
 
 ## 画面一覧レビュー（軽い人間ゲート）
 
-- `product-designer` が `screens.md`（画面一覧）をドラフト → **人間が枠組み（骨格）をレビュー**（ADR-0011・G4 相当の軽い関所）。
+- `indie-studio:product-designer` が `screens.md`（画面一覧）をドラフト → **人間が枠組み（骨格）をレビュー**（ADR-0011・G4 相当の軽い関所）。
 - 骨格ミスを最も安い段階で正す。承認後は自律で screen-specs へ進む。
 - ここでディレクターはゲートレポート（ギャップ＋繰り越し）を併せて提示する。
 
@@ -193,9 +193,9 @@ PRFAQ 冒頭で宣言される性質〔公開サービス / 限定公開・社�
 ## 後段（S1a `stack-direction` → S1b `design-direction`）
 
 - 本スキル完了後、まず `S1a stack-direction`（ADR-0026）でスタック / データプロファイル / 3rd party 制約 / build vs buy を tech-lead が決める（出力先＝`docs/indie-studio/tech/stack-direction/`）。
-- 続いて `S1b design-direction`（ADR-0023）で DESIGN.md を組み上げる。担い手＝`product-designer`（拡張）＋ `visual-designer`（新規）＋ `reviewer`（既存）。S1a の `stack.md` / `build-vs-buy.md` を `## Components` 記述で参照することで提供形態整合が取れる。
+- 続いて `S1b design-direction`（ADR-0023）で DESIGN.md を組み上げる。担い手＝`indie-studio:product-designer`（拡張）＋ `indie-studio:visual-designer`（新規）＋ `shared:reviewer`（既存）。S1a の `stack.md` / `build-vs-buy.md` を `## Components` 記述で参照することで提供形態整合が取れる。
 - 人間が S1a / S1b をスキップして直接 Claude Design へ進む場合、`anchors/design-principles` のトーン要求のみを参照する暫定運用（推奨はしない）。
 
 ## 関連 ADR
 
-ステージ全体＝ADR-0013 / 0017（4スキル → 5スキル拡張は ADR-0023）。職種＝ADR-0022（`visual-designer` 追加・`product-designer` 拡張は ADR-0023）。評価ループ＝ADR-0018（観点 ⑤ 拡張は ADR-0024）。決定記録＝ADR-0019。DESIGN.md＝ADR-0020（決定 5 resolved by ADR-0023）。レイアウト＝ADR-0016 / 0021。アンカー＝ADR-0002 / 0015（PRFAQ ゴールラインの 3 行 extract は ADR-0024）。後段＝ADR-0023（`design-direction`）。red-team レンズ＝ADR-0024。
+ステージ全体＝ADR-0013 / 0017（4スキル → 5スキル拡張は ADR-0023）。職種＝ADR-0022（`indie-studio:visual-designer` 追加・`indie-studio:product-designer` 拡張は ADR-0023）。評価ループ＝ADR-0018（観点 ⑤ 拡張は ADR-0024）。決定記録＝ADR-0019。DESIGN.md＝ADR-0020（決定 5 resolved by ADR-0023）。レイアウト＝ADR-0016 / 0021。アンカー＝ADR-0002 / 0015（PRFAQ ゴールラインの 3 行 extract は ADR-0024）。後段＝ADR-0023（`design-direction`）。red-team レンズ＝ADR-0024。

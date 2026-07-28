@@ -24,13 +24,14 @@ claude-collections/
 
 - **コレクション優先**：スキル/エージェントは root 直下でなく `<collection>/` 配下に置く。各コレクションは自己完結（`docs/adr/0001`）。
 - **実在職種**：エージェントは現実の職種名で設計する（成果物名で割らない）。
-- **name で識別**：スキル/エージェントは frontmatter の `name` で識別・起動される（path 非依存）。ディレクトリを深くしても呼び出しは壊れない。
+- **`plugin:name` で起動**：スキル/エージェントは frontmatter の `name` で識別されるが、**起動は `plugin:name` 形式の修飾名で行う**（例：`shared:software-architect`）。agent は bare name が解決されず、さらにコレクション間で agent 名が重複すると片方の agent セットが registry から落ちる。skill は名前空間が効くのでこの制約を受けないが、表記は修飾形に揃える（ADR-0009）。
 - 詳細な規約は [`AGENTS.md`](AGENTS.md)、コレクション一覧は [`CONTEXT-MAP.md`](CONTEXT-MAP.md)。
 
 ## コレクション
 
 - **[`indie-studio`](indie-studio/)** — 個人開発のサービス設計〜デザイン〜開発をオールインで回す AI 自律開発ハーネス。アンカー（人間が握る土台）から企画・デザイン・技術設計・分解・実装までを、人間の数ゲートだけで自律的に進める。
 - **[`enhance-superpowers`](enhance-superpowers/)** — 公式 superpowers plugin の直線フロー（brainstorming → writing-plans → executing-plans）に、5 成果物 Spec フェーズ確定・agent 能動 dispatch・監査ログ・コンプライアンス trigger を被せた強化版。
+- **[`shared`](shared/)** — 上記 2 つが共通で使う基盤。collection 非依存の中立語彙で書かれた engineering 系 13 職種エージェントと helper skill 2 本を提供する。**上記いずれかを使う場合は併せて install が必要**（ADR-0009）。
 
 ## Plugin として install して使う
 
@@ -42,6 +43,7 @@ claude-collections/
 
 ```
 /plugin marketplace add /Users/<you>/ghq/github.com/gotomts/claude-collections
+/plugin install shared@claude-collections
 /plugin install indie-studio@claude-collections
 ```
 
@@ -51,6 +53,7 @@ GitHub 経由で marketplace を登録する。public リポジトリなので�
 
 ```
 /plugin marketplace add gotomts/claude-collections
+/plugin install shared@claude-collections
 /plugin install indie-studio@claude-collections
 ```
 
@@ -64,8 +67,8 @@ GitHub 経由で marketplace を登録する。public リポジトリなので�
 ## 新しいコレクションを追加するとき
 
 1. `<collection>/` 配下に `skills/` / `agents/` / `docs/adr/` / `CONTEXT.md` / `ROADMAP.md` / `.claude-plugin/plugin.json` を作る（ADR-0001 の構造）
-2. shared/agents/ のエージェントを使う場合は `<collection>/.claude-plugin/dependencies.json` を作り、`shared.agents[]` に basename を列挙する
-3. `make sync COLLECTION=<collection>` を実行して generated file を反映
-4. `make verify` で drift がないことを確認
-5. root の `marketplace.json` に新 plugin を 1 entry 追加
+2. shared のエージェント／スキルを使う場合は、skill 内から `shared:<agent>` / `shared:<skill>` の修飾名で参照する（vendoring は廃止・ADR-0009）。`shared` plugin の install が前提になる。**agent は bare name が解決されないため修飾必須**、skill は名前空間が効くが表記を揃えて修飾形にする
+3. コレクション固有の agent 名は **shared および他コレクションと重複させない**（同名衝突は agent セットの消失を招く・ADR-0009）
+4. root の `marketplace.json` に新 plugin を 1 entry 追加
+5. `make regen-drafter-configs` で release-drafter の config を生成
 6. `CONTEXT-MAP.md` にコレクションの所在と概要を追記

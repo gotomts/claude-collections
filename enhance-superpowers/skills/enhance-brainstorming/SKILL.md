@@ -67,8 +67,8 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 1. user の topic (argument 経由 or 会話で取得) から議論を開始
 2. 1 ターン 1 問の質問で要件・制約・成功基準を詰める
 3. 2-3 アプローチを推奨案 + メリデメで提示
-4. `software-architect` を能動 dispatch (ADR-0005) — アプローチ案の Clean Architecture + SOLID 整合性レビュー
-5. **`reviewer` を能動 dispatch** (2026-07-04 追加) — アプローチの妥当性を独立観点で評価 (真実源整合 / カバレッジ逆引き / 内部一貫性、必要なら反証可能性 3 行併記 Steelman / Fails if / Kill criteria を skill 側から use 宣言)
+4. `shared:software-architect` を能動 dispatch (ADR-0005) — アプローチ案の Clean Architecture + SOLID 整合性レビュー
+5. **`shared:reviewer` を能動 dispatch** (2026-07-04 追加) — アプローチの妥当性を独立観点で評価 (真実源整合 / カバレッジ逆引き / 内部一貫性、必要なら反証可能性 3 行併記 Steelman / Fails if / Kill criteria を skill 側から use 宣言)
 6. dispatch log (時刻 / agent / 目的 / 回答要約) を保持 (Phase 2 の summary.md に追記する)
 
 ### Step 3: Phase 2 — summary.md 生成 (認識齟齬検出 ①)
@@ -77,8 +77,8 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 2. テンプレのプレースホルダー (`{機能名}` / `{slug}` / `{方式 1}` 等) を埋めて summary.md を生成
 3. ファイル名: `{YYYY-MM-DD}-{slug}-summary.md`、配置: `docs/superpowers/{branch}/`
 4. frontmatter の `design: ./{date}-{slug}-design.md` を先行記載 (実 design.md は Phase 3 で生成)
-5. `software-architect` を能動 dispatch — 方式の要点 / 効いている設計判断を SOLID/YAGNI 観点でレビュー
-6. **`reviewer` を能動 dispatch** (2026-07-04 追加) — summary の反証可能性観点 (Steelman / Fails if / Kill criteria の 3 行併記が summary の "効いている設計判断" に埋まっているか、真実源整合)
+5. `shared:software-architect` を能動 dispatch — 方式の要点 / 効いている設計判断を SOLID/YAGNI 観点でレビュー
+6. **`shared:reviewer` を能動 dispatch** (2026-07-04 追加) — summary の反証可能性観点 (Steelman / Fails if / Kill criteria の 3 行併記が summary の "効いている設計判断" に埋まっているか、真実源整合)
 7. **summary.md 末尾「## レビュー履歴」セクションに Phase 1 + Phase 2 の dispatch log を追記** (ADR-0007)
 8. user 承認 → commit (Conventional Commits 形式)
 
@@ -90,9 +90,9 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 
 1. 合意済み summary.md を context として `superpowers:brainstorming` を invoke (Y 方式 / ADR-0006)
 2. superpowers:brainstorming に「以下が合意済み summary、design.md として詳細展開して」と委譲
-3. design.md が生成されたら、`software-architect` を能動 dispatch — design 全体の SOLID / モジュール境界レビュー
-4. 続けて `security-engineer` を **常時能動 dispatch** — design のセキュリティレビュー (認証 / 認可 / データ取扱 / 外部入力 / シークレット / 通信 / コード実行 等の観点)
-5. **`principal-engineer` を能動 dispatch** (2026-07-04 追加) — 技術設計の独立評価 (architecture 規約整合 / 真実源整合 / 機能識別子カバレッジ / 内部一貫性、差し戻し protocol を skill 側から use 宣言)
+3. design.md が生成されたら、`shared:software-architect` を能動 dispatch — design 全体の SOLID / モジュール境界レビュー
+4. 続けて `shared:security-engineer` を **常時能動 dispatch** — design のセキュリティレビュー (認証 / 認可 / データ取扱 / 外部入力 / シークレット / 通信 / コード実行 等の観点)
+5. **`shared:principal-engineer` を能動 dispatch** (2026-07-04 追加) — 技術設計の独立評価 (architecture 規約整合 / 真実源整合 / 機能識別子カバレッジ / 内部一貫性、差し戻し protocol を skill 側から use 宣言)
 6. **機微情報チェックリスト** (ADR-0008): 個人情報 / 決済データ / 医療データ / 認証情報を扱う設計か? 該当したら適用規制 (GDPR / 個人情報保護法 / PCI-DSS / HIPAA 等) を提示 → user に「適用規制を確認の上、本 PR スコープで対応 / 別 PR / Skip のいずれかを判断してください」と促す
 7. design.md 末尾「## レビュー履歴」セクションに Phase 3 (design 関連) の dispatch log を追記 (機微情報チェック結果含む、ADR-0007)
 
@@ -100,7 +100,7 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 
 1. `enhance-superpowers/templates/gwt.md` を Read
 2. design.md + summary.md の内容から AC (Given-When-Then 形式) を生成
-3. `qa-engineer` を能動 dispatch — AC の網羅性 (異常系 / 境界値 / 空状態) レビュー
+3. `shared:qa-engineer` を能動 dispatch — AC の網羅性 (異常系 / 境界値 / 空状態) レビュー
 4. gwt.md 末尾「## レビュー履歴」セクションに Phase 3 (gwt 関連) の dispatch log を追記 (ADR-0007)
 
 **4-c. pr-description.md 生成**
@@ -120,32 +120,33 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 ### Step 5: Phase 4 — plan.md 生成 + ライセンスチェック
 
 1. `superpowers:writing-plans` を invoke
-2. plan.md が生成されたら、`qa-engineer` を能動 dispatch — plan のテスト戦略の段取り妥当性レビュー
-3. 続けて `security-engineer` を **常時能動 dispatch** — plan のセキュリティ観点 (セキュリティテスト / 脅威モデリングの段取り / 機微データ取扱の手順) レビュー
-4. **`tech-lead` を能動 dispatch** (2026-07-04 追加) — plan のスタック / テスト戦略 / build vs buy 判断 (呼び出し元 skill 指定 mode = 開発体制準備)
-5. **`engineering-manager` を能動 dispatch** (2026-07-04 追加) — plan の slice 分解の妥当性 (垂直スライス / 依存順 / capability 束ね / タグ体系)
-6. **`principal-engineer` を能動 dispatch** (2026-07-04 追加) — 分解の独立評価 (機能識別子カバレッジ / 分解単位 / capability 束ね妥当性、差し戻し protocol を skill 側から use 宣言)
+2. plan.md が生成されたら、`shared:qa-engineer` を能動 dispatch — plan のテスト戦略の段取り妥当性レビュー
+3. 続けて `shared:security-engineer` を **常時能動 dispatch** — plan のセキュリティ観点 (セキュリティテスト / 脅威モデリングの段取り / 機微データ取扱の手順) レビュー
+4. **`shared:tech-lead` を能動 dispatch** (2026-07-04 追加) — plan のスタック / テスト戦略 / build vs buy 判断 (呼び出し元 skill 指定 mode = 開発体制準備)
+5. **`shared:engineering-manager` を能動 dispatch** (2026-07-04 追加) — plan の slice 分解の妥当性 (垂直スライス / 依存順 / capability 束ね / タグ体系)
+6. **`shared:principal-engineer` を能動 dispatch** (2026-07-04 追加) — 分解の独立評価 (機能識別子カバレッジ / 分解単位 / capability 束ね妥当性、差し戻し protocol を skill 側から use 宣言)
 7. **ライセンスチェック** (ADR-0009): plan で追加予定の依存ライブラリ一覧を抽出、各ライブラリのライセンスを確認 (license-checker 等を推奨案内)、制限ライセンス (GPL / AGPL / SSPL / 商用制限) が含まれる場合は user に警告 + 1 問確認
-5. plan.md 末尾「## レビュー履歴」セクションに Phase 4 の dispatch log を追記 (ADR-0007)
-6. user 承認 → commit
+8. plan.md 末尾「## レビュー履歴」セクションに Phase 4 の dispatch log を追記 (ADR-0007)
+9. user 承認 → commit
 
 ### Step 6: Phase 1 / 2 の任意セキュリティ dispatch
 
-Phase 1 / 2 でセキュリティ箇所が検出されたら `security-engineer` を任意 dispatch (Phase 3 / 4 の常時 dispatch とは別)。dispatch log は該当 Phase の成果物 (summary.md) のレビュー履歴に追記。Phase 3 は既に security-engineer 常時 dispatch が design / gwt / pr-description を包含するため、追加の任意 dispatch は不要。
+Phase 1 / 2 でセキュリティ箇所が検出されたら `shared:security-engineer` を任意 dispatch (Phase 3 / 4 の常時 dispatch とは別)。dispatch log は該当 Phase の成果物 (summary.md) のレビュー履歴に追記。Phase 3 は既に security-engineer 常時 dispatch が design / gwt / pr-description を包含するため、追加の任意 dispatch は不要。
 
 ### Step 7: STOP POINT 1 (実装フェーズ) → `enhance-executing-plans` skill chain (ADR-0012)
 
 1. user に「Spec フェーズが完了しました。次は実装です」と明示
-2. `Skill` tool で `enhance-executing-plans` skill を **chain invoke** (ADR-0012 D1 redesign 2026-07-04):
-   - 実装前 = `software-architect` 能動 dispatch (実装方針 review)
+2. `Skill` tool で `enhance-superpowers:enhance-executing-plans` skill を **chain invoke** (ADR-0012 D1 redesign 2026-07-04):
+   - 実装前 = `shared:software-architect` 能動 dispatch (実装方針 review)
    - 実装本体 = skill 側から **executor agent (backend/frontend/mobile/infrastructure-engineer) を直接 dispatch** (superpowers:executing-plans 委譲は D1 redesign で廃止 = silent failure の言い換えだった)
-   - slice 単位 = `code-review` skill (optional 1問確認、default skip) + `security-engineer` (該当 slice で常時) + `performance-engineer` (該当 slice で)
+   - slice 単位 = `code-review` skill (optional 1問確認、default skip) + `shared:security-engineer` (該当 slice で常時) + `shared:performance-engineer` (該当 slice で)
    - dispatch log は plan.md 末尾レビュー履歴に追記 (ADR-0007)
    - 完了後 = `gwt-test` skill に自動連鎖
 3. 中断時の再開方法を案内: 「(a) `enhance-brainstorming` を再 invoke (Step 0 で状態判定して続きから)、(b) `enhance-executing-plans` を直接 invoke、または (c) `gwt-test` skill を直接 invoke」
 
 ## 規律明示
 
+- **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:software-architect`)。bare name は解決されない。engineering 系 13 職種は `shared` plugin が提供する (root ADR-0009)
 - 5 成果物の命名: `{YYYY-MM-DD}-{slug}-{suffix}.md`、配置: `docs/superpowers/{branch}/`
 - **生成順**: plan-last (`summary → design → gwt → pr-description → plan`)、design / gwt / pr-description は Phase 3 で連続生成 + 承認 1 回 (ADR-0011)
 - 設計思想: Clean Architecture + Modular Monolith / YAGNI/DRY/KISS/SOLID / SOLID 最優先 / テスト DRY 一部許容

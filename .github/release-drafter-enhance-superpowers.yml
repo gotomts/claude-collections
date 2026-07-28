@@ -28,13 +28,14 @@ tag-template: "enhance-superpowers/v$RESOLVED_VERSION"
 # prefix strip 後 (例 "indie-studio/v0.0.4" → "0.0.4") は正しい semver として version 解決される。
 tag-prefix: "enhance-superpowers/v"
 
-# enhance-superpowers/ 配下と vendoring 元 (shared/skills/finish-stage-pr) に
-# 触れた PR のみ集約。collection 間の draft 漏れを構造的に隔離。
-# 将来、共有 skill が増えたら本セクションを (テンプレ全体ではなく)
-# collection ごとの override 機構で吸収する。
+# enhance-superpowers/ 配下に触れた PR のみ集約。collection 間の draft 漏れを構造的に隔離。
+#
+# vendoring 廃止 (root ADR-0009) 以前は、shared/ の変更が make sync で
+# <collection>/agents/ にも現れるため consumer の draft に載っていた。現在 shared は
+# 独立した plugin であり自前の draft (tag-prefix "shared/v") を持つので、
+# shared/ の変更は shared の draft にのみ載せる。consumer 側で二重計上しない。
 include-paths:
   - "enhance-superpowers/"
-  - "shared/skills/finish-stage-pr/"
 
 categories:
   - title: "✨ Features"

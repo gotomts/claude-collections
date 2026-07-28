@@ -12,6 +12,8 @@ claude-collections root の ADR-0004（shared-agent-vendoring 中立語彙原則
 
 accepted（root ADR-0004 を extends する indie-studio 側の帰結。既存 SKILL の起動機構記述を強化するもので、フロー・ロスター・ゲート構造は変えない）
 
+> **更新 (2026-07-28)**：root ADR-0004 は **root ADR-0009**（shared を plugin 化し vendoring を廃止）に superseded された。ただし「`shared/agents/` は collection 非依存の中立語彙で書き、固有 context は呼び出し元 skill が invocation prompt で渡す」という原則は root ADR-0009 が継承しているため、**本 ADR の決定はそのまま有効**。以下の 2 点のみ読み替える：(a) 本文中の「root ADR-0004（中立語彙原則）」は root ADR-0009 に継承された、(b) 却下案の理由にある「vendoring（複数 collection での再利用）を壊す」は、vendoring 機構自体が廃止されたため現在は「`shared` plugin の中立性を壊す」と読む。agent の dispatch 名は `shared:<agent>` の修飾名を使う。
+
 ## 決定
 
 中立 agent（`shared/agents/` 由来）を dispatch する各 SKILL の「ディレクター制御フロー」節に、**「起動 context（中立 agent への invocation 必須要素）」小節**を置く。中立 agent の入力契約項目（mode/stage・入力の所在・architecture 規約・出力先・進行 protocol・評価観点・タグ体系）に、その SKILL の indie-studio 固有値を 1:1 で埋める対応を明示する。

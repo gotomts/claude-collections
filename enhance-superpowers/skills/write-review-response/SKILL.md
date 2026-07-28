@@ -30,7 +30,7 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 |---|---|---|---|
 | 0 | gwt.md checklist 全 `- [x]` + code-review skill 出力 or PR unresolved comments | (判定) | 状態判定完了、Step 番号を確定 |
 | 判定 | CodeRabbit 指摘一覧 (ローカル + PR unresolved) | `{date}-{slug}-review-response.md` | 全指摘を採用/Skip 判定完了 (保留禁止) |
-| 反映 | review-response.md 採用分 | 修正コード + 再 push | code-reviewer 差し戻し review OK + user 承認 |
+| 反映 | review-response.md 採用分 | 修正コード + 再 push | shared:code-reviewer 差し戻し review OK + user 承認 |
 
 ## 動作 (6 ステップ)
 
@@ -66,9 +66,9 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 1. CodeRabbit 指摘 (ローカル + PR 上 unresolved) を一覧化
 2. ID を CodeRabbit 分類に揃える: Major `M1, M2, ...` / Minor `Mi1, Mi2, ...` / Trivial `T1, T2, ...`
 3. 各指摘について 採用 / Skip を判定:
-   - **判定迷い時**: `code-reviewer` を能動 dispatch (判定 aid 専用、false positive 疑い時等)、dispatch log を review-response.md レビュー履歴に追記 (ADR-0007)
-   - **セキュリティ系指摘**: `security-engineer` を能動 dispatch (評価 mode) して採用判定にセキュリティ観点を追加、dispatch log 追記
-   - **大規模 refactor 系指摘 or 設計妥当性の疑い**: `reviewer` を能動 dispatch (独立観点評価、真実源整合 / 内部一貫性)、dispatch log 追記
+   - **判定迷い時**: `shared:code-reviewer` を能動 dispatch (判定 aid 専用、false positive 疑い時等)、dispatch log を review-response.md レビュー履歴に追記 (ADR-0007)
+   - **セキュリティ系指摘**: `shared:security-engineer` を能動 dispatch (評価 mode) して採用判定にセキュリティ観点を追加、dispatch log 追記
+   - **大規模 refactor 系指摘 or 設計妥当性の疑い**: `shared:reviewer` を能動 dispatch (独立観点評価、真実源整合 / 内部一貫性)、dispatch log 追記
 4. **保留は禁止**、全件を採用 / Skip のいずれかに判定する
 5. Skip 判定時は理由を明記 (別 PR で対応 / プロジェクト規約で enforce されてない / 他の採用済み指摘で自動消化 等)
 
@@ -85,18 +85,19 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 
 1. user 確認 → 採用分を実装に反映 (← user 作業 or AI 作業)
 2. テストコード同期確認: 実装コード修正に伴うテストコード修正要否を確認、不要時も 1 行根拠を残す (review-response.md に記録)
-3. **再 push 前に `code-review` skill を invoke** (課金前 1 問確認、user が yes → `Skill` tool で code-review 実行、no → skip して user 手動レビューに委譲)。`code-reviewer` agent は判定 aid 専用に予約したため、コードレビュー activity には `code-review` skill を使う (ADR-0013 拡張)
+3. **再 push 前に `code-review:code-review` skill を invoke** (課金前 1 問確認、user が yes → `Skill` tool で code-review 実行、no → skip して user 手動レビューに委譲)。`shared:code-reviewer` agent は判定 aid 専用に予約したため、コードレビュー activity には `code-review` skill を使う (ADR-0013 拡張)
 4. dispatch log (code-review 実行 / skip、結果要約) を review-response.md レビュー履歴に追記 (ADR-0007)
 5. 問題なければ user 承認 → push
 
 ### Step 5: 次工程 (finish-spec-pr) への chain (skill chain 継続)
 
 1. user に「レビュー対応が完了しました。次は PR 作成です」と明示
-2. `Skill` tool で `finish-spec-pr` skill を chain invoke
+2. `Skill` tool で `enhance-superpowers:finish-spec-pr` skill を chain invoke
 3. 中断時の再開方法を案内: 「(a) `enhance-brainstorming` を再 invoke (Step 0 で状態判定して続きから)、または (b) `finish-spec-pr` skill を直接 invoke」
 
 ## 規律明示
 
+- **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:software-architect`)。bare name は解決されない。engineering 系 13 職種は `shared` plugin が提供する (root ADR-0009)
 - CodeRabbit へのリプライは送らない (修正 push → 自動 resolve → 残 unresolved のみ判定)
 - 採用/Skip 2 値 (保留禁止、全件判定必須)
 - 採用後の実装修正でテストコード同期不要時は 1 行根拠を残す
@@ -109,8 +110,8 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 
 | 状況 | 挙動 |
 |---|---|
-| 判定迷う指摘 | user に提示 → code-reviewer dispatch → 判定 1 問確認 (保留禁止、必ず 2 値) |
-| セキュリティ系指摘の採用判定 | security-engineer dispatch → 採用判定にセキュリティ観点追加 |
+| 判定迷う指摘 | user に提示 → shared:code-reviewer dispatch → 判定 1 問確認 (保留禁止、必ず 2 値) |
+| セキュリティ系指摘の採用判定 | shared:security-engineer dispatch → 採用判定にセキュリティ観点追加 |
 | 採用後の実装修正でテストコード同期不要 | 「不要根拠 1 行」を user に要請 → review-response.md に記録 |
 
 ## 関連

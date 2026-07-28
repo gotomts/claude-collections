@@ -29,9 +29,9 @@ enhance-superpowers コレクションの実装フェーズ skill (ADR-0012 で�
 | Phase | 前提 file | 出力 | 出力条件 |
 |---|---|---|---|
 | 0 | `docs/superpowers/{branch}/*-plan.md` 存在 | (判定) | 状態判定完了、Step 番号を確定 |
-| 1 | plan.md | 実装前 review 記録 | software-architect dispatch 完了、plan.md レビュー履歴に追記 |
-| 2 | plan.md | 実装コード | enhance-executing-plans が対象 executor agent (backend/frontend/mobile/infrastructure-engineer) を skill 側から **直接 dispatch** して slice 実装 (2026-07-04 OD1 fix、superpowers 委譲廃止) |
-| 3 | 実装スライスごと | slice review 記録 | code-review skill (optional) + security-engineer + performance-engineer dispatch 完了、plan.md レビュー履歴に追記 |
+| 1 | plan.md | 実装前 review 記録 | shared:software-architect dispatch 完了、plan.md レビュー履歴に追記 |
+| 2 | plan.md | 実装コード | enhance-executing-plans が対象 executor agent (`shared:{backend,frontend,mobile,infrastructure}-engineer`) を skill 側から **直接 dispatch** して slice 実装 (2026-07-04 OD1 fix、superpowers 委譲廃止) |
+| 3 | 実装スライスごと | slice review 記録 | code-review skill (optional) + shared:security-engineer + shared:performance-engineer dispatch 完了、plan.md レビュー履歴に追記 |
 | 4 | 実装済み全 slice | gwt-test skill chain 起動 | 全 slice review 完了 |
 
 ## 動作 (6 ステップ)
@@ -56,7 +56,7 @@ enhance-superpowers コレクションの実装フェーズ skill (ADR-0012 で�
 
 ### Step 2: 実装前 software-architect 能動 dispatch (ADR-0012 D1)
 
-1. `software-architect` を能動 dispatch — plan.md の実装方針が Clean Architecture / SOLID / モジュール境界と整合しているかを pre-flight review
+1. `shared:software-architect` を能動 dispatch — plan.md の実装方針が Clean Architecture / SOLID / モジュール境界と整合しているかを pre-flight review
 2. dispatch log を plan.md 末尾「## レビュー履歴」セクションに追記 (ADR-0007)
 3. software-architect が方針修正を提案した場合、user に 1 問確認 → 承認されたら plan.md を Edit で更新 → commit
 
@@ -69,10 +69,10 @@ plan.md 内の各 slice について、以下を順次実行:
    - 明示無ければ、slice に含まれる file / モジュール / 技術要素 から自動推定
    - 判定が曖昧なら user に 1 問確認 ("この slice は backend / frontend / mobile / infrastructure / mixed どれ?")
 2. 対象 executor agent を能動 dispatch (`Agent` tool):
-   - backend slice → `backend-engineer`
-   - frontend slice → `frontend-engineer`
-   - mobile slice → `mobile-engineer`
-   - infrastructure slice → `infrastructure-engineer`
+   - backend slice → `shared:backend-engineer`
+   - frontend slice → `shared:frontend-engineer`
+   - mobile slice → `shared:mobile-engineer`
+   - infrastructure slice → `shared:infrastructure-engineer`
    - mixed (backend + frontend 等の垂直スライス) → 該当 executor 複数を順次 dispatch (依存順、例: backend → frontend)
 3. dispatch prompt に以下 context を含める (executor は中立語彙で書かれているので、context は skill 側から明示提供、ADR-0004 root):
    - **タスク定義**: 受入条件・スコープ範囲・該当 slice の詳細
@@ -89,14 +89,14 @@ plan.md 内の各 slice について、以下を順次実行:
 
 ### Step 4: slice ごとの review dispatch (ADR-0012 D1、code-review skill 方針 2026-07-04)
 
-各 slice の実装完了時に以下を実行。**コードレビュー activity は `code-review` skill (CodeRabbit) を使う** (`code-reviewer` agent は判定 aid 専用に予約、ADR-0013 拡張)。code-review skill は billed のため per-slice 実行は optional (STOP POINT 2 に集約する運用が default):
+各 slice の実装完了時に以下を実行。**コードレビュー activity は `code-review` skill (CodeRabbit) を使う** (`shared:code-reviewer` agent は判定 aid 専用に予約、ADR-0013 拡張)。code-review skill は billed のため per-slice 実行は optional (STOP POINT 2 に集約する運用が default):
 
 1. **code-review skill の per-slice 実行は optional** (billed):
    - user に「本 slice で `code-review` skill を実行しますか? (default: skip、STOP POINT 2 で全体まとめて実行)」1 問確認
-   - yes → `Skill` tool で `code-review` skill を invoke (CodeRabbit の機械的レビュー)
+   - yes → `Skill` tool で `code-review:code-review` skill を invoke (CodeRabbit の機械的レビュー)
    - no → skip (STOP POINT 2 に code-review を集約)
-2. 実装対象 slice に auth / crypto / データ取扱 / 外部入力等の変更があれば、`security-engineer` を **常時能動 dispatch** (評価 mode、security-focused な実装 review)
-3. 大規模 UI / 大量データ処理等で性能影響が想定される slice なら、`performance-engineer` を能動 dispatch (評価 mode)
+2. 実装対象 slice に auth / crypto / データ取扱 / 外部入力等の変更があれば、`shared:security-engineer` を **常時能動 dispatch** (評価 mode、security-focused な実装 review)
+3. 大規模 UI / 大量データ処理等で性能影響が想定される slice なら、`shared:performance-engineer` を能動 dispatch (評価 mode)
 4. dispatch log (code-review 実行 / skip、security-engineer / performance-engineer 実行結果) を plan.md 末尾「## レビュー履歴」セクションに追記 (ADR-0007)
 5. review 指摘がある場合、user に 1 問確認 → 該当 executor に修正 dispatch (再実装) → 再度 review → 収束
 6. slice 収束 → 次 slice へ (Step 3 に戻る)
@@ -107,11 +107,12 @@ plan.md 内の各 slice について、以下を順次実行:
 2. **user に「実装フェーズ完了、gwt-test chain invoke に進みますか?」1 問確認** (user 承認 gate、marker を先に書かない)
 3. yes → 続行 / no → 「後で `gwt-test` を直接 invoke してください」と案内して skill 終了 (attempt marker も書き込まない、再 invoke 時に Step 5 から素直に再開)
 4. plan.md 末尾レビュー履歴に **「{timestamp} - gwt-test chain 起動 attempt」attempt marker** を追記 (idempotent: 既存の attempt marker があれば skip、多重追記を防止)
-5. `Skill` tool で `gwt-test` skill を chain invoke
+5. `Skill` tool で `enhance-superpowers:gwt-test` skill を chain invoke
 6. chain invoke **成功時のみ** plan.md 末尾レビュー履歴に **「{timestamp} - gwt-test chain 完了」final marker** を追記 (Step 0 の再開判定に使う hint)。失敗時は attempt marker のみ残る = 次回再 invoke で Step 0 が「attempt-only 状態」を検知して user 1 問確認 → 再 Step 5 実行の分岐に入る
 
 ## 規律明示
 
+- **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:software-architect`)。bare name は解決されない。engineering 系 13 職種は `shared` plugin が提供する (root ADR-0009)
 - 実装前後の agent 能動 dispatch を必ず実行 (silent failure 回避、ADR-0001 コンセプト、ADR-0012)
 - dispatch log は plan.md の「## レビュー履歴」セクションに集約 (ADR-0007)
 - 実装本体は skill 側から executor agent (backend/frontend/mobile/infrastructure-engineer) を直接 dispatch (2026-07-04 D1 redesign)。superpowers:executing-plans への委譲は silent failure の言い換えだったため廃止
@@ -124,9 +125,9 @@ plan.md 内の各 slice について、以下を順次実行:
 |---|---|
 | plan.md 未生成 | error 報告 + 中断 ("enhance-brainstorming Phase 4 を完了させてください") |
 | Step 0 で判定結果が不明瞭 | user に「summary/design/gwt/plan の状態が想定と異なります、どこから再開しますか?」と 1 問確認 |
-| software-architect が実装方針の重大 issue を検出 | plan.md 修正が必要 → user 承認 → plan.md Edit → 再 dispatch |
+| shared:software-architect が実装方針の重大 issue を検出 | plan.md 修正が必要 → user 承認 → plan.md Edit → 再 dispatch |
 | executor dispatch が slice 境界で完了報告を返さない | 呼び出し元 skill (本 skill) が「担当 slice のみ実装、完了時に呼び出し元へ報告」を prompt に明示。なお不整合ある場合は user に相談 |
-| code-reviewer / security-engineer が blocker 検出 | 実装修正 → 再 review dispatch。修正できなければ user に相談 |
+| `code-review:code-review` skill / `shared:security-engineer` が blocker 検出 | 実装修正 → 再 review dispatch。判定に迷う場合のみ `shared:code-reviewer` を判定 aid として dispatch。修正できなければ user に相談 |
 
 ## 関連
 

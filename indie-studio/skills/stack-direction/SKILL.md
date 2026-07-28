@@ -6,7 +6,7 @@ maintainer: gotomts
 
 # stack-direction
 
-AI 自律開発ハーネスの **サブステージ S1a（S1 後段 → S1b 入力起こし）** スキル。実行環境は **Claude Code**。このスキルを読んだメインセッションが**ディレクター**となり、アンカー（特に `provider`）と S1 discovery corpus を起点に、`tech-lead` を依存順に起動して技術判断 4 観点を自律導出する。プロトタイプ品質に直結する技術制約を S2 より前に確定させ、`S1b design-direction` の DESIGN.md `## Components` が提供形態と整合するようにする（ADR-0026）。
+AI 自律開発ハーネスの **サブステージ S1a（S1 後段 → S1b 入力起こし）** スキル。実行環境は **Claude Code**。このスキルを読んだメインセッションが**ディレクター**となり、アンカー（特に `provider`）と S1 discovery corpus を起点に、`shared:tech-lead` を依存順に起動して技術判断 4 観点を自律導出する。プロトタイプ品質に直結する技術制約を S2 より前に確定させ、`S1b design-direction` の DESIGN.md `## Components` が提供形態と整合するようにする（ADR-0026）。
 
 到達点：**プロトタイプの interaction 雛形（iOS HIG / Material / Web）と build vs buy の方針を、人間ゲート 0〜2 回の対話だけで決め切る**。質は対話量ではなく self-grill の徹底度から出す（ADR-0004 / 0005 / 0026）。
 
@@ -60,30 +60,30 @@ docs/indie-studio/tech/stack-direction/
 
 | エージェント | 担当成果物 | 依存 |
 |---|---|---|
-| `tech-lead` | stack.md / data-profile.md / third-party.md / build-vs-buy.md（4 観点を一体で担当） | アンカー・S1 corpus |
-| `reviewer` | 全成果物の評価・差し戻し（独立職種） | 各成果物 |
+| `shared:tech-lead` | stack.md / data-profile.md / third-party.md / build-vs-buy.md（4 観点を一体で担当） | アンカー・S1 corpus |
+| `shared:reviewer` | 全成果物の評価・差し戻し（独立職種） | 各成果物 |
 
-依存順：stack + data-profile（一体）→ third-party → build-vs-buy。`tech-lead` 内で順に書き、`reviewer` が成果物ごとにインクリメンタル評価。
+依存順：stack + data-profile（一体）→ third-party → build-vs-buy。`shared:tech-lead` 内で順に書き、`shared:reviewer` が成果物ごとにインクリメンタル評価。
 
 ## ディレクター制御フロー
 
-**起動機構**：ディレクターは `tech-lead` を **Agent tool**（`subagent_type=tech-lead`）で spawn。プロンプトに `mode=stack-direction`・アンカーの所在・S1 corpus の所在・出力先（`docs/indie-studio/tech/stack-direction/`）を渡す。差し戻しは continuation で再起動（ADR-0018）。
+**起動機構**：ディレクターは `shared:tech-lead` を **Agent tool**（`subagent_type=shared:tech-lead`。`plugin:agent` 修飾必須・bare name は解決されない・root ADR-0009）で spawn。プロンプトに `mode=stack-direction`・アンカーの所在・S1 corpus の所在・出力先（`docs/indie-studio/tech/stack-direction/`）を渡す。差し戻しは continuation で再起動（ADR-0018）。
 
-**起動 context（中立 agent への invocation 必須要素・ADR-0031）**：`shared/agents/` の `tech-lead` / `reviewer` は body に indie-studio 固有値を持たない中立 agent（入力契約で「呼び出し元 skill が指定」と宣言）。上記の mode/所在/出力先に加え、次も prompt へ**明示的に埋める**。
+**起動 context（中立 agent への invocation 必須要素・ADR-0031）**：`shared` plugin の `shared:tech-lead` / `shared:reviewer` は body に indie-studio 固有値を持たない中立 agent（入力契約で「呼び出し元 skill が指定」と宣言）。上記の mode/所在/出力先に加え、次も prompt へ**明示的に埋める**。
 
-- **`tech-lead`**: **architecture 規約**＝クリーンアーキ ＋ DDD（既定の型・スタックはこの型と矛盾させない）。**stage**＝`stage=1`（stack ＋ data-profile）→ `stage=2`（third-party ＋ build-vs-buy）を continuation で。**進行 protocol**＝停止ゼロ（条件付き発火の対話点 2 つを除く）／decide-record-proceed（根拠は担当ページ inline・ADR-0019）／未決は `⚠️繰り越し` マーカー＋候補を inline。**品質バー**＝抽象語で止めない（「クラウド」→ AWS/GCP/Vercel、3rd party hard constraints は数値・料金プランまで）。
-- **`reviewer`**: **評価観点**＝上流（アンカー・S1 corpus）整合／既約性（恣意的でないか）／prose first・tokens second／内部一貫性。**差し戻し protocol**＝成果物ごと round1 fresh→continuation・最大 3R（ADR-0018）。
+- **`shared:tech-lead`**: **architecture 規約**＝クリーンアーキ ＋ DDD（既定の型・スタックはこの型と矛盾させない）。**stage**＝`stage=1`（stack ＋ data-profile）→ `stage=2`（third-party ＋ build-vs-buy）を continuation で。**進行 protocol**＝停止ゼロ（条件付き発火の対話点 2 つを除く）／decide-record-proceed（根拠は担当ページ inline・ADR-0019）／未決は `⚠️繰り越し` マーカー＋候補を inline。**品質バー**＝抽象語で止めない（「クラウド」→ AWS/GCP/Vercel、3rd party hard constraints は数値・料金プランまで）。
+- **`shared:reviewer`**: **評価観点**＝上流（アンカー・S1 corpus）整合／既約性（恣意的でないか）／prose first・tokens second／内部一貫性。**差し戻し protocol**＝成果物ごと round1 fresh→continuation・最大 3R（ADR-0018）。
 
 **期待マニフェスト**（完全性ガードの基準）：4 成果物（stack / data-profile / third-party / build-vs-buy）。各成果物を ✅生成合格 / ➖省略(理由) / ⚠️未達(理由) で決着（ADR-0011）。
 
-**並列/直列**：4 観点は依存関係が強い（stack ← data-profile → third-party → build-vs-buy）ため直列実行。`reviewer` の差し戻しは成果物単位で independent に最大 3R（ADR-0018）。
+**並列/直列**：4 観点は依存関係が強い（stack ← data-profile → third-party → build-vs-buy）ため直列実行。`shared:reviewer` の差し戻しは成果物単位で independent に最大 3R（ADR-0018）。
 
-1. **ステージ1 起動**：`tech-lead` を `mode=stack-direction stage=1` で spawn。stack.md + data-profile.md を一体で生成。
+1. **ステージ1 起動**：`shared:tech-lead` を `mode=stack-direction stage=1` で spawn。stack.md + data-profile.md を一体で生成。
 2. **対話点 1（条件付き）**：提供形態（`provider.md`）が複数（例：Web + iOS）の場合、優先順を yes/no か番号で人間確認。単一なら全自走。
-3. **ステージ1 評価**：`reviewer` を spawn。差し戻しがあれば `tech-lead` を continuation で再起動（最大 3R）。
-4. **ステージ2 起動**：`tech-lead` を `mode=stack-direction stage=2` で continuation 再起動。third-party.md + build-vs-buy.md を生成。
+3. **ステージ1 評価**：`shared:reviewer` を spawn。差し戻しがあれば `shared:tech-lead` を continuation で再起動（最大 3R）。
+4. **ステージ2 起動**：`shared:tech-lead` を `mode=stack-direction stage=2` で continuation 再起動。third-party.md + build-vs-buy.md を生成。
 5. **対話点 2（条件付き）**：PRFAQ / design-principles に「オフライン優先」「自前 UI 必須」等の制約がある場合、build vs buy の方針を yes/no か番号で人間確認。該当なしなら全自走。
-6. **ステージ2 評価**：`reviewer` で評価ループ。
+6. **ステージ2 評価**：`shared:reviewer` で評価ループ。
 7. **完全性ガード**：4 成果物を ✅/➖/⚠️ で決着。
 8. **⚠️繰り越し提示**：プロトを触ってから決めるべき論点は `⚠️繰り越し` マーカー + 候補を inline で残し、ディレクターが終端でレポート（ADR-0019）。
 
@@ -104,7 +104,7 @@ docs/indie-studio/tech/stack-direction/
 
 ## decide-record-proceed・繰り越し
 
-- **self-grill**（ADR-0005）：`tech-lead` は griller と answerer を兼ね、アンカーと S1 corpus を答え合わせ材料に自答する。人間に質問を投げない（停止しない、条件付き発火の対話点 2 つを除く）。
+- **self-grill**（ADR-0005）：`shared:tech-lead` は griller と answerer を兼ね、アンカーと S1 corpus を答え合わせ材料に自答する。人間に質問を投げない（停止しない、条件付き発火の対話点 2 つを除く）。
 - **decide-record-proceed**（ADR-0004）：曖昧点は根拠ある決定を下し、根拠を**該当ページに inline** で残して進む。専用の決定ログ file は作らない（ADR-0019）。
 - **繰り越し決定**（ADR-0019）：プロトを触ってから決めたい論点（例：3rd party の SaaS A vs B の選定）は `⚠️繰り越し` マーカー + 候補を inline で残し、ディレクターが終端でレポート提示。G2 で人間が確定する。
 
@@ -132,4 +132,4 @@ docs/indie-studio/tech/stack-direction/
 
 ## 関連 ADR
 
-スキル追加判断＝ADR-0026。共通形＝ADR-0013。評価ループ＝ADR-0018。決定記録＝ADR-0019。ロスター＝ADR-0022（`tech-lead` は S1a / S3 の multi-context 職種）。命名規約＝ADR-0025。出力レイアウト＝ADR-0016（`docs/indie-studio/tech/` 配下）。
+スキル追加判断＝ADR-0026。共通形＝ADR-0013。評価ループ＝ADR-0018。決定記録＝ADR-0019。ロスター＝ADR-0022（`shared:tech-lead` は S1a / S3 の multi-context 職種）。命名規約＝ADR-0025。出力レイアウト＝ADR-0016（`docs/indie-studio/tech/` 配下）。
