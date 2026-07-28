@@ -6,7 +6,7 @@
 
 accepted（2026-07-28）。[ADR-0003](0003-plugin-marketplace-distribution.md) を **extends** する（supersede ではない — ADR-0003 の構造 decision は全て有効なまま）。
 
-> **番号について**：本 ADR は ADR-0009 より後に書かれたが番号は 0008 である。旧 ADR-0008（public-repo-distribution）は非-decision の誤記録として PR #30 で削除され、その際「後続 feature ADR が 0008 を継ぐ」と明記されていた。しかし PR #31 が 0009 を取ってしまい 0008 に gap が生じたため、本 ADR が 0008 を埋めて連番を回復する（`AGENTS.md`「末尾番号を削除した場合は後続 ADR を詰めて連番を保つ」）。**採番は作成順ではなく連番維持を優先する。**
+> **番号について**：本 ADR は ADR-0009 より後に書かれたが番号は 0008 である。旧 ADR-0008（`public-repo-distribution`）が PR #30 で削除されて空いた番号を、本 ADR が継いで連番を回復した（PR #31 が 0009 を取ったため一時的に gap が生じていた）。採番規約の正本は `AGENTS.md`「ADR 番号の採番規約」を参照。
 
 ## Context
 
