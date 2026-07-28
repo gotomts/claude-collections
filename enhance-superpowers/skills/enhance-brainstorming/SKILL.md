@@ -126,8 +126,8 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 5. **`shared:engineering-manager` を能動 dispatch** (2026-07-04 追加) — plan の slice 分解の妥当性 (垂直スライス / 依存順 / capability 束ね / タグ体系)
 6. **`shared:principal-engineer` を能動 dispatch** (2026-07-04 追加) — 分解の独立評価 (機能識別子カバレッジ / 分解単位 / capability 束ね妥当性、差し戻し protocol を skill 側から use 宣言)
 7. **ライセンスチェック** (ADR-0009): plan で追加予定の依存ライブラリ一覧を抽出、各ライブラリのライセンスを確認 (license-checker 等を推奨案内)、制限ライセンス (GPL / AGPL / SSPL / 商用制限) が含まれる場合は user に警告 + 1 問確認
-5. plan.md 末尾「## レビュー履歴」セクションに Phase 4 の dispatch log を追記 (ADR-0007)
-6. user 承認 → commit
+8. plan.md 末尾「## レビュー履歴」セクションに Phase 4 の dispatch log を追記 (ADR-0007)
+9. user 承認 → commit
 
 ### Step 6: Phase 1 / 2 の任意セキュリティ dispatch
 

@@ -10,7 +10,7 @@ ADR-0004 / ADR-0005 は、collection の自己完結を守るために `shared/a
 
 **この構成は実際に壊れていた。** 両 plugin を install した状態で agent を dispatch しようとすると:
 
-```
+```text
 Agent(subagent_type: "indie-studio:ux-researcher") → Agent type 'indie-studio:ux-researcher' not found
 Agent(subagent_type: "ux-researcher")              → Agent type 'ux-researcher' not found
 ```

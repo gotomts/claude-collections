@@ -30,18 +30,18 @@ AI 自律開発ハーネスの **ステージ3（技術設計）** スキル。�
 ```
 ステージ1: コア技術判断
   - スタック → 読むだけ（S1a 確定済・ADR-0026）
-  - モジュール → software-architect
-  - ドメインモデル → software-architect
-  - パフォーマンス予算 → software-architect（追加・ADR-0027）
-  - build vs buy 詳細 → tech-lead（追加・ADR-0027）
+  - モジュール → shared:software-architect
+  - ドメインモデル → shared:software-architect
+  - パフォーマンス予算 → shared:software-architect（追加・ADR-0027）
+  - build vs buy 詳細 → shared:tech-lead（追加・ADR-0027）
   →〔一拍: 人間とモジュール分割を確認〕
 ステージ2: 運用判断
-  - インフラ・IaC・CI/CD・非機能実現 → infrastructure-engineer
-  - セキュリティ設計 → security-engineer
-  - コスト積算 → infrastructure-engineer（追加・ADR-0027）
-  - 運用 sustainability → infrastructure-engineer（追加・ADR-0027）
-  - 規制・法令 → security-engineer（追加・ADR-0027）
-  - リスク台帳 → principal-engineer（追加・ADR-0027）
+  - インフラ・IaC・CI/CD・非機能実現 → shared:infrastructure-engineer
+  - セキュリティ設計 → shared:security-engineer
+  - コスト積算 → shared:infrastructure-engineer（追加・ADR-0027）
+  - 運用 sustainability → shared:infrastructure-engineer（追加・ADR-0027）
+  - 規制・法令 → shared:security-engineer（追加・ADR-0027）
+  - リスク台帳 → shared:principal-engineer（追加・ADR-0027）
   → アーキ/インフラゲート（人間/G3、実現可能性スコアカード付き・ADR-0027）
   → S3→S1 フィードバック（価格/NFR/実現可否を確定し planning 更新）
 ```

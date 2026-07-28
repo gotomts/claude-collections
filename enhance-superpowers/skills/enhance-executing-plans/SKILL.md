@@ -127,7 +127,7 @@ plan.md 内の各 slice について、以下を順次実行:
 | Step 0 で判定結果が不明瞭 | user に「summary/design/gwt/plan の状態が想定と異なります、どこから再開しますか?」と 1 問確認 |
 | shared:software-architect が実装方針の重大 issue を検出 | plan.md 修正が必要 → user 承認 → plan.md Edit → 再 dispatch |
 | executor dispatch が slice 境界で完了報告を返さない | 呼び出し元 skill (本 skill) が「担当 slice のみ実装、完了時に呼び出し元へ報告」を prompt に明示。なお不整合ある場合は user に相談 |
-| shared:code-reviewer / shared:security-engineer が blocker 検出 | 実装修正 → 再 review dispatch。修正できなければ user に相談 |
+| `code-review:code-review` skill / `shared:security-engineer` が blocker 検出 | 実装修正 → 再 review dispatch。判定に迷う場合のみ `shared:code-reviewer` を判定 aid として dispatch。修正できなければ user に相談 |
 
 ## 関連
 
