@@ -42,7 +42,7 @@
 - format: `<collection>/v<semver>` (slash 区切り、例: `indie-studio/v0.0.1`)
 - テスト期: `v0.0.x` 系で publish、version-resolver は全 patch 固定 (`0.1.0` 自動突入を抑制)
 - 安定化フェーズ: `v0.1.0` 以降 semver (ADR-0004 を extends する新 ADR で切り替え)
-- **⚠️ 新規コレクションの初回 draft は `v0.1.0` になる。publish 前に `v0.0.1` へ付け替えること。** version-resolver の patch 固定は「**直前のリリースから +1**」する仕組みなので、リリースがまだ 1 つも無い新規コレクションには効かず、release-drafter 組み込みの初期値 `0.1.0` が出る。放置して publish すると以後 `0.1.x` 系に固定され、他コレクションの `0.0.x` と体系がズレる。修正は `gh release edit <collection>/v0.1.0 --tag <collection>/v0.0.1 --title <collection>/v0.0.1`（draft のうちに直せば git tag は作られていないので副作用なし）。2 回目以降は patch 固定が正しく効く。
+- **⚠️ 新規コレクションの初回 draft は `v0.1.0` になる。publish 前に `v0.0.1` へ付け替えること。** version-resolver の patch 固定は「**直前のリリースから +1**」する仕組みなので、リリースがまだ 1 つも無い新規コレクションには効かず、release-drafter 組み込みの初期値 `0.1.0` が出る。放置して publish すると以後 `0.1.x` 系に固定され、他コレクションの `0.0.x` と体系がズレる。修正は `gh release edit --repo gotomts/claude-collections <collection>/v0.1.0 --tag <collection>/v0.0.1 --title <collection>/v0.0.1`（draft のうちに直せば git tag は作られていないので副作用なし）。2 回目以降は patch 固定が正しく効く。
 
 ### publish 判断 (PR merge 後 trigger)
 
