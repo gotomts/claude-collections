@@ -6,6 +6,8 @@
 
 accepted
 
+> **repo の visibility は [ADR-0008](0008-repository-visibility-public.md) で public に変更された（2026-07-28）。** 本 ADR の配布構造の decision（marketplace 宣言・per-collection plugin・2 経路併用・version 2 段階移行）は**すべて有効**で、変更されたのは visibility のみ。詳細は ADR-0008 を参照。
+
 ## Considered Options
 
 ### 配布構造

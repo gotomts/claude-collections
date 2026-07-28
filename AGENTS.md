@@ -16,7 +16,16 @@
 - **エージェントは実在職種名で**設計する（成果物名・概念で割らない）。
 - **エージェントの起動は `plugin:agent` 形式の修飾名で行う**（例：`shared:software-architect` / `indie-studio:ux-researcher`）。**bare name は解決されない**。同名 agent を持つ plugin が共存すると片方の agent セットが registry から丸ごと落ちるため、**コレクション間で agent 名を重複させないこと**（ADR-0009）。skill は名前空間が効くのでこの制約を受けない。
 - 設計判断は該当コレクションの `docs/adr/` を読む。決定は inline／git／ADR に残す（専用の決定ログ file は作らない）。
-- ADR は原則 immutable（決定の根拠を保存するため直接書き換え・削除しない。方針変更は新 ADR で supersede／extends する）。**例外**：decision を伴わない誤記録（非-decision を誤って ADR 化した bug／void な記録）は、痕跡を残さず削除してよい（immutable が守るのは「判断の根拠」であって、判断でないものは保存対象外）。末尾番号を削除した場合は後続 ADR を詰めて連番を保つ。
+- ADR は原則 immutable（決定の根拠を保存するため直接書き換え・削除しない。方針変更は新 ADR で supersede／extends する）。
+- **ADR の削除**（immutable の唯一の例外）。**位置（末尾か中間か）は問わず**、次の 2 条件を**両方**満たすときのみ削除してよい：
+  1. **decision を伴わない誤記録**であること（非-decision を誤って ADR 化した bug／void な記録。immutable が守るのは「判断の根拠」であって、判断でないものは保存対象外）。
+  2. **repo 全体で参照ゼロ**であること（`grep -rn "ADR-000N"` で他 ADR・SKILL.md・CONTEXT.md・README・**公開済みリリースノート**を確認）。
+  - **参照が 1 つでもあれば削除しない。** 代わりに Status を `Void（理由）` にして本文を残す（参照側を全て直すより安全）。
+  - 削除後は**その番号を参照する記述を新たに書かない**。実例：旧 root ADR-0008 は削除時点で無参照だったが、後から書かれた ADR-0009 が参照して dangling 化した。
+- **ADR 番号の採番規約**（連番を保つことが目的）：
+  - **削除で空いた番号は、次に作られる ADR が継ぐ**（末尾・中間いずれの gap も同じ扱い）。よって**作成順と番号順は必ずしも一致しない**（例：root ADR-0008 `repository-visibility-public` は ADR-0009 より後に書かれたが、旧 0008 の削除で空いた番号を埋めている）。番号は識別子であって時系列の保証ではない。
+  - **既に存在する ADR の renumber は行わない。** 番号は SKILL.md・CONTEXT.md・他 ADR・**公開済みリリースノート**から参照される識別子であり、付け替えは参照を壊す。空き番号を次の ADR が埋めれば連番は保たれるので、renumber の必要がない。
+  - 番号は名前空間ごとに独立（下記）。
 - **ADR 番号は名前空間ごとに独立している**（root `docs/adr/` と各 `<collection>/docs/adr/` で同じ番号が別物を指す。例：root ADR-0009 = shared plugin 化／enhance-superpowers ADR-0009 = ライセンスチェック／indie-studio ADR-0009 = agents がハーネスのホーム）。したがって**裸の `ADR-000N` は「そのファイルが属する名前空間の ADR」を指す**規約とし、他名前空間を参照するときは必ず修飾する — collection のファイルから root を指すなら `root ADR-000N`、root のファイルから collection を指すなら `indie-studio ADR-000N` のように書く。修飾を怠ると同一ファイル内で同じ番号が 2 つの意味に解決されうる。
 
 ## shared plugin（共有エージェント／スキル）
@@ -42,16 +51,25 @@
 - format: `<collection>/v<semver>` (slash 区切り、例: `indie-studio/v0.0.1`)
 - テスト期: `v0.0.x` 系で publish、version-resolver は全 patch 固定 (`0.1.0` 自動突入を抑制)
 - 安定化フェーズ: `v0.1.0` 以降 semver (ADR-0004 を extends する新 ADR で切り替え)
-- **⚠️ 新規コレクションの初回 draft は `v0.1.0` になる。publish 前に `v0.0.1` へ付け替えること。** version-resolver の patch 固定は「**直前のリリースから +1**」する仕組みなので、リリースがまだ 1 つも無い新規コレクションには効かず、release-drafter 組み込みの初期値 `0.1.0` が出る。放置して publish すると以後 `0.1.x` 系に固定され、他コレクションの `0.0.x` と体系がズレる。修正は `gh release edit --repo gotomts/claude-collections <collection>/v0.1.0 --tag <collection>/v0.0.1 --title <collection>/v0.0.1`（draft のうちに直せば git tag は作られていないので副作用なし）。2 回目以降は patch 固定が正しく効く。
+- **⚠️ 新規コレクションの初回 draft は `v0.1.0` になる。** version-resolver の patch 固定は「**直前のリリースから +1**」する仕組みなので、リリースがまだ 1 つも無い新規コレクションには効かず、release-drafter 組み込みの初期値 `0.1.0` が出る。放置して publish すると以後 `0.1.x` 系に固定され、他コレクションの `0.0.x` と体系がズレる。
+- **⚠️ draft への tag 付け替えは「publish と同時」に行うこと。** draft の状態で `--tag` だけ直しても、**次に main へ push された時点で release-drafter が draft を再生成し、tag が `v0.1.0` に戻る**（実測：2026-07-28 に `shared` で発生）。正しい手順は retag と publish を **1 コマンドで同時実行**する:
+
+  ```bash
+  gh release edit --repo gotomts/claude-collections <collection>/v0.1.0 \
+    --tag <collection>/v0.0.1 --title <collection>/v0.0.1 --draft=false
+  ```
+
+  publish 済みリリースは drafter に上書きされないため、以後は patch 固定が正しく効き `v0.0.1 → v0.0.2` と進む。**`gh release list` の表示はキャッシュで古い tag を返すことがある**ので、確認は `gh api repos/gotomts/claude-collections/releases --jq '.[]|"\(.tag_name) draft=\(.draft)"'` で行う。
 
 ### publish 判断 (PR merge 後 trigger)
 
 PR を main に merge した直後の Claude Code セッションで、publish 判断を **必ず実行する**:
 
-1. `gh release list --repo gotomts/claude-collections` で対象 collection の draft を確認
+1. `gh release list --repo gotomts/claude-collections` で対象 collection の draft を確認（**表示はキャッシュで古い tag を返しうる**。tag と draft 状態の authoritative な確認は `gh api repos/gotomts/claude-collections/releases --jq '.[]|"\(.tag_name) draft=\(.draft)"'`）
 2. `gh release view --repo gotomts/claude-collections <tag-name>` で draft 内容を確認
 3. 内容のまとまり (機能完成 / 数 PR 蓄積 / リファクタ完了 / docs まとめ等) を評価し publish 推奨 or 待機を提案
-4. ユーザー承認後、`gh release edit --repo gotomts/claude-collections <tag-name> --draft=false` で publish 実行
+4. ユーザー承認後、`gh release edit --repo gotomts/claude-collections <tag-name> --draft=false` で publish 実行（**そのコレクションの初回リリースなら `--tag` / `--title` を同時指定して `v0.0.1` に直す**。上記「tag 命名」参照）
+5. publish 後、`gh api repos/gotomts/claude-collections/releases --jq '.[]|select(.draft==false)|"\(.tag_name) published=\(.published_at)"'` で tag と publish 状態を確認する（`gh release list` の表示はキャッシュを含むため最終確認には使わない）
 
 ### Backup 1: セッション開始時の未 publish draft 確認
 
