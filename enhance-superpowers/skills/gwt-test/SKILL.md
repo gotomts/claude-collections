@@ -7,7 +7,7 @@ description: |
   AC 未達発覚時も qa-engineer を能動 dispatch して差し戻し findings を言語化。
   STOP POINT 2 は code-review skill を auto-invoke (課金前 1 問確認、ADR-0013) + security-engineer 能動 dispatch。
   Step 1 で .ai-restrictions.md を Read (ADR-0010)。完了後は write-review-response skill に chain。
-argument-hint: "[gwt-file-path]  # 検証対象 gwt.md のパス (省略時は docs/superpowers/{branch}/ から自動検出)"
+argument-hint: "[gwt-file-path] [--output-dir=<path>] [--gate-mode=per-phase|aggregate]  # 検証対象 gwt.md のパス (省略時は出力先から自動検出)。引数は外部 collection 利用向け、省略時は従来挙動 (ADR-0014)"
 allowed-tools:
   - Read
   - Write
@@ -23,11 +23,22 @@ maintainer: gotomts
 
 実装完了後に呼び出し、gwt.md の AC を実機 (agent-browser) で検証する skill。enhance-brainstorming / enhance-executing-plans からの連鎖、または user が直接 invoke のどちらでも動作。
 
+## 引数 (ADR-0014)
+
+いずれも任意。**省略時は従来挙動と完全に同一**。chain 元から引き継がれた場合はそのまま下流へも渡す。
+
+| 引数 | 既定 | 効果 |
+|---|---|---|
+| `--output-dir=<path>` | `docs/superpowers/{branch}/` | 成果物の所在。Step 0 の状態判定と対象 file の自動検出先になる |
+| `--gate-mode=aggregate` | `per-phase` | `code-review:code-review` の課金前 1 問確認を**実行に固定**する (呼び出し元が停止ゼロ運用の場合) |
+
+以降の `{出力先}` は「`--output-dir` 指定時はその値、省略時は `docs/superpowers/{branch}/`」を指す。
+
 ## Phase 定義 (ADR-0012 D3)
 
 | Phase | 前提 file | 出力 | 出力条件 |
 |---|---|---|---|
-| 0 | `docs/superpowers/{branch}/*-gwt.md` 存在 | (判定) | 状態判定完了、Step 番号を確定 |
+| 0 | `{出力先}/*-gwt.md` 存在 | (判定) | 状態判定完了、Step 番号を確定 |
 | 検証 | gwt.md + 実装済コード | gwt.md checklist 更新 (`- [ ]` → `- [x]`) | 各 AC を agent-browser で検証 |
 | 網羅性 review | gwt.md checklist 全 [x] | gwt.md レビュー履歴に shared:qa-engineer log 追記 | shared:qa-engineer が網羅性 OK と判定 (ADR-0013) |
 | セルフレビュー | 実装済コード | review-response.md への dispatch log 引継ぎ | code-review skill auto-invoke 完了 + shared:security-engineer dispatch 完了 |
@@ -37,7 +48,7 @@ maintainer: gotomts
 ### Step 0: 状態判定 (ADR-0012 D2)
 
 1. `git rev-parse --abbrev-ref HEAD` で現ブランチ取得、サニタイズ (`/` → `-`)
-2. `docs/superpowers/{branch}/` を Glob で列挙、`gwt.md` の存在有無を確認
+2. `{出力先}` を Glob で列挙、`gwt.md` の存在有無を確認
 3. **前提**: `*-gwt.md` が存在すること。無ければ error "gwt.md がありません。enhance-brainstorming Phase 3 を完了させてください" + 中断
 4. gwt.md の checklist 状態と timestamp を確認 (M3 fix 2026-07-04: AC 変更後の再検証漏れ防止):
    - checklist 全 `- [ ]` → Step 1 (初回検証) から
@@ -57,7 +68,7 @@ maintainer: gotomts
 1. `git rev-parse --show-toplevel` で git repo 確認、失敗なら error 中断
 2. プロジェクトルートの README.md を Read (テストアカウント / 起動コマンド / 前提サービス把握)
 3. プロジェクトルートの `.ai-restrictions.md` を Read (存在すれば user に案内)
-4. argument 経由 or `docs/superpowers/{branch}/*-gwt.md` から検証対象 gwt.md を確定
+4. argument 経由 or `{出力先}/*-gwt.md` から検証対象 gwt.md を確定
 
 ### Step 2: dev server / docker 起動
 
@@ -107,10 +118,11 @@ maintainer: gotomts
 2. **code-review skill 課金前 1 問確認** (ADR-0013 D2、M4 fix 2026-07-04: **scope は code-review のみ**、security-engineer と write-review-response chain は独立):
    - 「code-review skill (CodeRabbit) を自動 invoke します、続けてよいですか? user account に課金されます」を user に提示
    - yes → 3 へ / no → 3 を skip、gwt.md レビュー履歴に「STOP POINT 2 で code-review skip (user 選択、user 手動 invoke へ委譲)」を追記して 4 へ (silent failure 回避のため security-engineer + write-review-response chain は必ず実行)
+   - **`--gate-mode=aggregate` 時**: 1 問確認をせず 3 を**実行に固定**する (呼び出し元が停止ゼロ運用で、課金は了解済みとみなす。ADR-0014 E3)
 3. `Skill` tool で `code-review:code-review` skill を **auto-invoke** (CodeRabbit の機械的レビュー、ADR-0013 D2)
 4. **`shared:security-engineer` を能動 dispatch** (評価 mode、Step 2 の yes/no と独立、必ず実行) — security-focused なコードレビューを 1 回実施 (silent failure 回避、ADR-0013 D2 scope)
 5. dispatch log は write-review-response 内で review-response.md のレビュー履歴に集約されるが、gwt-test 内でも「STOP POINT 2 実行完了 (code-review = {実行 / skip}、security-engineer = 実行)」を gwt.md レビュー履歴に追記 (再開判定 hint)
-6. `Skill` tool で `enhance-superpowers:write-review-response` skill を chain invoke (常に実行、silent failure 回避)
+6. `Skill` tool で `enhance-superpowers:write-review-response` skill を chain invoke (常に実行、silent failure 回避。`--output-dir` / `--gate-mode` を受け取っていれば**そのまま引き継いで渡す**)
 
 ## 規律明示
 

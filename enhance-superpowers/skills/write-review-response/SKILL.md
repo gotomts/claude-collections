@@ -8,7 +8,7 @@ description: |
   判定迷い時 / セキュリティ系指摘 / 採用後修正の 3 タイミングで code-reviewer /
   security-engineer を能動 dispatch、dispatch log は review-response.md のレビュー履歴に追記。
   Step 1 で .ai-restrictions.md を Read (ADR-0010)。
-argument-hint: "[review-source]  # ローカル code-review の出力 or PR URL"
+argument-hint: "[review-source] [--output-dir=<path>] [--gate-mode=per-phase|aggregate]  # ローカル code-review の出力 or PR URL。引数は外部 collection 利用向け、省略時は従来挙動 (ADR-0014)"
 allowed-tools:
   - Read
   - Write
@@ -24,6 +24,17 @@ maintainer: gotomts
 
 code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記録する skill。gwt-test からの連鎖、または user が直接 invoke のどちらでも動作。
 
+## 引数 (ADR-0014)
+
+いずれも任意。**省略時は従来挙動と完全に同一**。chain 元から引き継がれた場合はそのまま下流へも渡す。
+
+| 引数 | 既定 | 効果 |
+|---|---|---|
+| `--output-dir=<path>` | `docs/superpowers/{branch}/` | 成果物の所在。Step 0 の状態判定と対象 file の自動検出先になる |
+| `--gate-mode=aggregate` | `per-phase` | `code-review:code-review` の課金前 1 問確認を**実行に固定**する (呼び出し元が停止ゼロ運用の場合) |
+
+以降の `{出力先}` は「`--output-dir` 指定時はその値、省略時は `docs/superpowers/{branch}/`」を指す。
+
 ## Phase 定義 (ADR-0012 D3)
 
 | Phase | 前提 file | 出力 | 出力条件 |
@@ -37,7 +48,7 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 ### Step 0: 状態判定 (ADR-0012 D2)
 
 1. `git rev-parse --abbrev-ref HEAD` で現ブランチ取得、サニタイズ (`/` → `-`)
-2. `docs/superpowers/{branch}/` を Glob で列挙、`*-gwt.md` / `*-review-response.md` の存在有無を確認
+2. `{出力先}` を Glob で列挙、`*-gwt.md` / `*-review-response.md` の存在有無を確認
 3. **前提**: gwt.md checklist が全 `- [x]` であること (gwt-test の Step 6 まで完了)。未達なら error "gwt-test を完了させてください" + 中断
 4. review-response.md 状態を判定 (M5 fix 2026-07-04: remote 状態確認を追加、rev-list 方向を正しく):
    - 未生成 → Step 1 (前提確認) から
@@ -74,7 +85,7 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 
 ### Step 3: review-response.md を上書き保存
 
-1. ファイル名: `{YYYY-MM-DD}-{slug}-review-response.md`、配置: `docs/superpowers/{branch}/`
+1. ファイル名: `{YYYY-MM-DD}-{slug}-review-response.md`、配置: `{出力先}`
 2. **上書き運用** (最新ラウンドのみ保持、過去ラウンドの判定履歴は残さない)
 3. テンプレの「採用」「Skip」「連動関係と効果」セクションを埋める
 4. レビュー履歴セクションに dispatch log を追記:
@@ -85,14 +96,14 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 
 1. user 確認 → 採用分を実装に反映 (← user 作業 or AI 作業)
 2. テストコード同期確認: 実装コード修正に伴うテストコード修正要否を確認、不要時も 1 行根拠を残す (review-response.md に記録)
-3. **再 push 前に `code-review:code-review` skill を invoke** (課金前 1 問確認、user が yes → `Skill` tool で code-review 実行、no → skip して user 手動レビューに委譲)。`shared:code-reviewer` agent は判定 aid 専用に予約したため、コードレビュー activity には `code-review` skill を使う (ADR-0013 拡張)
+3. **再 push 前に `code-review:code-review` skill を invoke** (課金前 1 問確認、user が yes → `Skill` tool で code-review 実行、no → skip して user 手動レビューに委譲)。`shared:code-reviewer` agent は判定 aid 専用に予約したため、コードレビュー activity には `code-review` skill を使う (ADR-0013 拡張)。**`--gate-mode=aggregate` 時**は 1 問確認をせず**実行に固定**する (ADR-0014 E3)
 4. dispatch log (code-review 実行 / skip、結果要約) を review-response.md レビュー履歴に追記 (ADR-0007)
 5. 問題なければ user 承認 → push
 
 ### Step 5: 次工程 (finish-spec-pr) への chain (skill chain 継続)
 
 1. user に「レビュー対応が完了しました。次は PR 作成です」と明示
-2. `Skill` tool で `enhance-superpowers:finish-spec-pr` skill を chain invoke
+2. `Skill` tool で `enhance-superpowers:finish-spec-pr` skill を chain invoke (`--output-dir` を受け取っていれば**そのまま引き継いで渡す**)
 3. 中断時の再開方法を案内: 「(a) `enhance-brainstorming` を再 invoke (Step 0 で状態判定して続きから)、または (b) `finish-spec-pr` skill を直接 invoke」
 
 ## 規律明示

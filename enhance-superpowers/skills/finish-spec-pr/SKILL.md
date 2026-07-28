@@ -6,7 +6,7 @@ description: |
   pr-description.md (`## やったこと` / `## 補足` / `## 動作確認方法` の 3 セクション) を整え、
   title を user に 1 問確認、finish-stage-pr の Step 8 でユーザー最終確認 → push + gh pr create。
   Step 1 で .ai-restrictions.md を Read (ADR-0010)。
-argument-hint: "[pr-description-path]  # pr-description.md のパス (省略時は docs/superpowers/{branch}/ から自動検出)"
+argument-hint: "[pr-description-path] [--output-dir=<path>]  # pr-description.md のパス (省略時は出力先から自動検出)。引数は外部 collection 利用向け、省略時は従来挙動 (ADR-0014)"
 allowed-tools:
   - Read
   - Write
@@ -21,11 +21,21 @@ maintainer: gotomts
 
 レビュー対応完了後に呼び出し、Spec フェーズの pr-description.md を body として PR を作成する skill。write-review-response からの連鎖、または user が直接 invoke のどちらでも動作。
 
+## 引数 (ADR-0014)
+
+任意。**省略時は従来挙動と完全に同一**。
+
+| 引数 | 既定 | 効果 |
+|---|---|---|
+| `--output-dir=<path>` | `docs/superpowers/{branch}/` | 成果物の所在。Step 0 の状態判定と pr-description.md の自動検出先になる |
+
+以降の `{出力先}` は「`--output-dir` 指定時はその値、省略時は `docs/superpowers/{branch}/`」を指す。
+
 ## Phase 定義 (ADR-0012 D3)
 
 | Phase | 前提 file | 出力 | 出力条件 |
 |---|---|---|---|
-| 0 | `docs/superpowers/{branch}/*-pr-description.md` 存在 + `review-response.md` 存在 (優先) | (判定) | 状態判定完了、Step 番号を確定 |
+| 0 | `{出力先}/*-pr-description.md` 存在 + `review-response.md` 存在 (優先) | (判定) | 状態判定完了、Step 番号を確定 |
 | 整え | pr-description.md | 実装結果に整えた pr-description.md | `## やったこと` が実装 diff と揃う (user 確認済) |
 | 作成 | pr-description.md + 未 push commit | GitHub PR | `shared:finish-stage-pr` で作成完了 |
 
@@ -34,7 +44,7 @@ maintainer: gotomts
 ### Step 0: 状態判定 (ADR-0012 D2)
 
 1. `git rev-parse --abbrev-ref HEAD` で現ブランチ取得、サニタイズ (`/` → `-`)
-2. `docs/superpowers/{branch}/` を Glob で列挙、`*-pr-description.md` / `*-review-response.md` の存在有無を確認
+2. `{出力先}` を Glob で列挙、`*-pr-description.md` / `*-review-response.md` の存在有無を確認
 3. **前提**: pr-description.md が存在すること (Spec フェーズ完了)。無ければ error "pr-description.md がありません。enhance-brainstorming Phase 3 を完了させてください" + 中断
 4. **前提**: `git branch --show-current` が `main` でないこと。main なら error "main 直作業では PR を出せません" + 中断
 5. review-response.md 存在 = レビュー対応まで完了、pr-description.md「## やったこと」が実装 diff と齟齬ないかを判定に含める
@@ -46,7 +56,7 @@ maintainer: gotomts
 
 1. `git rev-parse --show-toplevel` で git repo 確認
 2. `git branch --show-current` で現ブランチ取得、main 直作業を拒否 ("main 直作業では PR を出せません")
-3. argument 経由 or `docs/superpowers/{branch}/*-pr-description.md` から自動検出
+3. argument 経由 or `{出力先}/*-pr-description.md` から自動検出
 4. プロジェクトルートの `.ai-restrictions.md` を Read (存在すれば user に案内)
 5. pr-description.md が見つからなければ error 報告 + 中断 ("Spec フェーズで pr-description.md を作成してから再 invoke")
 
