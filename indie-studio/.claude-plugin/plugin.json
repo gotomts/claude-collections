@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "indie-studio",
-  "description": "AI 自律開発ハーネス：5 ステージ × 5 ゲートで個人開発を自律進行させる。skills: service-discovery / stack-direction / design-direction / tech-design / decomposition / implementation。固有 agents: 6 職種 (企画・デザイン系)。engineering 系 13 職種は `shared` plugin から `shared:<agent>` で参照する (install 必須・ADR-0009)。",
+  "description": "AI 自律開発ハーネス：5 ステージ × 5 ゲートで個人開発を自律進行させる。skills: service-discovery / stack-direction / design-direction / tech-design / decomposition / implementation-design / implementation。固有 agents: 6 職種 (企画・デザイン系)。engineering 系 13 職種は `shared` plugin から参照し、S5 (実装詳細設計→実装) は `enhance-superpowers` へ委譲する。両 plugin の install が必須 (root ADR-0009 / ADR-0032)。",
   "author": {
     "name": "gotomts",
     "email": "mh.goto.web@gmail.com"

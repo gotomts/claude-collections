@@ -73,6 +73,8 @@ indie-studio コレクションが使う以下の語彙は、enhance-superpowers
 
 enhance-superpowers は superpowers (公式) の直線フロー (brainstorming → writing-plans → executing-plans) を尊重しつつ、その上に「Spec フェーズの 5 成果物確定」「後工程連鎖」「agent 能動 dispatch」を被せる設計。
 
+**外部 collection からの利用について (2026-07-28)**: indie-studio が S5 (実装ステージ) を本コレクションへ委譲する (indie-studio ADR-0032)。委譲は **indie-studio 側の薄いアダプタ skill が本コレクションの skill を chain invoke する**形で行い、ADR-0014 の 3 引数 (`--output-dir` / `--no-chain` / `--gate-mode`) で出力先と gate 回数を制御する。**依存の向きは indie-studio → enhance-superpowers の一方向**であり、上記の禁止語彙が本コレクションへ流入することはない。indie-studio 固有 context (参照 docs のパス / architecture 規約 / 差し戻し protocol 等) は、呼び出し元アダプタが invocation prompt で明示的に渡す。
+
 ## 設計思想
 
 - **Clean Architecture + Modular Monolith** を採用 (既存プロジェクトに別規約があればそちら優先)
