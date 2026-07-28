@@ -198,7 +198,7 @@ components:                       # map<string, map<string, string>> 2 階層必
 7. **HTML mock 生成**（ADR-0030）：`indie-studio:ui-prototyper` を `mode=mock` で spawn（fresh）。reviewer 合格版 DESIGN.md と `screens.md` を入力に、Component gallery + 主要 1〜2 画面 hybrid を 1 ファイル統合で `<service-repo>/docs/indie-studio/design-direction/mock/<service-slug>-design-mock.html` に書き出す。token は CSS custom property に 1:1 kebab-case 写像。
 8. **視覚確認ゲート**（人間ゲート・type-2・最大 2 ループ・ADR-0030）：ディレクターが mock の path を提示し、人間に「1) OK（S2 へ進む） 2) 戻る（修正したい）」の 1 問を投げる。
    - **OK** → ステップ 9 へ。
-   - **戻る**（自由記述許容）：ディレクターが回答を DESIGN.md の該当 token / セクションにマップし、`indie-studio:product-designer` を `mode=compose` で continuation 再起動して token を修正。その後 `indie-studio:ui-prototyper` を continuation で再起動して mock 再生成。再ゲート。
+   - **戻る**（自由記述許容）：ディレクターが回答を DESIGN.md の該当 token / セクションにマップし、`indie-studio:product-designer` を `mode=compose` で continuation 再起動して token を修正。**修正後、`shared:reviewer` を continuation で再起動して spec compliance 再チェック**（ADR-0033・scope は変更セクションの形式適合のみに凍結）。合格後に `indie-studio:ui-prototyper` を continuation で再起動して mock 再生成。再ゲート。
    - **2 ループ目も「戻る」** → decide-record-proceed。論点を `⚠️繰り越し` マーカーで `## Visual Theme & Mood` または該当セクションに inline 残し、S2 G2 で人間が確定する論点として送る。
 9. **完全性ガード**（ADR-0011）：期待マニフェストの各セクション ＋ mock の必須要素を ✅ / ➖ / ⚠️ で決着。
 10. **⚠️繰り越し提示**（ADR-0019）：3 問で握れなかった direction 候補・画像から複数 mood が出た場合の択一・視覚確認ゲートで未決着の論点など、繰り越し inline マーカーを集めてディレクターが終端でレポート提示。プロトを触ってから G2 で確定する論点として残す。
@@ -260,10 +260,18 @@ components:                       # map<string, map<string, string>> 2 階層必
 1. ディレクターが mock の path を 1 行で提示（例：「mock を生成しました：`docs/indie-studio/design-direction/mock/<service-slug>-design-mock.html`」）。
 2. **1 問**：「mock を確認しました：1) OK（S2 へ進む） 2) 戻る（修正したい）」。一問一答（自由記述で来た場合は番号化を促してリトライ、提示済み選択肢にマップ可能なら自動マップしつつ確認を取ってよい）。
 3. **OK** → ⚠️繰り越し提示 → S2 へ。
-4. **戻る** → 「何を直したいですか？」を自由記述で受け取る（Claude Code チャット環境で番号制約を物理的にかけられない代替）。回答が来たら、ディレクターが **DESIGN.md の該当 token / セクションにマップ**してから `indie-studio:product-designer` を `mode=compose` で continuation 再起動。token / セクション修正後、`indie-studio:ui-prototyper` を continuation で再起動して mock 再生成。再ゲート。
+4. **戻る** → 「何を直したいですか？」を自由記述で受け取る（Claude Code チャット環境で番号制約を物理的にかけられない代替）。回答が来たら、ディレクターが **DESIGN.md の該当 token / セクションにマップ**してから `indie-studio:product-designer` を `mode=compose` で continuation 再起動。token / セクション修正後、**`shared:reviewer` を continuation で再起動して spec compliance 再チェック**（下記）。合格後に `indie-studio:ui-prototyper` を continuation で再起動して mock 再生成。再ゲート。
 5. **2 ループ目も「戻る」** → decide-record-proceed。論点を `⚠️繰り越し` マーカーで `## Visual Theme & Mood` または該当セクションに inline 残す。S2 G2 で人間が確定する論点として送る。**3 ループ目には進まない**（infinite-tweak 防止）。
 
-**collateral damage 防止**：1 ループ目の修正が他セクションに矛盾を生んでいないか、`indie-studio:ui-prototyper` が mock 再生成時に self-grill で確認する。矛盾を発見した場合は finding として director に報告（mock 内のコメントではなく対話で返す）。
+**spec compliance 再チェック（ADR-0033）**：視覚確認ゲートの「戻る」は **reviewer 合格後の DESIGN.md を書き換える**ため、そのまま mock 再生成へ進むと ADR-0029 の spec pin フォーマット（フラット map / unit suffix / hyphen variant / 英語単独セクション名）の適合が再検証されないまま確定してしまう。これを塞ぐため、修正後・mock 再生成前に `shared:reviewer` を **continuation で再起動**して次を確認する。
+
+- **scope 凍結（2 層）**：(1) **変更されたセクション / token の spec compliance**、(2) **変更 diff が波及しうる document-level の形式不変条件**＝セクション順序 / 重複見出し / frontmatter のフラット map / unit suffix / variant の hyphen 連結 / 英語単独セクション名。ステップ 6 で合格済みの**内容**（意味・妥当性）は再評価しないが、**形式は文書全体で見る**（token 1 個の書き換えが map 構造や見出し重複を壊しうるため）。人間ゲートの往復を増やさないため fresh 起動はしない。
+- **判定**：形式違反があれば `indie-studio:product-designer` を continuation で再起動して修正 → 再チェック。**このループは視覚ゲートの 2 ループ制限とは別枠**（形式適合は妥協点がないため）。
+- **失敗上限は「再チェック 3 回」**（finding 単位ではなく**ループ全体の回数**。finding が入れ替わっても 3 回で打ち切る）。
+- **3 回で合格しなければ ⚠️未達として終端**：**mock を再生成せず、再ゲートにも S2 にも進まない**。ディレクターが未解消 findings を提示して人間の判断を仰ぎ、停止する。
+- **合格後にのみ** `indie-studio:ui-prototyper` を起動して mock を再生成する。
+
+**collateral damage 防止**：1 ループ目の修正が他セクションに矛盾を生んでいないか、`indie-studio:ui-prototyper` が mock 再生成時に self-grill で確認する。矛盾を発見した場合は finding として director に報告（mock 内のコメントではなく対話で返す）。これは**意味的な**矛盾検出であり、上記の spec compliance 再チェック（**形式的**適合）とは別軸で、互いを代替しない。
 
 ## AI-defaults critique（必須・陥落チェック）
 
@@ -324,4 +332,4 @@ components:                       # map<string, map<string, string>> 2 階層必
 
 ## 関連 ADR
 
-スキル追加判断＝ADR-0023。DESIGN.md＝ADR-0020（決定 5 resolved）。**format spec pin＝ADR-0029（Google Labs `design.md` alpha に pin・shadows/motion・section alias）**。**HTML mock step + ui-prototyper agent＝ADR-0030**。共通形＝ADR-0013。評価ループ＝ADR-0018。決定記録＝ADR-0019。ロスター＝ADR-0022 拡張（`indie-studio:visual-designer` 追加・`indie-studio:product-designer` 拡張・**ADR-0030 で `indie-studio:ui-prototyper` 追加**）。出力位置＝ADR-0020（DESIGN.md）／ADR-0028 + ADR-0030（mock）。サブステージ命名＝ADR-0025。
+スキル追加判断＝ADR-0023。DESIGN.md＝ADR-0020（決定 5 resolved）。**format spec pin＝ADR-0029（Google Labs `design.md` alpha に pin・shadows/motion・section alias）**。**HTML mock step + ui-prototyper agent＝ADR-0030**（**視覚確認ゲート「戻る」後の spec compliance 再チェック＝ADR-0033 が extends**）。共通形＝ADR-0013。評価ループ＝ADR-0018。決定記録＝ADR-0019。ロスター＝ADR-0022 拡張（`indie-studio:visual-designer` 追加・`indie-studio:product-designer` 拡張・**ADR-0030 で `indie-studio:ui-prototyper` 追加**）。出力位置＝ADR-0020（DESIGN.md）／ADR-0028 + ADR-0030（mock）。サブステージ命名＝ADR-0025。
