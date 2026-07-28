@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted (2026-07-28)。ADR-0004 (shared-agent-vendoring) と ADR-0005 (shared-skills-vendoring) を **supersede** する。ADR-0003 / ADR-0008 が定めた配布構造 (リポジトリ = 1 marketplace、各コレクション = 1 plugin、local path + public repo の二経路) はそのまま継承し、marketplace に配る plugin を 2 個から 3 個に増やす。
+Accepted (2026-07-28)。ADR-0004 (shared-agent-vendoring) と ADR-0005 (shared-skills-vendoring) を **supersede** する。**ADR-0003 が定めた配布構造** (リポジトリ = 1 marketplace、各コレクション = 1 plugin) はそのまま継承し、marketplace に配る plugin を 2 個から 3 個に増やす。
+
+> 注記 (2026-07-28)：本 ADR の初版は配布経路を「ADR-0003 / ADR-0008 が定めた local path + public repo の二経路」と書いていたが、**ADR-0008 は非-decision の誤記録として PR #30 で削除済み**（repo が public なのは個人実験を見せやすくするためで、外部 consumer サポートを決めた事実はない）。よって配布経路の根拠は ADR-0003 のみとし、public/private の framing は本 ADR の主張から外す。本 ADR の決定内容（plugin 数を 3 に増やす）は影響を受けない。
 
 ## Context
 
@@ -19,7 +21,7 @@ registry に載るのは `enhance-superpowers:*` の 13 体のみで、**indie-s
 
 1. 同名 agent を持つ 2 plugin が共存すると、負けた側の agent セットが registry から落ちる。
 2. 巻き添えで、衝突していない indie-studio 固有 6 体 (ux-researcher / product-manager / business-strategist / product-designer / visual-designer / ui-prototyper) まで消える。
-3. その結果 **indie-studio の全 skill が職種エージェントを 1 体も起動できない**。共通ステージ形 (ディレクター + 職種 + 評価・ADR-0013) が成立していなかった。
+3. その結果 **indie-studio の全 skill が職種エージェントを 1 体も起動できない**。共通ステージ形 (ディレクター + 職種 + 評価・**indie-studio** ADR-0013) が成立していなかった。
 4. **skill は名前空間が正しく効く**（`indie-studio:finish-stage-pr` と `enhance-superpowers:finish-stage-pr` は共存できていた）。壊れるのは agent だけ、という非対称がある。
 
 加えて root `AGENTS.md` の「エージェントは frontmatter の `name` で識別・起動される (`subagent_type` も `name` 参照・path 非依存)」という記述が実挙動と食い違っていた。実際には `plugin:agent` 修飾が必須である。
@@ -38,7 +40,7 @@ vendoring を維持したまま衝突を避ける案 (sync 時に `is-` / `es-` 
 
 skill も agent と同様に vendoring を廃止する。skill 自体は衝突していなかったが、`shared/` が plugin になると `shared/skills/` も自動ロードされるため、vendoring を残すと同一 skill が 3 コピー (shared / indie-studio / enhance-superpowers) になり現状より悪化する。ADR-0005 が想定した「collection 側で固有拡張を入れる余地」は、実際には一度も使われていない (3 コピーは `x-` frontmatter を除いて完全に同一で、`body-source-path` 拡張は shared 側へ取り込み済み) ため、失うものはない。
 
-`shared/agents/` を collection 非依存の中立語彙で書く原則 (ADR-0004) は維持する。collection 固有の context (ステージ番号・参照 docs パス・進行 protocol) は、従来どおり呼び出し元 skill が invocation 時に prompt で渡す (ADR-0031 / indie-studio)。
+`shared/agents/` を collection 非依存の中立語彙で書く原則 (ADR-0004) は維持する。collection 固有の context (ステージ番号・参照 docs パス・進行 protocol) は、従来どおり呼び出し元 skill が invocation 時に prompt で渡す (indie-studio ADR-0031)。
 
 ## Consequences
 
@@ -59,7 +61,7 @@ skill も agent と同様に vendoring を廃止する。skill 自体は衝突�
 
 ## 関連
 
-- ADR-0003 (plugin-marketplace-distribution) / ADR-0008 (public-repo-distribution): 配布構造と二経路方針。本 ADR は plugin 数のみ増やし、構造は継承する
+- ADR-0003 (plugin-marketplace-distribution): 配布構造 (marketplace + per-collection plugin)。本 ADR は plugin 数のみ増やし、構造は継承する
 - ADR-0004 (shared-agent-vendoring) / ADR-0005 (shared-skills-vendoring): 本 ADR が supersede する。中立語彙原則のみ継承
 - ADR-0006 (release-drafter-auto-discovery): `shared` が collection として auto-discover される
 - indie-studio ADR-0031 (skill-invocation-context-for-neutral-agents): 中立 agent への context 受け渡し規律。本 ADR 後も有効
