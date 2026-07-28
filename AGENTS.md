@@ -16,10 +16,14 @@
 - **エージェントは実在職種名で**設計する（成果物名・概念で割らない）。
 - **エージェントの起動は `plugin:agent` 形式の修飾名で行う**（例：`shared:software-architect` / `indie-studio:ux-researcher`）。**bare name は解決されない**。同名 agent を持つ plugin が共存すると片方の agent セットが registry から丸ごと落ちるため、**コレクション間で agent 名を重複させないこと**（ADR-0009）。skill は名前空間が効くのでこの制約を受けない。
 - 設計判断は該当コレクションの `docs/adr/` を読む。決定は inline／git／ADR に残す（専用の決定ログ file は作らない）。
-- ADR は原則 immutable（決定の根拠を保存するため直接書き換え・削除しない。方針変更は新 ADR で supersede／extends する）。**例外**：decision を伴わない誤記録（非-decision を誤って ADR 化した bug／void な記録）は、痕跡を残さず削除してよい（immutable が守るのは「判断の根拠」であって、判断でないものは保存対象外）。
+- ADR は原則 immutable（決定の根拠を保存するため直接書き換え・削除しない。方針変更は新 ADR で supersede／extends する）。
+- **ADR の削除**（immutable の唯一の例外）。**位置（末尾か中間か）は問わず**、次の 2 条件を**両方**満たすときのみ削除してよい：
+  1. **decision を伴わない誤記録**であること（非-decision を誤って ADR 化した bug／void な記録。immutable が守るのは「判断の根拠」であって、判断でないものは保存対象外）。
+  2. **repo 全体で参照ゼロ**であること（`grep -rn "ADR-000N"` で他 ADR・SKILL.md・CONTEXT.md・README・**公開済みリリースノート**を確認）。
+  - **参照が 1 つでもあれば削除しない。** 代わりに Status を `Void（理由）` にして本文を残す（参照側を全て直すより安全）。
+  - 削除後は**その番号を参照する記述を新たに書かない**。実例：旧 root ADR-0008 は削除時点で無参照だったが、後から書かれた ADR-0009 が参照して dangling 化した。
 - **ADR 番号の採番規約**（連番を保つことが目的）：
-  - 削除してよいのは **末尾番号の ADR のみ**（中間を削除すると既存参照が壊れるため）。
-  - **削除で空いた番号は、次に作られる ADR が継ぐ。** よって**作成順と番号順は必ずしも一致しない**（例：root ADR-0008 `repository-visibility-public` は ADR-0009 より後に書かれたが、旧 0008 の削除で空いた番号を埋めている）。番号は識別子であって時系列の保証ではない。
+  - **削除で空いた番号は、次に作られる ADR が継ぐ**（末尾・中間いずれの gap も同じ扱い）。よって**作成順と番号順は必ずしも一致しない**（例：root ADR-0008 `repository-visibility-public` は ADR-0009 より後に書かれたが、旧 0008 の削除で空いた番号を埋めている）。番号は識別子であって時系列の保証ではない。
   - **既に存在する ADR の renumber は行わない。** 番号は SKILL.md・CONTEXT.md・他 ADR・**公開済みリリースノート**から参照される識別子であり、付け替えは参照を壊す。空き番号を次の ADR が埋めれば連番は保たれるので、renumber の必要がない。
   - 番号は名前空間ごとに独立（下記）。
 - **ADR 番号は名前空間ごとに独立している**（root `docs/adr/` と各 `<collection>/docs/adr/` で同じ番号が別物を指す。例：root ADR-0009 = shared plugin 化／enhance-superpowers ADR-0009 = ライセンスチェック／indie-studio ADR-0009 = agents がハーネスのホーム）。したがって**裸の `ADR-000N` は「そのファイルが属する名前空間の ADR」を指す**規約とし、他名前空間を参照するときは必ず修飾する — collection のファイルから root を指すなら `root ADR-000N`、root のファイルから collection を指すなら `indie-studio ADR-000N` のように書く。修飾を怠ると同一ファイル内で同じ番号が 2 つの意味に解決されうる。
