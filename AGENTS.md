@@ -17,7 +17,12 @@
 - **エージェントの起動は `plugin:agent` 形式の修飾名で行う**（例：`shared:software-architect` / `indie-studio:ux-researcher`）。**bare name は解決されない**。同名 agent を持つ plugin が共存すると片方の agent セットが registry から丸ごと落ちるため、**コレクション間で agent 名を重複させないこと**（ADR-0009）。skill は名前空間が効くのでこの制約を受けない。
 - 設計判断は該当コレクションの `docs/adr/` を読む。決定は inline／git／ADR に残す（専用の決定ログ file は作らない）。
 - ADR は原則 immutable（決定の根拠を保存するため直接書き換え・削除しない。方針変更は新 ADR で supersede／extends する）。
-- **ADR の削除**（immutable の唯一の例外）。**位置（末尾か中間か）は問わず**、次の 2 条件を**両方**満たすときのみ削除してよい：
+- **例外：ナビゲーション注記の追加・更新は immutable に反しない。** immutable が守るのは**決定の根拠**であって、後から辿れるようにする道標ではない。既存 ADR に次を書き足す／直すのは**推奨される運用**（indie-studio ADR-0028 が「ADR-0016 / 0021 本文は immutable・inline 注記で本 ADR を指す」と明示的に採用した先例に従う）：
+  - `Status` 行の `Superseded by ADR-000N` / `Updated (日付)`
+  - 本文冒頭や該当箇所への `> ※ ADR-000N で再定義／更新` 形式の inline 注記
+  - **禁止されるのは決定そのもの（Decision / Considered Options / 却下理由）の書き換え。** 注記で決定の適用範囲を変えるのも禁止（それは新 ADR で supersede／extends する）。
+  - **注記に陳腐化する値を書かない**（スキル数・ファイル数など）。書くと構成変更のたびに更新が必要になり、immutable な doc に churn を生む。「現行は最新の ADR を参照」と書いて数は最新側に持たせる。
+- **ADR の削除**（immutable のもう 1 つの例外。上記の注記と違い、こちらは決定の記録そのものを消すため条件が厳しい）。**位置（末尾か中間か）は問わず**、次の 2 条件を**両方**満たすときのみ削除してよい：
   1. **decision を伴わない誤記録**であること（非-decision を誤って ADR 化した bug／void な記録。immutable が守るのは「判断の根拠」であって、判断でないものは保存対象外）。
   2. **repo 全体で参照ゼロ**であること（`grep -rn "ADR-000N"` で他 ADR・SKILL.md・CONTEXT.md・README・**公開済みリリースノート**を確認）。
   - **参照が 1 つでもあれば削除しない。** 代わりに Status を `Void（理由）` にして本文を残す（参照側を全て直すより安全）。
