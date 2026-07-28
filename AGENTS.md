@@ -24,12 +24,15 @@
   - **注記に陳腐化する値を書かない**（スキル数・ファイル数など）。書くと構成変更のたびに更新が必要になり、immutable な doc に churn を生む。「現行は最新の ADR を参照」と書いて数は最新側に持たせる。
 - **ADR の削除**（immutable のもう 1 つの例外。上記の注記と違い、こちらは決定の記録そのものを消すため条件が厳しい）。**位置（末尾か中間か）は問わず**、次の 2 条件を**両方**満たすときのみ削除してよい：
   1. **decision を伴わない誤記録**であること（非-decision を誤って ADR 化した bug／void な記録。immutable が守るのは「判断の根拠」であって、判断でないものは保存対象外）。
-  2. **repo 全体で参照ゼロ**であること（`grep -rn "ADR-000N"` で他 ADR・SKILL.md・CONTEXT.md・README・**公開済みリリースノート**を確認）。
+  2. **参照ゼロ**であること。**確認先は 2 系統あり、両方を見る**：
+     - **repo 内**：`grep -rn "ADR-000N" .`（他 ADR・SKILL.md・CONTEXT.md・README 等）
+     - **公開済みリリースノート**：`gh api repos/gotomts/claude-collections/releases --paginate --jq '.[]|select(.draft==false)|"\(.tag_name)\t\(.body)"' | grep "ADR-000N"`
+     - ⚠️ **リリースノートは repo 内に無いので `grep -rn` では絶対に検出できない**。実際 `shared/v0.0.1` の本文は `root ADR-0009` / `ADR-0004` / `ADR-0005` を参照しており、repo 内 grep には現れない。**publish 済みのノートは事後変更が難しい**ため、ここを見落とすと恒久的な dangling 参照になる。
   - **参照が 1 つでもあれば削除しない。** 代わりに Status を `Void（理由）` にして本文を残す（参照側を全て直すより安全）。
   - 削除後は**その番号を参照する記述を新たに書かない**。実例：旧 root ADR-0008 は削除時点で無参照だったが、後から書かれた ADR-0009 が参照して dangling 化した。
 - **ADR 番号の採番規約**（連番を保つことが目的）：
   - **削除で空いた番号は、次に作られる ADR が継ぐ**（末尾・中間いずれの gap も同じ扱い）。よって**作成順と番号順は必ずしも一致しない**（例：root ADR-0008 `repository-visibility-public` は ADR-0009 より後に書かれたが、旧 0008 の削除で空いた番号を埋めている）。番号は識別子であって時系列の保証ではない。
-  - **既に存在する ADR の renumber は行わない。** 番号は SKILL.md・CONTEXT.md・他 ADR・**公開済みリリースノート**から参照される識別子であり、付け替えは参照を壊す。空き番号を次の ADR が埋めれば連番は保たれるので、renumber の必要がない。
+  - **既に存在する ADR の renumber は行わない。** 番号は SKILL.md・CONTEXT.md・他 ADR・**公開済みリリースノート**（repo 外・事後変更が難しい）から参照される識別子であり、付け替えは参照を壊す。空き番号を次の ADR が埋めれば連番は保たれるので、renumber の必要がない。
   - 番号は名前空間ごとに独立（下記）。
 - **ADR 番号は名前空間ごとに独立している**（root `docs/adr/` と各 `<collection>/docs/adr/` で同じ番号が別物を指す。例：root ADR-0009 = shared plugin 化／enhance-superpowers ADR-0009 = ライセンスチェック／indie-studio ADR-0009 = agents がハーネスのホーム）。したがって**裸の `ADR-000N` は「そのファイルが属する名前空間の ADR」を指す**規約とし、他名前空間を参照するときは必ず修飾する — collection のファイルから root を指すなら `root ADR-000N`、root のファイルから collection を指すなら `indie-studio ADR-000N` のように書く。修飾を怠ると同一ファイル内で同じ番号が 2 つの意味に解決されうる。
 
