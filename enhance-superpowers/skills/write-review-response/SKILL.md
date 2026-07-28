@@ -8,6 +8,7 @@ description: |
   判定迷い時 / セキュリティ系指摘 / 採用後修正の 3 タイミングで code-reviewer /
   security-engineer を能動 dispatch、dispatch log は review-response.md のレビュー履歴に追記。
   Step 1 で .ai-restrictions.md を Read (ADR-0010)。
+  引数 --output-dir / --gate-mode で出力先・gate 集約を制御 (省略時は従来挙動、ADR-0014)。
 argument-hint: "[review-source] [--output-dir=<path>] [--gate-mode=per-phase|aggregate]  # ローカル code-review の出力 or PR URL。引数は外部 collection 利用向け、省略時は従来挙動 (ADR-0014)"
 allowed-tools:
   - Read
@@ -26,7 +27,7 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 
 ## 引数 (ADR-0014)
 
-いずれも任意。**省略時は従来挙動と完全に同一**。chain 元から引き継がれた場合はそのまま下流へも渡す。
+いずれも任意。**省略時は従来挙動と完全に同一**。chain 元から引き継がれた場合はそのまま下流へも渡す。**伝播範囲**: `--output-dir` は `finish-spec-pr` まで、`--gate-mode` は `write-review-response` まで (`finish-spec-pr` は code-review を呼ばないため `--gate-mode` を受け取らない)。
 
 | 引数 | 既定 | 効果 |
 |---|---|---|
@@ -47,7 +48,7 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 
 ### Step 0: 状態判定 (ADR-0012 D2)
 
-1. `git rev-parse --abbrev-ref HEAD` で現ブランチ取得、サニタイズ (`/` → `-`)
+1. **`{出力先}` を確定**: `--output-dir` があればその値、無ければ `git rev-parse --abbrev-ref HEAD` → サニタイズ (`/` → `-`) → `docs/superpowers/{branch}/`
 2. `{出力先}` を Glob で列挙、`*-gwt.md` / `*-review-response.md` の存在有無を確認
 3. **前提**: gwt.md checklist が全 `- [x]` であること (gwt-test の Step 6 まで完了)。未達なら error "gwt-test を完了させてください" + 中断
 4. review-response.md 状態を判定 (M5 fix 2026-07-04: remote 状態確認を追加、rev-list 方向を正しく):
@@ -104,7 +105,7 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 
 1. user に「レビュー対応が完了しました。次は PR 作成です」と明示
 2. `Skill` tool で `enhance-superpowers:finish-spec-pr` skill を chain invoke (`--output-dir` を受け取っていれば**そのまま引き継いで渡す**)
-3. 中断時の再開方法を案内: 「(a) `enhance-brainstorming` を再 invoke (Step 0 で状態判定して続きから)、または (b) `finish-spec-pr` skill を直接 invoke」
+3. 中断時の再開方法を案内: 「(a) `enhance-brainstorming` を再 invoke (Step 0 で状態判定して続きから)、または (b) `enhance-superpowers:finish-spec-pr` skill を直接 invoke」(**`--output-dir` を同じ値で渡すこと**)
 
 ## 規律明示
 

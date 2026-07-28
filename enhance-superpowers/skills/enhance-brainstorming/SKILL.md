@@ -171,7 +171,7 @@ Phase 1 / 2 でセキュリティ箇所が検出されたら `shared:security-en
    - slice 単位 = `code-review` skill (optional 1問確認、default skip) + `shared:security-engineer` (該当 slice で常時) + `shared:performance-engineer` (該当 slice で)
    - dispatch log は plan.md 末尾レビュー履歴に追記 (ADR-0007)
    - 完了後 = `gwt-test` skill に自動連鎖
-4. 中断時の再開方法を案内: 「(a) `enhance-brainstorming` を再 invoke (Step 0 で状態判定して続きから)、(b) `enhance-executing-plans` を直接 invoke、または (c) `gwt-test` skill を直接 invoke」
+4. 中断時の再開方法を案内: 「(a) `enhance-brainstorming` を再 invoke (Step 0 で状態判定して続きから)、(b) `enhance-superpowers:enhance-executing-plans` を直接 invoke、または (c) `enhance-superpowers:gwt-test` skill を直接 invoke」(**いずれも `--output-dir` / `--gate-mode` を同じ値で渡すこと**。渡さないと既定ディレクトリを走査して「未着手」と誤判定する)
 
 ## 規律明示
 

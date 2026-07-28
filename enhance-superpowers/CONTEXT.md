@@ -5,7 +5,7 @@ superpowers (公式) を base に、ローカル開発フローの規律 (5 成�
 ## Language
 
 **5 成果物 (Five deliverables)**:
-Spec フェーズで生成される 5 つの markdown ファイル — summary / design / gwt / pr-description / plan。生成順は **plan-last** (`summary → design → gwt → pr-description → plan`、ADR-0011)。design / gwt / pr-description は Phase 3 で連続生成し、3 file 揃ってから user 承認 1 回 (認識齟齬検出 ② ③ 統合)。命名は `{YYYY-MM-DD}-{slug}-{suffix}.md`。配置は `docs/superpowers/{branch}/`。
+Spec フェーズで生成される 5 つの markdown ファイル — summary / design / gwt / pr-description / plan。生成順は **plan-last** (`summary → design → gwt → pr-description → plan`、ADR-0011)。design / gwt / pr-description は Phase 3 で連続生成し、3 file 揃ってから user 承認 1 回 (認識齟齬検出 ② ③ 統合)。命名は `{YYYY-MM-DD}-{slug}-{suffix}.md`。配置は `docs/superpowers/{branch}/` (`--output-dir` 指定時はその値、ADR-0014 E1)。
 
 **enhance-brainstorming**:
 enhance-superpowers の起点 skill。`superpowers:brainstorming` の責任を拡張し、5 成果物の Spec フェーズ確定 + 後工程 sub-skill の連鎖駆動を担う。ユーザーが意識的に呼ぶ唯一の skill。
@@ -56,7 +56,7 @@ dispatch log の追記先 mapping は ADR-0007 参照。
 enhance-brainstorming Phase 3 で合意済み summary を context として `superpowers:brainstorming` に委譲し design.md を生成させる実装方式。fallback (Z 方式 = 自前実装) は ADR-0006 に明記。**enhance-executing-plans は 2026-07-04 D1 redesign で委譲を廃止**、Y 方式は brainstorming (Phase 3) のみ継続。executing-plans は skill 側から executor 直接 dispatch (silent failure 回避)。
 
 **状態判定 (Step 0)**:
-全 skill 冒頭に配置される Step 0。`docs/superpowers/{branch}/` の既存 file 有無から現在 Phase を判定し、適切な Step から再開する仕組み (ADR-0012 D2)。SKILL.md 冒頭の Phase 定義 table (ADR-0012 D3) を再開判定の仕様源とする。ハンドオフ再開 / 別セッション再 invoke 時のドキュメント生成順序破壊を構造的に防止。
+全 skill 冒頭に配置される Step 0。出力先 (`--output-dir` 指定時はその値、省略時は `docs/superpowers/{branch}/`) の既存 file 有無から現在 Phase を判定し、適切な Step から再開する仕組み (ADR-0012 D2)。SKILL.md 冒頭の Phase 定義 table (ADR-0012 D3) を再開判定の仕様源とする。ハンドオフ再開 / 別セッション再 invoke 時のドキュメント生成順序破壊を構造的に防止。
 
 ## indie-studio との禁止語彙
 
@@ -88,7 +88,7 @@ enhance-superpowers は superpowers (公式) の直線フロー (brainstorming �
 
 | ファイル | 配置先 |
 |---|---|
-| 5 成果物 (summary / design / gwt / pr-description / plan) | `docs/superpowers/{branch}/` |
+| 5 成果物 (summary / design / gwt / pr-description / plan) | `docs/superpowers/{branch}/` (**`--output-dir` 指定時はその値**、ADR-0014 E1) |
 | review-response.md | 同上 |
 | handoff.md (任意、状態判定の補助) | 同上 |
 | コレクション固有 ADR | `enhance-superpowers/docs/adr/` |
@@ -99,5 +99,5 @@ enhance-superpowers は superpowers (公式) の直線フロー (brainstorming �
 - 設計 doc: `docs/superpowers/feat-enterprise-superpowers-customization/2026-06-25-enhance-superpowers-collection-design.md`
 - summary: 同 dir の `-summary.md`
 - plan: 同 dir の `-plan.md`
-- ADR 0001-0013 (コレクション固有): `enhance-superpowers/docs/adr/`
+- ADR 0001-0014 (コレクション固有): `enhance-superpowers/docs/adr/`
 - root ADR: `docs/adr/` (リポジトリ全体の決定)

@@ -1,6 +1,7 @@
 ---
 name: implementation
-description: 確定済みの実装詳細設計(5 成果物)と技術設計 docs を起点に、垂直スライスを実装してテストを書き、AC 検証・コードレビュー・PR まで停止ゼロで自走させたいときに使う、AI 自律開発ハーネスのステージ5後半(実装)スキル。設計は上流(implementation-design)、レビュー&merge は G5。設計済みのスライスを実装だけ回すケースにも、一気通貫の後半としても使える。
+description: 確定済みの実装詳細設計(5 成果物)と技術設計 docs を起点に、垂直スライスを実装してテストを書き、AC 検証・コードレビュー・PR まで自走させたいときに使う (実装中の設計判断は人間に聞かない)、AI 自律開発ハーネスのステージ5後半(実装)スキル。設計は上流(implementation-design)、レビュー&merge は G5。設計済みのスライスを実装だけ回すケースにも、一気通貫の後半としても使える。
+argument-hint: "--slice=S-{nn}  # 対象スライスの冪等キー (省略時は plan.md ありかつ PR 未作成のものを提示して 1 問確認)"
 maintainer: gotomts
 ---
 
@@ -8,7 +9,7 @@ maintainer: gotomts
 
 AI 自律開発ハーネスの **ステージ5後半（実装）** スキル。実行環境は **Claude Code**。ディレクターが **`enhance-superpowers:enhance-executing-plans` を chain invoke する薄いアダプタ**として動く（ADR-0032 D1）。以降 `gwt-test` → `write-review-response` → `finish-spec-pr` が自動連鎖して PR まで到達する。
 
-到達点：**確定済み設計 → PR**を、実装途中で人間に聞かず（停止ゼロ・ADR-0004）、受入条件を満たして回す。人間は G5（根幹 PR のレビュー＋merge）だけ。
+到達点：**確定済み設計 → PR**を、**実装中の設計判断を人間に聞かずに**（decide-record-proceed・ADR-0004）、受入条件を満たして回す。人間が関与するのは **PR 作成前後の確認**（下記「人間が関与する点」）と **G5（根幹 PR のレビュー＋merge）**。
 
 ## いつ使うか
 
@@ -24,7 +25,7 @@ AI 自律開発ハーネスの **ステージ5後半（実装）** スキル。�
 
 ## 入力
 
-- **実装詳細設計（必須）**：`docs/indie-studio/implementation/{S-nn}-{slug}/` の 5 成果物。**欠ければ停止**し `indie-studio:implementation-design` を促す。
+- **実装詳細設計（必須）**：`docs/indie-studio/implementation/S-{nn}-*/` の 5 成果物。**欠ければ停止**し `indie-studio:implementation-design` を促す。
 - **チケット**：Linear issue（`S-{nn}`・受入条件・レビュー要否タグ）。
 - **技術設計 docs**：`AGENTS.md`/`CLAUDE.md`・`docs/adr/`・`CONTEXT.md`・`docs/indie-studio/tech/`・screen-specs・`DESIGN.md`。
 
@@ -33,8 +34,8 @@ AI 自律開発ハーネスの **ステージ5後半（実装）** スキル。�
 ### Step 0: 状態判定
 
 1. `enhance-superpowers` / `shared` plugin が解決できるか確認。できなければ error 中断（install 手順を案内）。
-2. 対象スライスを確定：argument（`--slice=S-{nn}`）指定があればそれ、無ければ `docs/indie-studio/implementation/` 配下で **plan.md はあるが PR 未作成**のものを提示して 1 問確認。
-3. `docs/indie-studio/implementation/{S-nn}-{slug}/` に 5 成果物が揃っているか確認：
+2. 対象スライスを確定：`--slice=S-{nn}` 指定があればそれ、無ければ `docs/indie-studio/implementation/` 配下で **plan.md はあるが PR 未作成**のものを提示して 1 問確認。`{slug}` の導出規則とディレクトリ解決は `indie-studio:implementation-design` と同一（index.md のスライス見出し由来・glob 前方一致）。
+3. `docs/indie-studio/implementation/S-{nn}-*/` を glob (冪等キー前方一致) して 5 成果物が揃っているか確認：
    - **plan.md が無ければ停止**：「実装詳細設計がありません。`indie-studio:implementation-design --slice=S-{nn}` を先に実行してください」
    - 揃っている → Step 1 へ（以降の細かい再開判定は `enhance-executing-plans` の Step 0 に委ねる。重複判定しない）
 4. 判定結果を user に明示。
@@ -49,17 +50,17 @@ AI 自律開発ハーネスの **ステージ5後半（実装）** スキル。�
 
 `Skill` tool で次の引数を渡して invoke（ADR-0014 の E1/E3）：
 
-```
---output-dir=docs/indie-studio/implementation/{S-nn}-{slug}/
+```text
+--output-dir=docs/indie-studio/implementation/{S-nn}-{slug}
 --gate-mode=aggregate
 ```
 
-`--gate-mode=aggregate` により、slice ごとの code-review 課金確認と chain 起動確認が自動化され、**停止ゼロが保たれる**（ADR-0032 D4）。引数は下流の `gwt-test` / `write-review-response` / `finish-spec-pr` へそのまま伝播する。
+`--gate-mode=aggregate` により、slice ごとの code-review 課金確認と chain 起動確認 (計 4 箇所) が自動化される。**PR 作成前後の確認は残る**（下記「自走規律と、人間が関与する点」・ADR-0032 D4）。引数は下流へ伝播する（**`--output-dir` は `finish-spec-pr` まで、`--gate-mode` は `write-review-response` まで**）。
 
 dispatch prompt に次を明示する（enhance-superpowers 側は中立語彙のため・ADR-0031 の規律を skill 間 invocation にも適用）：
 
 - **architecture 規約**：S3 確定の monorepo ＋ モジュラーモノリス ＋ クリーンアーキ ＋ DDD（`AGENTS.md` / `CONTEXT.md` を読ませる）
-- **進行 protocol**：**停止ゼロ**（ADR-0004）。曖昧点は decide-record-proceed ＝根拠ある仮定を置き**仮定を PR に明記**。設計の穴・screen-specs の曖昧も仮定明記。ADR 候補は ADR を書いて PR で晒す
+- **進行 protocol**：**実装中の設計判断で人間に聞かない**（ADR-0004）。曖昧点は decide-record-proceed ＝根拠ある仮定を置き**仮定を PR に明記**。設計の穴・screen-specs の曖昧も仮定明記。ADR 候補は ADR を書いて PR で晒す
 - **差し戻し protocol**（ADR-0018・enhance-superpowers 側に無いため必ず渡す）：round1 は fresh で完全な findings マニフェスト → round2-3 は continuation で解消のみ検証（スコープ凍結）。成果物ごと**最大 3R**。finding ごとに ✅解消／➖省略(理由)／⚠️未達(理由) で決着
 - **テスト戦略**：S3 が決めた値（Web=Playwright／モバイル=Maestro・integration_test+patrol で主要フローに絞る）
 - **参照 docs**：`docs/indie-studio/tech/`・`docs/adr/`・`CONTEXT.md`・該当 screen-specs・`DESIGN.md`
@@ -84,11 +85,28 @@ PR 作成後、**レビュー要否タグ（根幹/非根幹・ADR-0008）**が 
 
 実装で得た知見を `docs/adr/`・`CONTEXT.md` に追記する（docs は副産物・主成果はコードと PR）。専用の決定ログ file は作らない（ADR-0019）。設計の穴が重大なら S3 / S1 へ差し戻す（ディレクター判断）。
 
-## 停止ゼロ・自走規律
+## 自走規律と、人間が関与する点（実態・ADR-0032 D4）
 
-- **実装フェーズは停止しない**（ADR-0004 のまま維持）。人間ゲートは設計フェーズ（`implementation-design` Step 3）と G5 の 2 点のみ（ADR-0032 D4）。
-- 曖昧点は **decide-record-proceed** ＝根拠ある仮定を置き、**仮定を PR に明記**して進む。
-- 評価は enhance-superpowers 側の review dispatch に寄せる（`shared:security-engineer` / `shared:performance-engineer` / `code-review:code-review` skill）。**indie-studio 側の自前評価 3 観点ループは廃止**（重複するため・ADR-0032 D5）。差し戻し protocol は Step 2 の prompt で渡す。
+**自走するのは実装中の設計判断**である。曖昧点は **decide-record-proceed** ＝根拠ある仮定を置き、**仮定を PR に明記**して進む（ADR-0004）。設計の穴・screen-specs の曖昧も同様。ADR 候補は ADR を書いて PR で晒す。
+
+一方、**PR 作成の前後には委譲先の必須確認が残る**。`--gate-mode=aggregate` が自動化するのは slice ごとの code-review 課金確認と chain 起動確認の 4 箇所であり、以下は集約されない。「人間は G5 だけ」ではない。
+
+**無条件（毎回発生）**：
+
+- `enhance-executing-plans` Step 0 の状態判定確認
+- `write-review-response` の**採用分反映確認**と **push 前承認**
+- `finish-spec-pr` の **PR title 確認**（同 skill が「必須」と明記）
+- `shared:finish-stage-pr` Step 8 の **PR 作成最終確認**
+- **G5**（根幹 PR のレビュー＋merge。非根幹は green で自動 merge）
+
+**条件付き（該当時のみ）**：
+
+- slice の対象領域が自動推定できない場合の 1 問確認
+- review 指摘が出た場合の修正方針確認
+- AC 未達時の差し戻し確認
+- dev server の port 重複 / `chrome-devtools-mcp` 使用可否（環境要因）
+
+**評価の委譲**：評価は enhance-superpowers 側の review dispatch に寄せる（`shared:security-engineer` / `shared:performance-engineer` / `code-review:code-review` skill）。**indie-studio 側の自前評価 3 観点ループは廃止**（重複するため・ADR-0032 D5）。差し戻し protocol は Step 2 の prompt で渡す。
 
 ## 出力
 
@@ -113,4 +131,4 @@ PR 作成後、**レビュー要否タグ（根幹/非根幹・ADR-0008）**が 
 
 ## 関連 ADR
 
-S5 分割と委譲＝ADR-0032（D1 アダプタ / D2 粒度対応 / D4 停止ゼロの範囲 / D5 評価ループ）。自走設計＝ADR-0004（実装フェーズでは維持）。適応 PR ゲート＝ADR-0008。評価ループ＝ADR-0018。決定記録＝ADR-0019。ステージ全体＝ADR-0013/0017。plugin 依存＝root ADR-0009。委譲先の引数＝enhance-superpowers ADR-0014。
+S5 分割と委譲＝ADR-0032（D1 アダプタ / D2 粒度対応 / D4 人間ゲートの範囲 / D5 評価ループ）。自走設計＝ADR-0004（実装中の設計判断について維持）。issue 精緻化・push・PR open の自律＝ADR-0007。適応 PR ゲート＝ADR-0008。評価ループ＝ADR-0018。決定記録＝ADR-0019。ステージ全体＝ADR-0013/0017。plugin 依存＝root ADR-0009。委譲先の引数＝enhance-superpowers ADR-0014。

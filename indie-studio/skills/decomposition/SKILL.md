@@ -14,7 +14,7 @@ AI 自律開発ハーネスの **ステージ4（分解）** スキル。実行�
 
 - 技術設計（tech-design）が固まり、実装単位に割る段階に入ったとき。
 - F-ID 機能一覧・モジュール構造から issue を起こしたいとき。
-- ハーネス4スキル（ADR-0017）の3番目として人間が起動するとき。
+- ハーネスの 7 スキル（ADR-0017 → ADR-0032）のうち S4 として人間が起動するとき。
 
 **ここで扱わないこと**：技術設計（上流 tech-design）。実装詳細設計・実装（下流 `indie-studio:implementation-design` → `indie-studio:implementation`）。
 

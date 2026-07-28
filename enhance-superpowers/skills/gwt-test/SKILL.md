@@ -7,6 +7,7 @@ description: |
   AC 未達発覚時も qa-engineer を能動 dispatch して差し戻し findings を言語化。
   STOP POINT 2 は code-review skill を auto-invoke (課金前 1 問確認、ADR-0013) + security-engineer 能動 dispatch。
   Step 1 で .ai-restrictions.md を Read (ADR-0010)。完了後は write-review-response skill に chain。
+  引数 --output-dir / --gate-mode で出力先・gate 集約を制御 (省略時は従来挙動、ADR-0014)。
 argument-hint: "[gwt-file-path] [--output-dir=<path>] [--gate-mode=per-phase|aggregate]  # 検証対象 gwt.md のパス (省略時は出力先から自動検出)。引数は外部 collection 利用向け、省略時は従来挙動 (ADR-0014)"
 allowed-tools:
   - Read
@@ -25,7 +26,7 @@ maintainer: gotomts
 
 ## 引数 (ADR-0014)
 
-いずれも任意。**省略時は従来挙動と完全に同一**。chain 元から引き継がれた場合はそのまま下流へも渡す。
+いずれも任意。**省略時は従来挙動と完全に同一**。chain 元から引き継がれた場合はそのまま下流へも渡す。**伝播範囲**: `--output-dir` は `finish-spec-pr` まで、`--gate-mode` は `write-review-response` まで (`finish-spec-pr` は code-review を呼ばないため `--gate-mode` を受け取らない)。
 
 | 引数 | 既定 | 効果 |
 |---|---|---|
@@ -47,7 +48,7 @@ maintainer: gotomts
 
 ### Step 0: 状態判定 (ADR-0012 D2)
 
-1. `git rev-parse --abbrev-ref HEAD` で現ブランチ取得、サニタイズ (`/` → `-`)
+1. **`{出力先}` を確定**: `--output-dir` があればその値、無ければ `git rev-parse --abbrev-ref HEAD` → サニタイズ (`/` → `-`) → `docs/superpowers/{branch}/`
 2. `{出力先}` を Glob で列挙、`gwt.md` の存在有無を確認
 3. **前提**: `*-gwt.md` が存在すること。無ければ error "gwt.md がありません。enhance-brainstorming Phase 3 を完了させてください" + 中断
 4. gwt.md の checklist 状態と timestamp を確認 (M3 fix 2026-07-04: AC 変更後の再検証漏れ防止):
@@ -95,7 +96,7 @@ maintainer: gotomts
 1. `shared:qa-engineer` を能動 dispatch — 差し戻し findings の言語化 + テストコード同期確認
 2. `gwt.md` の変更履歴 (逆時系列) に追記: `{YYYY-MM-DD}: {対象AC} — {変更内容}（{変更理由・関連 issue / PR}）`
 3. gwt.md 末尾「## レビュー履歴」セクションに dispatch log を追記 (ADR-0007)
-4. user に「AC 未達につき実装に差し戻します」と提示 → user 1 問確認 → 実装フェーズに戻る (`enhance-executing-plans` skill に chain、または直接 STOP POINT 1 に戻す)
+4. user に「AC 未達につき実装に差し戻します」と提示 → user 1 問確認 → 実装フェーズに戻る (`enhance-superpowers:enhance-executing-plans` skill に chain、または直接 STOP POINT 1 に戻す)。**`--output-dir` / `--gate-mode` を受け取っていればそのまま引き継いで渡す** (引き継がないと既定ディレクトリを走査して「plan.md がありません」で error 中断する)
 
 ### Step 6: AC 検証完了時 qa-engineer 常時能動 dispatch (ADR-0013 D1)
 
@@ -145,7 +146,7 @@ maintainer: gotomts
 | README 不在 / 起動コマンド不明 | error 報告 + 中断 ("手動起動してから再 invoke") |
 | port 占有 | `lsof -i :<port>` 提示 → 既存停止 or 別 port 指定を 1 問確認 |
 | agent-browser が対象機能非対応 | chrome-devtools-mcp 使用是非を 1 問確認 → 未導入なら install 是非も 1 問確認 |
-| AC 未達 | shared:qa-engineer dispatch → gwt.md 変更履歴追記 → 実装差し戻し提案 → user 1 問確認 |
+| AC 未達 | shared:qa-engineer dispatch → gwt.md 変更履歴追記 → 実装差し戻し提案 → user 1 問確認 → `enhance-executing-plans` へ chain (**引数を引き継ぐ**) |
 | Step 6 で shared:qa-engineer が抜けシナリオ検出 | user 承認後 gwt.md AC 追加 → Step 3 再検証 |
 | Step 8 で code-review skill 課金確認 no | code-review skip して shared:security-engineer のみ dispatch、user に手動 invoke を残す |
 | 異常終了で dev server / docker 停止漏れ | cleanup ロジックで停止試行、失敗時は PID + コマンドを user に通知 |

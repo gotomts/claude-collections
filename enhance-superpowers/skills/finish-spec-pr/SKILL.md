@@ -6,6 +6,7 @@ description: |
   pr-description.md (`## やったこと` / `## 補足` / `## 動作確認方法` の 3 セクション) を整え、
   title を user に 1 問確認、finish-stage-pr の Step 8 でユーザー最終確認 → push + gh pr create。
   Step 1 で .ai-restrictions.md を Read (ADR-0010)。
+  引数 --output-dir で出力先を制御 (省略時は従来挙動、ADR-0014)。
 argument-hint: "[pr-description-path] [--output-dir=<path>]  # pr-description.md のパス (省略時は出力先から自動検出)。引数は外部 collection 利用向け、省略時は従来挙動 (ADR-0014)"
 allowed-tools:
   - Read
@@ -43,7 +44,7 @@ maintainer: gotomts
 
 ### Step 0: 状態判定 (ADR-0012 D2)
 
-1. `git rev-parse --abbrev-ref HEAD` で現ブランチ取得、サニタイズ (`/` → `-`)
+1. **`{出力先}` を確定**: `--output-dir` があればその値、無ければ `git rev-parse --abbrev-ref HEAD` → サニタイズ (`/` → `-`) → `docs/superpowers/{branch}/`
 2. `{出力先}` を Glob で列挙、`*-pr-description.md` / `*-review-response.md` の存在有無を確認
 3. **前提**: pr-description.md が存在すること (Spec フェーズ完了)。無ければ error "pr-description.md がありません。enhance-brainstorming Phase 3 を完了させてください" + 中断
 4. **前提**: `git branch --show-current` が `main` でないこと。main なら error "main 直作業では PR を出せません" + 中断

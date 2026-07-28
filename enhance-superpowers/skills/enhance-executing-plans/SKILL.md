@@ -119,7 +119,7 @@ plan.md 内の各 slice について、以下を順次実行:
 1. plan.md の全 slice が実装 + review 済であることを確認
 2. **user に「実装フェーズ完了、gwt-test chain invoke に進みますか?」1 問確認** (user 承認 gate、marker を先に書かない)
    - **`--gate-mode=aggregate` 時**: 1 問確認をせず**自動 yes** として続行する (ADR-0014 E3)
-3. yes → 続行 / no → 「後で `gwt-test` を直接 invoke してください」と案内して skill 終了 (attempt marker も書き込まない、再 invoke 時に Step 5 から素直に再開)
+3. yes → 続行 / no → 「後で `enhance-superpowers:gwt-test` を直接 invoke してください (**`--output-dir` / `--gate-mode` を同じ値で渡すこと**)」と案内して skill 終了 (attempt marker も書き込まない、再 invoke 時に Step 5 から素直に再開)
 4. plan.md 末尾レビュー履歴に **「{timestamp} - gwt-test chain 起動 attempt」attempt marker** を追記 (idempotent: 既存の attempt marker があれば skip、多重追記を防止)
 5. `Skill` tool で `enhance-superpowers:gwt-test` skill を chain invoke (`--output-dir` / `--gate-mode` を受け取っていれば**そのまま引き継いで渡す**)
 6. chain invoke **成功時のみ** plan.md 末尾レビュー履歴に **「{timestamp} - gwt-test chain 完了」final marker** を追記 (Step 0 の再開判定に使う hint)。失敗時は attempt marker のみ残る = 次回再 invoke で Step 0 が「attempt-only 状態」を検知して user 1 問確認 → 再 Step 5 実行の分岐に入る
