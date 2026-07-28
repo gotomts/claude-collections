@@ -1,6 +1,6 @@
 ---
 name: decomposition
-description: 技術設計(接頭辞付き機能一覧 F-{MODULE}-{連番}・モジュール構造・ドメインモデル)と screen-specs を起点に、機能を実装単位の垂直スライス(=1PR)に分解し index.md(骨格)を作って、人間の承認後に issue トラッカー(Linear)へ起票したいときに使う、AI 自律開発ハーネスのステージ4(分解)スキル。技術設計は上流(tech-design)、実装詳細設計・実装は下流スキル (implementation-design → implementation) の責務。
+description: 技術設計(接頭辞付き機能一覧 F-{MODULE}-{連番}・モジュール構造・ドメインモデル)と screen-specs を起点に、機能を実装単位の垂直スライス(=1PR)に分解し index.md(骨格)を作って、人間の承認後に issue トラッカー(Linear)へ起票したいときに使う、AI 自律開発ハーネスのステージ4(分解)スキル。技術設計は上流(tech-design)、実装仕様と実装は下流スキル (implementation-spec) の責務。
 maintainer: gotomts
 ---
 
@@ -14,9 +14,9 @@ AI 自律開発ハーネスの **ステージ4（分解）** スキル。実行�
 
 - 技術設計（tech-design）が固まり、実装単位に割る段階に入ったとき。
 - F-ID 機能一覧・モジュール構造から issue を起こしたいとき。
-- ハーネスの 7 スキル（ADR-0017 → ADR-0032）のうち S4 として人間が起動するとき。
+- ハーネスの 6 スキル（ADR-0017 → ADR-0032）のうち S4 として人間が起動するとき。
 
-**ここで扱わないこと**：技術設計（上流 tech-design）。実装詳細設計・実装（下流 `indie-studio:implementation-design` → `indie-studio:implementation`）。
+**ここで扱わないこと**：技術設計（上流 tech-design）。実装仕様・実装（下流 `indie-studio:implementation-spec`）。
 
 ## 入力（必須＝F-ID 機能一覧・モジュール）
 
