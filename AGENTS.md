@@ -42,7 +42,15 @@
 - format: `<collection>/v<semver>` (slash 区切り、例: `indie-studio/v0.0.1`)
 - テスト期: `v0.0.x` 系で publish、version-resolver は全 patch 固定 (`0.1.0` 自動突入を抑制)
 - 安定化フェーズ: `v0.1.0` 以降 semver (ADR-0004 を extends する新 ADR で切り替え)
-- **⚠️ 新規コレクションの初回 draft は `v0.1.0` になる。publish 前に `v0.0.1` へ付け替えること。** version-resolver の patch 固定は「**直前のリリースから +1**」する仕組みなので、リリースがまだ 1 つも無い新規コレクションには効かず、release-drafter 組み込みの初期値 `0.1.0` が出る。放置して publish すると以後 `0.1.x` 系に固定され、他コレクションの `0.0.x` と体系がズレる。修正は `gh release edit --repo gotomts/claude-collections <collection>/v0.1.0 --tag <collection>/v0.0.1 --title <collection>/v0.0.1`（draft のうちに直せば git tag は作られていないので副作用なし）。2 回目以降は patch 固定が正しく効く。
+- **⚠️ 新規コレクションの初回 draft は `v0.1.0` になる。** version-resolver の patch 固定は「**直前のリリースから +1**」する仕組みなので、リリースがまだ 1 つも無い新規コレクションには効かず、release-drafter 組み込みの初期値 `0.1.0` が出る。放置して publish すると以後 `0.1.x` 系に固定され、他コレクションの `0.0.x` と体系がズレる。
+- **⚠️ draft への tag 付け替えは「publish と同時」に行うこと。** draft の状態で `--tag` だけ直しても、**次に main へ push された時点で release-drafter が draft を再生成し、tag が `v0.1.0` に戻る**（実測：2026-07-28 に `shared` で発生）。正しい手順は retag と publish を **1 コマンドで同時実行**する:
+
+  ```bash
+  gh release edit --repo gotomts/claude-collections <collection>/v0.1.0 \
+    --tag <collection>/v0.0.1 --title <collection>/v0.0.1 --draft=false
+  ```
+
+  publish 済みリリースは drafter に上書きされないため、以後は patch 固定が正しく効き `v0.0.1 → v0.0.2` と進む。**`gh release list` の表示はキャッシュで古い tag を返すことがある**ので、確認は `gh api repos/gotomts/claude-collections/releases --jq '.[]|"\(.tag_name) draft=\(.draft)"'` で行う。
 
 ### publish 判断 (PR merge 後 trigger)
 
@@ -51,7 +59,7 @@ PR を main に merge した直後の Claude Code セッションで、publish �
 1. `gh release list --repo gotomts/claude-collections` で対象 collection の draft を確認
 2. `gh release view --repo gotomts/claude-collections <tag-name>` で draft 内容を確認
 3. 内容のまとまり (機能完成 / 数 PR 蓄積 / リファクタ完了 / docs まとめ等) を評価し publish 推奨 or 待機を提案
-4. ユーザー承認後、`gh release edit --repo gotomts/claude-collections <tag-name> --draft=false` で publish 実行
+4. ユーザー承認後、`gh release edit --repo gotomts/claude-collections <tag-name> --draft=false` で publish 実行（**そのコレクションの初回リリースなら `--tag` / `--title` を同時指定して `v0.0.1` に直す**。上記「tag 命名」参照）
 
 ### Backup 1: セッション開始時の未 publish draft 確認
 

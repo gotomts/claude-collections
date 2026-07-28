@@ -6,6 +6,10 @@
 
 accepted
 
+> **注記 (2026-07-28)**：本 ADR は配布経路を「local path + **private** repo の併用」と書き、public 化を却下しているが、**リポジトリはその後 public になった**。ただしこれは配布方針の変更ではなく、「個人実験を気軽に見せたいから」という理由による repo 可視性の変更にすぎない（外部 consumer サポートを決めた事実はなく、それを decision として記録した ADR-0008 は非-decision の誤記録として PR #30 で削除済み）。
+>
+> したがって本 ADR の **decision（marketplace 宣言・per-collection plugin・local path と repo の 2 経路・version 2 段階移行）はすべて有効**で、「private repo marketplace」は **「repo marketplace 経路」と読み替える**（visibility を問わない）。public である現在は `gh auth login` 等の事前認証が不要になり、`GITHUB_TOKEN` はレート制限回避の任意設定に格下げされる — 実際の手順は `README.md` が正本。却下理由に挙げた「外部利用向けドキュメント整備が未成熟」は今も解消していないため、**外部利用者向けのサポートを約束するものではない**。
+
 ## Considered Options
 
 ### 配布構造

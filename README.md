@@ -74,4 +74,4 @@ GitHub 経由で marketplace を登録する。public リポジトリなので�
 4. root の `marketplace.json` に新 plugin を 1 entry 追加
 5. `make regen-drafter-configs` で release-drafter の config を生成
 6. `CONTEXT-MAP.md` にコレクションの所在と概要を追記
-7. **初回 merge 後、release draft の tag を `v0.1.0` → `v0.0.1` に付け替える**（新規コレクションは直前のリリースが無いため version-resolver の patch 固定が効かず、release-drafter の初期値 `0.1.0` が出る）：`gh release edit --repo gotomts/claude-collections <collection>/v0.1.0 --tag <collection>/v0.0.1 --title <collection>/v0.0.1`
+7. **初回リリースは tag 付け替えと publish を同時に行う**（新規コレクションは直前のリリースが無いため version-resolver の patch 固定が効かず、release-drafter の初期値 `v0.1.0` が出る。draft のまま `--tag` だけ直しても次の main push で drafter に戻されるので、`--draft=false` と同時に指定する）：`gh release edit --repo gotomts/claude-collections <collection>/v0.1.0 --tag <collection>/v0.0.1 --title <collection>/v0.0.1 --draft=false`
