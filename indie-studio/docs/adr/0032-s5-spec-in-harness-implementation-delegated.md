@@ -45,6 +45,8 @@ Spec の生成順は **enhance-superpowers の順序に合わせる**（`summary
 
 ### D2. 成果物は enhance-superpowers の入力契約に従う
 
+> **※ 本 D2 の入力契約は [ADR-0034](0034-implementation-spec-file-suffix.md) で改定された。最新の契約は ADR-0034 を参照。**
+
 委譲先が Step 0 の状態判定で成果物を glob するため、**形式は enhance-superpowers 側の仕様に合わせる**。これは**暗黙の契約**であり、勝手に変えると連鎖が壊れる。
 
 | 項目 | 契約 |

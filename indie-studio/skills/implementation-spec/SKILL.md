@@ -1,6 +1,6 @@
 ---
 name: implementation-spec
-description: 起票済みの実装チケット(Linear)と技術設計 docs を起点に、1 スライス分の実装仕様(summary/design/gwt/pr-description/plan)を確定し、issue を精緻化してから実装以降を enhance-superpowers へ委譲したいときに使う、AI 自律開発ハーネスのステージ5スキル。上流の確定物(tech / screen-specs / index.md)から起こすので要件を会話で作り直さない。分解・起票は上流(decomposition)、実装・検証・PR は enhance-superpowers の責務。
+description: 起票済みの実装チケット(Linear)と技術設計 docs を起点に、1 スライス分の実装仕様(summary/spec/gwt/pr-description/plan)を確定し、issue を精緻化してから実装以降を enhance-superpowers へ委譲したいときに使う、AI 自律開発ハーネスのステージ5スキル。上流の確定物(tech / screen-specs / index.md)から起こすので要件を会話で作り直さない。分解・起票は上流(decomposition)、実装・検証・PR は enhance-superpowers の責務。
 argument-hint: "--slice=S-{nn}  # 対象スライスの冪等キー (省略時は index.md の依存順から未着手の先頭を提示して 1 問確認)"
 maintainer: gotomts
 ---
@@ -28,7 +28,7 @@ AI 自律開発ハーネスの **ステージ5** スキル。実行環境は **C
 S4 decomposition        骨格 → issue 起票
   ↓
 本スキル
-  summary → [design + gwt + pr-description] → issue 精緻化 → plan
+  summary → [spec + gwt + pr-description] → issue 精緻化 → plan
   ↓
 enhance-superpowers:enhance-executing-plans
   → gwt-test → write-review-response → finish-spec-pr（PR まで自動連鎖）
@@ -41,7 +41,7 @@ enhance-superpowers:enhance-executing-plans
 ```text
 docs/indie-studio/implementation/{S-nn}-{slug}/
 ├── {YYYY-MM-DD}-{slug}-summary.md
-├── {YYYY-MM-DD}-{slug}-design.md
+├── {YYYY-MM-DD}-{slug}-spec.md
 ├── {YYYY-MM-DD}-{slug}-gwt.md
 ├── {YYYY-MM-DD}-{slug}-pr-description.md
 └── {YYYY-MM-DD}-{slug}-plan.md
@@ -52,12 +52,15 @@ docs/indie-studio/implementation/{S-nn}-{slug}/
 
 ## ⚠️ 委譲先の入力契約（勝手に変えない・ADR-0032 D2）
 
-**成果物の形式は `enhance-superpowers` 側の仕様**である。委譲先が Step 0 の状態判定で glob するため、**崩すと連鎖が壊れる**。
+**成果物の形式は `enhance-superpowers` 側の仕様**である。ただし**全てが必須なわけではない** — 実際に崩すと連鎖が壊れるのは次の 2 つで、他は緩い。
+
+- **`*-plan.md` の存在と `## レビュー履歴` セクション**（`enhance-executing-plans` Step 0 は存在を前提として要求し〔無ければ error 中断〕、さらに末尾の `## レビュー履歴` を Read して再開位置を判定する。**存在するだけでは足りない**）
+- **`*-gwt.md` の checklist と履歴セクション**（`gwt-test` が読んで判定に使う）
 
 | 項目 | 契約 |
 |---|---|
-| ファイル名 | `{YYYY-MM-DD}-{slug}-{suffix}.md`。suffix は `summary` / **`design`** / `gwt` / `pr-description` / `plan` |
-| **suffix は `design`** | 呼称は「spec」だが**ファイル名は `design`**。`enhance-executing-plans` と `gwt-test` が `design` で glob するため、`spec.md` にすると発見されない |
+| ファイル名 | `{YYYY-MM-DD}-{slug}-{suffix}.md`。suffix は `summary` / **`spec`** / `gwt` / `pr-description` / `plan` |
+| **suffix は `spec`** | 実装の詳細設計は **`spec.md`**。`design` は UI デザイン仕様に明け渡す（`design-direction` / `DESIGN.md` と衝突するため）。**委譲先はこれを要求しない** — 検証したところ `gwt-test` / `write-review-response` / `finish-spec-pr` は `design` に一切言及せず、`enhance-executing-plans` のハード要件も `*-plan.md`（存在＋`## レビュー履歴`）のみ（ADR-0034） |
 | `plan.md` | `## レビュー履歴` セクション必須（`enhance-executing-plans` の状態判定が読む） |
 | `gwt.md` | `- [ ] AC-N: ...` 形式の checklist、`## 変更履歴`（`{YYYY-MM-DD HH:MM}` 逆時系列）、`## レビュー履歴` 必須（`gwt-test` が読む） |
 | `pr-description.md` | `## やったこと` / `## 動作確認方法` は必須。**`## 補足` は内容が無ければセクションごと削除してよい**（`finish-spec-pr` 自身が「内容がなければセクションごと削除」と規定しているため、空で残すほうが契約違反） |
@@ -78,7 +81,7 @@ docs/indie-studio/implementation/{S-nn}-{slug}/
 3. 出力先を glob して既存成果物を確認：
    - 未存在 → Step 1 から
    - 一部存在 → 欠けている成果物から再開
-   - 5 つ揃い済み → **design.md の `## レビュー履歴` にある `設計承認済み` marker**（Step 3-a）を確認。**あり** → Step 5（委譲）へ／**なし** → Step 2 の承認から（marker は Step 3-a 時点で plan.md が未生成のため design.md に書く）
+   - 5 つ揃い済み → **spec.md の `## レビュー履歴` にある `設計承認済み` marker**（Step 3-a）を確認。**あり** → Step 5（委譲）へ／**なし** → Step 2 の承認から（marker は Step 3-a 時点で plan.md が未生成のため spec.md に書く）
 4. 判定結果を user に明示。
 
 ### Step 1: summary 生成
@@ -91,11 +94,11 @@ docs/indie-studio/implementation/{S-nn}-{slug}/
 - スコープは**本スライス（= 1 PR）に限る**
 - 不足・矛盾があれば user に確認するが、確定済みの要件は問い直さない
 
-### Step 2: design + gwt + pr-description を一括生成 → 承認 1 回
+### Step 2: spec + gwt + pr-description を一括生成 → 承認 1 回
 
 3 つまとめて生成し、**揃ってから人間の承認 1 回**（enhance-superpowers ADR-0011 と同型）。
 
-**design.md**（実装詳細仕様）
+**spec.md**（実装詳細仕様）
 - 材料＝`tech/`（architecture / domain-model / perf-budget / security）・該当 screen-specs・`DESIGN.md`・`CONTEXT.md`
 - モジュール配置・型・関数分割・データフロー・エラー処理を具体で書く
 - architecture 規約は S3 確定の monorepo ＋ モジュラーモノリス ＋ クリーンアーキ ＋ DDD
@@ -109,7 +112,7 @@ docs/indie-studio/implementation/{S-nn}-{slug}/
 - `shared:qa-engineer` を能動 dispatch（異常系 / 境界値 / 空状態の網羅性）
 
 **pr-description.md**
-- `## やったこと`（design のスコープ）／`## 補足`（無ければセクションごと削除）／`## 動作確認方法`（gwt の AC 由来）
+- `## やったこと`（spec のスコープ）／`## 補足`（無ければセクションごと削除）／`## 動作確認方法`（gwt の AC 由来）
 
 **承認（人間ゲート）**：3 file 揃えて提示する。あわせて次を添える。
 
@@ -123,7 +126,7 @@ docs/indie-studio/implementation/{S-nn}-{slug}/
 
 **3-a. marker を記録**
 
-plan.md はまだ無いので、**design.md 末尾の `## レビュー履歴`** に記録する：
+plan.md はまだ無いので、**spec.md 末尾の `## レビュー履歴`** に記録する：
 
 ```text
 {YYYY-MM-DD HH:MM} - 設計承認済み (implementation-spec Step 2 / gwt-hash: sha256:xxxx)
@@ -135,16 +138,16 @@ plan.md はまだ無いので、**design.md 末尾の `## レビュー履歴`** 
 
 **issue 精緻化は自律操作**（`CONTEXT.md` の大枠ゲート定義「起票・精緻化・push・PR open は自律」）。停止しない。
 
-- design.md / gwt.md への参照リンク
+- spec.md / gwt.md への参照リンク
 - gwt.md の AC を issue の受入条件へ反映（**既存 AC は置換せず追記し差分を明示**）
 
 **冪等性**：issue 本文末尾に `<!-- indie-studio-sync: S-{nn} gwt-hash:sha256:xxxx -->` を埋める。書き戻し前に読み、**同じ hash があれば no-op**。hash が違う場合のみ差分を追記して marker を更新する。
 
-**issue が無い場合**（Step 0 の 3 つ目のケース）は本 Step をスキップし、その旨を design.md のレビュー履歴に記録する。
+**issue が無い場合**（Step 0 の 3 つ目のケース）は本 Step をスキップし、その旨を spec.md のレビュー履歴に記録する。
 
 ### Step 4: plan 生成
 
-材料＝design.md と F-ID。実装手順を書く。
+材料＝spec.md と F-ID。実装手順を書く。
 
 - **`## レビュー履歴` セクション必須**（委譲先の状態判定が読む）
 - テスト戦略は S3 が決めた値（Web=Playwright／モバイル=Maestro・integration_test+patrol で主要フローに絞る）
@@ -161,6 +164,7 @@ enhance-superpowers:enhance-executing-plans --output-dir=docs/indie-studio/imple
 以降 `gwt-test` → `write-review-response` → `finish-spec-pr` が自動連鎖して PR まで到達する。**本スキルは実装・検証・レビュー・PR のロジックを持たない**（ADR-0032 D4）。
 
 - `--gate-mode=aggregate` を渡すかは運用判断（enhance-superpowers ADR-0014 E3）。渡さなければ従来どおり各 Phase で承認を取る
+- **invocation 時に「実装の詳細仕様は `*-spec.md`」と明示する。** `enhance-executing-plans` は executor へ渡す「参照 docs」を `design.md` と名指ししているため（同 skill の Step 3）、伝えないと executor が spec.md を読み落とす。**これは prompt での context 提供であり、enhance-superpowers 側の変更ではない**
 - **`enhance-superpowers` 側には引数以外の要求をしない**（変更を加えない・ADR-0032 D5）
 - 連鎖が途切れたら該当 skill を直接 invoke して復帰させる（`--output-dir` を同じ値で渡すこと）
 
@@ -190,4 +194,4 @@ enhance-superpowers:enhance-executing-plans --output-dir=docs/indie-studio/imple
 
 ## 関連 ADR
 
-本スキル＝ADR-0032（D1 担当範囲 / D2 入力契約 / D3 上流由来 / D4 委譲 / D5 enhance-superpowers 不変）。ステージ全体＝ADR-0013/0017。評価ループ＝ADR-0018。決定記録＝ADR-0019。適応 PR ゲート＝ADR-0008。issue 精緻化の自律＝ADR-0007。出力レイアウト＝ADR-0016/0028。中立 agent への context 受け渡し＝ADR-0031。plugin 依存＝root ADR-0009。委譲先の引数＝enhance-superpowers ADR-0014。
+本スキル＝ADR-0032（D1 担当範囲 / D2 入力契約 / D3 上流由来 / D4 委譲 / D5 enhance-superpowers 不変）。**ファイル名 suffix ＝ADR-0034**（ADR-0032 D2 を改定し `design` → `spec`）。ステージ全体＝ADR-0013/0017。評価ループ＝ADR-0018。決定記録＝ADR-0019。適応 PR ゲート＝ADR-0008。issue 精緻化の自律＝ADR-0007。出力レイアウト＝ADR-0016/0028。中立 agent への context 受け渡し＝ADR-0031。plugin 依存＝root ADR-0009。委譲先の引数＝enhance-superpowers ADR-0014。
