@@ -14,7 +14,7 @@ S5 には**スライス単位の実装詳細設計が無かった**。S3 `tech-d
 
 1. **上流成果物を捨てていた。** `enhance-brainstorming` の Phase 1 は「1 ターン 1 問で要件・制約・成功基準を詰める」「2-3 アプローチを提示して合意」から始まる。S1〜S4 で要件もアプローチも確定済みなのに、**会話で作り直す**ことになる。
 2. **issue を扱えない。** `enhance-superpowers` は issue の入力も書き戻しも持たない。S5 に必須の「issue 精緻化」が抜ける。
-3. **順序を満たせない。** ハーネスに必要な順序は `骨格 → issue → summary → [spec + gwt + pr-description] → issue 精緻化 → plan → 実装` だが、`enhance-brainstorming` は Phase 3 の直後に制御を返さずそのまま Phase 4（plan）へ進むため、**plan の前に issue 精緻化を挟めない**。
+3. **順序を満たせない。** ハーネスに必要な順序は `骨格 → issue → summary → [design + gwt + pr-description] → issue 精緻化 → plan → 実装` だが、`enhance-brainstorming` は Phase 3 の直後に制御を返さずそのまま Phase 4（plan）へ進むため、**plan の前に issue 精緻化を挟めない**。
 
 ### enhance-superpowers を変更しないという制約
 
@@ -31,7 +31,7 @@ S4 decomposition          骨格 → issue 起票（既存）
   ↓
 S5 skill（本 ADR で新設）
   1. issue を起点に summary を生成
-  2. spec + gwt + pr-description を一括生成
+  2. design + gwt + pr-description を一括生成
   3. issue 精緻化（AC と設計リンクを issue へ反映）
   4. plan を生成
   ↓
@@ -39,27 +39,25 @@ enhance-superpowers:enhance-executing-plans を invoke
   → gwt-test → write-review-response → finish-spec-pr（PR まで自動連鎖）
 ```
 
-Spec の生成順は **enhance-superpowers の順序に合わせる**（`summary → [spec + gwt + pr-description] → plan`）。`spec` / `gwt` / `pr-description` は**まとめて生成し承認 1 回**（enhance-superpowers ADR-0011 と同型）。**issue 精緻化を plan の前に挟む**点だけが独自。
+Spec の生成順は **enhance-superpowers の順序に合わせる**（`summary → [design + gwt + pr-description] → plan`）。`design` / `gwt` / `pr-description` は**まとめて生成し承認 1 回**（enhance-superpowers ADR-0011 と同型）。**issue 精緻化を plan の前に挟む**点だけが独自。
 
 前回の 2 スキル分割（設計用・実装用）は採らない。実装以降を丸ごと委譲するため、indie-studio 側は Spec + issue 精緻化の 1 本で足りる。
 
 ### D2. 成果物は enhance-superpowers の入力契約に従う
 
-委譲先が成果物を読むため、**形式は enhance-superpowers 側の仕様に合わせる**。これは**暗黙の契約**である。ただし**必須の強さは一様でない** — ハード要件は `*-plan.md` の存在（`enhance-executing-plans` Step 0 が無ければ error 中断）と `*-gwt.md` の checklist / 履歴セクション（`gwt-test` が判定に使う）の 2 つで、他は緩い。
+> **※ suffix は [ADR-0034](0034-implementation-spec-file-suffix.md) で `design` → `spec` に改定された。** 本 D2 が `design` を採った根拠（「`enhance-executing-plans` と `gwt-test` が `design` で glob する」）は**事実誤認**で、`gwt-test` は `design` に一切言及していない。必須度の記述（「崩すと連鎖が壊れる」）も過度に強く、実際のハード要件は `*-plan.md` の存在と `*-gwt.md` の checklist / 履歴セクションの 2 つ。詳細と訂正後の契約は ADR-0034 を参照。**suffix 以外の契約項目（ファイル名フォーマット・配置・必須セクション）は本 D2 のまま有効。**
+
+委譲先が Step 0 の状態判定で成果物を glob するため、**形式は enhance-superpowers 側の仕様に合わせる**。これは**暗黙の契約**であり、勝手に変えると連鎖が壊れる。
 
 | 項目 | 契約 |
 |---|---|
-| ファイル名 | `{YYYY-MM-DD}-{slug}-{suffix}.md`。suffix は `summary` / **`spec`** / `gwt` / `pr-description` / `plan` |
+| ファイル名 | `{YYYY-MM-DD}-{slug}-{suffix}.md`。suffix は `summary` / **`design`** / `gwt` / `pr-description` / `plan` |
 | 配置 | `--output-dir` で委譲先へ渡すディレクトリに 5 つ揃える |
 | `plan.md` | `## レビュー履歴` セクション必須（`enhance-executing-plans` の状態判定が読む） |
 | `gwt.md` | `- [ ] AC-N: ...` 形式の checklist、`## 変更履歴`（`{YYYY-MM-DD HH:MM}` 逆時系列）、`## レビュー履歴` 必須（`gwt-test` が読む） |
 | `pr-description.md` | `## やったこと` / `## 動作確認方法` は必須。**`## 補足` は内容が無ければセクションごと削除**（`finish-spec-pr` 自身が「内容がなければセクションごと削除」と規定しているため、空で残すほうが契約違反） |
 
-**suffix は `spec` を使う**（`design` にはしない）。成果物が生成されるのは**サービス repo 側**であり、そこには S1b `design-direction` が作る repo-root の **`DESIGN.md`（デザイン憲法）が常に存在する**（複数 repo で共通の運用）。同じ repo の実装フェーズに `design.md` を置くと読み違えを招くため、`design` の語は UI デザイン側に明け渡す。（本リポジトリ `claude-collections` は UI を持たないので `DESIGN.md` は無いが、衝突が起きるのは生成先の repo である。）
-
-**委譲先はこれを妨げない**（検証済み）：`gwt-test` / `write-review-response` / `finish-spec-pr` は `design` に一切言及せず、`enhance-executing-plans` のハード要件も `*-plan.md` の存在のみ。同 skill の Step 0 は 5 成果物を glob 列挙するが、判定は `plan.md` のレビュー履歴だけで行い `design` の有無で分岐しない。
-
-ただし `enhance-executing-plans` は executor へ渡す「参照 docs」を `design.md` と名指ししているため、**invocation 時に「詳細仕様は `*-spec.md`」と prompt で伝える**（引数ではなく context 提供なので D5 に反しない）。
+**suffix は `design` を使う**（`spec` にはしない）。`enhance-executing-plans` と `gwt-test` が `design` で glob するため、改名すると発見できない。ハーネス内の呼称は「spec」でよいが、**ファイル名は `design`** とする。
 
 ### D3. 上流成果物を答え合わせ材料にする（会話で作り直さない）
 
@@ -68,10 +66,10 @@ Spec は**上流の確定物から起こす**。会話で要件を詰め直さ�
 | 生成物 | 主な材料 |
 |---|---|
 | summary | issue 本文、`decomposition/index.md` のスライス定義、F-ID |
-| spec | `tech/`（architecture / domain-model / perf-budget / security）、`screen-specs`、`DESIGN.md` |
+| design | `tech/`（architecture / domain-model / perf-budget / security）、`screen-specs`、`DESIGN.md` |
 | gwt | S4 `qa-engineer` が作った受入条件、`screen-specs` |
 | pr-description | gwt の AC |
-| plan | spec と F-ID |
+| plan | design と F-ID |
 
 ### D3-a. issue が無い場合の分岐（契約）
 
@@ -99,7 +97,7 @@ issue が無いのは 2 通りあり、扱いを分ける。
 - **Spec フェーズのロジックが 2 箇所に存在する**（enhance-superpowers の `enhance-brainstorming` と indie-studio の S5 skill）。これは D5 の制約を受け入れた結果の意図的な重複であり、**enhance-superpowers 側の改善は自動では伝播しない**。
 - D2 の入力契約は暗黙のため、**enhance-superpowers 側が形式を変えると indie-studio が壊れる**。S5 skill にこの依存を明記する。
 - 実装以降（実装・AC 検証・CodeRabbit・review-response・PR）は enhance-superpowers に一本化されるため、そこは重複しない。
-- issue 精緻化が plan の前に入り、issue には spec と gwt の情報が反映される（plan の情報は入らない）。
+- issue 精緻化が plan の前に入り、issue には design と gwt の情報が反映される（plan の情報は入らない）。
 - ADR-0015 の S5 記述（ディレクターが束ね親単位で職種を並列起動 → 評価 3 観点 → PR）は D1 / D4 で置き換わる。ロスター（ADR-0014 の S5 = 8 体）は委譲先の dispatch matrix に吸収される。
 - `enhance-superpowers` と `shared` の install が前提になる。
 
