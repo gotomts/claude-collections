@@ -30,7 +30,7 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 
 ## 引数 (ADR-0014)
 
-いずれも任意。**省略時は従来挙動と完全に同一**で、既存の呼び出しを壊さない。外部 collection から実装エンジンとして利用されるときに使う。
+いずれも任意。外部 collection から実装エンジンとして利用されるときに使う。**`--output-dir` と `--gate-mode` は省略時に従来挙動と完全に同一**。**`--no-chain` のみ既定挙動が変わり**、引数を渡さない場合も Step 7 で「実装へ進むか / Spec で止めるか」の 1 問確認が入る（yes で従来と同じ流れ。ADR-0014 E2）。
 
 | 引数 | 既定 | 効果 |
 |---|---|---|
@@ -163,7 +163,7 @@ Phase 1 / 2 でセキュリティ箇所が検出されたら `shared:security-en
 
 1. user に「Spec フェーズが完了しました」と明示
 2. **chain 判定** (ADR-0014 E2):
-   - `--no-chain` 指定時 → chain せず「実装は `enhance-superpowers:enhance-executing-plans` を invoke してください (`--output-dir` を同じ値で渡すこと)」と案内して**終了**
+   - `--no-chain` 指定時 → chain せず「実装は `enhance-superpowers:enhance-executing-plans` を invoke してください (**`--output-dir` と `--gate-mode` を受け取った値のまま渡すこと**。渡さないと出力先を見失い、gate 集約も既定の `per-phase` に戻る)」と案内して**終了**
    - 指定なし → user に「実装フェーズに進みますか / Spec で止めますか」**1 問確認**。止める場合は上記と同じ案内をして終了
 3. 続行する場合、`Skill` tool で `enhance-superpowers:enhance-executing-plans` skill を **chain invoke** (ADR-0012 D1 redesign 2026-07-04)。`--output-dir` / `--gate-mode` を受け取っていれば**そのまま引き継いで渡す**:
    - 実装前 = `shared:software-architect` 能動 dispatch (実装方針 review)

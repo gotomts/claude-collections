@@ -35,16 +35,20 @@ AI 自律開発ハーネスの **ステージ5後半（実装）** スキル。�
 
 1. `enhance-superpowers` / `shared` plugin が解決できるか確認。できなければ error 中断（install 手順を案内）。
 2. 対象スライスを確定：`--slice=S-{nn}` 指定があればそれ、無ければ `docs/indie-studio/implementation/` 配下で **plan.md はあるが PR 未作成**のものを提示して 1 問確認。`{slug}` の導出規則とディレクトリ解決は `indie-studio:implementation-design` と同一（index.md のスライス見出し由来・glob 前方一致）。
-3. `docs/indie-studio/implementation/S-{nn}-*/` を glob (冪等キー前方一致) して 5 成果物が揃っているか確認：
-   - **plan.md が無ければ停止**：「実装詳細設計がありません。`indie-studio:implementation-design --slice=S-{nn}` を先に実行してください」
-   - 揃っている → Step 1 へ（以降の細かい再開判定は `enhance-executing-plans` の Step 0 に委ねる。重複判定しない）
-4. 判定結果を user に明示。
+3. **設計成果物の可視性を解決する**（`implementation-design` の 2 経路のどちらで来ても動く）。`docs/indie-studio/implementation/S-{nn}-*/` を冪等キー前方一致 glob で探す：
+   - **(a) 現 branch にある** → そのまま使う（経路 A = 一気通貫、または設計 branch に戻ってきた場合）。**新しい branch を切らない**
+   - **(b) 現 branch に無い** → base（既定 `main`）に merge 済みか確認（`git cat-file -e origin/main:<path>` 等）。あれば **base から新 branch を切って**実装する（経路 B = 設計だけ先に merge した場合）
+   - **(c) どちらにも無い** → 停止：「実装詳細設計がありません。`indie-studio:implementation-design --slice=S-{nn}` を先に実行してください。設計済みの場合は、その branch に checkout するか設計 PR を merge してください」
+4. **5 成果物が揃っているか確認**。`summary` / `design` / `gwt` / `pr-description` / `plan` の **1 つでも欠けていれば停止**し、欠けている file 名を挙げて `indie-studio:implementation-design --slice=S-{nn}` を促す（部分生成状態で実装連鎖を始めない）。
+5. **設計完了 marker を確認**（`implementation-design` が plan.md 末尾に記録する `設計承認済み` marker）。無ければ「設計承認が未完了です」と報告し、`indie-studio:implementation-design --slice=S-{nn}` で Step 2 から再開するよう促して停止（承認ゲートの迂回を防ぐ）。
+6. 判定結果（どの経路で成果物を解決したか・branch をどうするか）を user に明示。
 
-### Step 1: branch 準備
+### Step 1: branch 準備（Step 0 の判定に従う）
 
-`shared:start-stage-branch` を invoke して、本スライス用の branch（＋必要なら worktree）を用意する。**1 スライス = 1 branch = 1 PR**。
+- **経路 A（現 branch に設計成果物がある）** → **branch を切らない**。その branch でそのまま実装する。設計 docs と実装が 1 PR にまとまる。
+- **経路 B（base に merge 済み）** → `shared:start-stage-branch` を invoke して **base から**本スライス用の branch（＋必要なら worktree）を用意する。
 
-設計フェーズと実装フェーズで branch が異なってよい（成果物は branch でなく `S-{nn}` 基準に置いてあるため・ADR-0032 D3）。
+いずれも **1 スライス = 1 PR**。経路 A では設計 commit も同じ PR に含まれる。
 
 ### Step 2: `enhance-superpowers:enhance-executing-plans` を chain invoke
 

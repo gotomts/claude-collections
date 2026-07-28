@@ -52,13 +52,14 @@ enhance-superpowers コレクションの実装フェーズ skill (ADR-0012 で�
 
 1. **`{出力先}` を確定**: `--output-dir` があればその値、無ければ `git rev-parse --abbrev-ref HEAD` → サニタイズ (`/` → `-`) → `docs/superpowers/{branch}/`
 2. `{出力先}` の既存 file を Glob で列挙、`summary/design/gwt/pr-description/plan` の存在有無を確認
-3. **前提**: `*-plan.md` が存在すること。無ければ error "plan.md がありません。enhance-brainstorming Phase 4 を完了させてください" + 中断
-4. plan.md 末尾の「## レビュー履歴」を Read し、以下を判定:
+3. **明示引数を優先**: `plan-file-path` が渡されていればそれを対象 plan.md として採用し、glob 探索より優先する。
+4. **前提**: (明示引数が無い場合) `{出力先}` に `*-plan.md` が存在すること。無ければ error "plan.md がありません。enhance-brainstorming Phase 4 を完了させてください" + 中断
+5. plan.md 末尾の「## レビュー履歴」を Read し、以下を判定:
    - 「実装前 software-architect dispatch」ログ有無 → 無ければ Step 1 から / あれば Step 3 (slice 単位 executor dispatch + review) から
    - 「gwt-test chain 完了」final marker 有 → 呼び出し元に返る (再 chain 不要)
    - 「gwt-test chain 起動 attempt」marker のみ有 (完了 marker なし) → user に「gwt-test を再 chain invoke しますか? (下流で失敗した可能性)」1 問確認 → yes なら Step 5 (再実行、marker は idempotent なので重複追記しない)、no なら終了
-5. `handoff.md` が同ディレクトリにあれば Read して state summary を取得、上記判定と突き合わせ (handoff 情報が優先されるとは限らない、あくまで補助)
-6. 判定結果を user に「現在 Phase = X、Step Y から再開します」と明示、user 1 問確認 (誤検出時の catch)
+6. `handoff.md` が同ディレクトリにあれば Read して state summary を取得、上記判定と突き合わせ (handoff 情報が優先されるとは限らない、あくまで補助)
+7. 判定結果を user に「現在 Phase = X、Step Y から再開します」と明示、user 1 問確認 (誤検出時の catch)
 
 ### Step 1: 前提確認 + AI 利用ポリシー案内 (ADR-0010)
 

@@ -37,5 +37,5 @@ accepted（ADR-0010 の repo-native を全ステージの出力に具体化。AD
 
 - **S3 の repo セットアップ責務**：`AGENTS.md`（正本）・`CLAUDE.md`（`@AGENTS.md` ポインタ）・初期 `docs/adr/`・`CONTEXT.md` を配置/種まき。`AGENTS.md` は CONTEXT.md / DESIGN.md / 各設計ページ / ADR を参照する。（**ADR-0020 で改訂**：`DESIGN.md` は S3 配置ではなく、S1 後に具体デザイン憲法として組み上げプロトに先立って与える living file。生成機構は ADR-0020 決定5で未定）
 - **DESIGN.md の位置づけ**：**ADR-0020 で再定義**。意図版 design-system.md は廃止、`DESIGN.md`＝プロトに先立つ具体のデザイン憲法で G2 以降 living に更新。
-- **S5 はコードと PR が成果物**（docs ではない）。実装知見だけ `docs/adr/`・`CONTEXT.md` に追記。（**ADR-0032 D3 で更新**：S5 は実装詳細設計の 5 成果物を `docs/indie-studio/implementation/{S-nn}-{slug}/` に出す。主成果がコードと PR である点は不変）
+- **S5 はコードと PR が成果物**（docs ではない）。実装知見だけ `docs/adr/`・`CONTEXT.md` に追記。（**ADR-0032 D3 で二層構造に更新**：S5 の**主成果**はコードと PR で不変。加えて **S5 前半（実装詳細設計）の 5 成果物**を `docs/indie-studio/implementation/{S-nn}-{slug}/` に出す。これは実装の入力であり主成果ではない）
 - 各ステージ出力は commit scope（`docs(discovery):` / `docs(tech):` 等）で分離可能。

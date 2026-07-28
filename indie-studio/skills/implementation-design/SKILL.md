@@ -53,11 +53,24 @@ docs/indie-studio/implementation/{S-nn}-{slug}/
 └── {YYYY-MM-DD}-{slug}-plan.md
 ```
 
-**branch ではなく冪等キー `S-{nn}` 基準**。設計時と実装時で branch が変わっても成果物を発見できるようにするため。
+**branch ではなく冪等キー `S-{nn}` 基準**。設計時と実装時で branch が変わっても成果物を**発見**できるようにするため。
 
 - **`{slug}` の導出元は `index.md` のスライス見出し**（唯一の真実源）。見出しを小文字 kebab-case 化し、英数字とハイフン以外を除去して最大 40 文字で切る。Linear の issue title は使わない（編集されうるため）。
 - **ディレクトリ解決は冪等キーの前方一致 glob `docs/indie-studio/implementation/S-{nn}-*/`** で行う。`{slug}` の再導出結果が過去と食い違っても既存ディレクトリを発見できる。
 - glob が **2 件以上**ヒットしたら、どれを使うか user に 1 問確認する（slug 変更で重複が生まれた可能性を報告）。
+
+### 発見性と可視性は別問題（git 契約）
+
+冪等キー基準の命名が解くのは**発見性**（どこを見ればよいか）だけで、**可視性**（その branch から実際に見えるか）は解かない。設計成果物が設計 branch にしか commit されていなければ、別 branch の実装セッションからは見えない。
+
+そこで **2 つの経路を両方サポートする**（Step 4 で人間が選ぶ）。
+
+| 経路 | 設計成果物の置き場 | 実装セッションからの見え方 |
+|---|---|---|
+| **A. そのまま実装** | 設計と実装が**同じ branch**。最終的に 1 PR に設計 docs と実装が両方入る | 同 branch なので当然見える |
+| **B. 設計だけ先に merge** | 設計成果物**だけの PR** を出して base（既定 `main`）に merge | merge 後は base から branch を切れば見える。複数スライスの設計を先行させられる |
+
+`indie-studio:implementation` は **A / B のどちらで来ても動く**（Step 0 で現 branch と base の両方を探す）。
 
 ## 動作
 
@@ -68,12 +81,19 @@ docs/indie-studio/implementation/{S-nn}-{slug}/
 3. `docs/indie-studio/implementation/S-{nn}-*/` を glob して 5 成果物の有無を確認：
    - ディレクトリ未存在 or 全て未存在 → Step 1 から
    - 一部存在 → Step 2 で委譲する（`enhance-brainstorming` の Step 0 が Phase を判定するので**ここでは重複判定しない**）
-   - 5 成果物揃い済み → 「設計は完了しています。Linear 書き戻し（Step 3）から再開しますか / 実装（`indie-studio:implementation --slice=S-{nn}`）に進みますか」と 1 問確認
+   - 5 成果物揃い済み → **plan.md の「設計承認済み」marker（Step 3-a）を確認**：
+     - marker **あり** → 「設計は承認済みです。Linear 書き戻し（Step 3-b）から再開しますか / 実装（`indie-studio:implementation --slice=S-{nn}`）に進みますか」と 1 問確認
+     - marker **なし** → 生成済みだが未承認。**Step 2 へ**（`enhance-brainstorming` を同一引数で再 invoke し、Step 6-A の設計承認を取る）。file が揃っているだけで実装へ進ませない
 4. 判定結果を user に明示。
 
-### Step 1: context 組み立て
+### Step 1: branch 確認 + context 組み立て
 
-Linear issue と上記「入力」の docs を Read し、`enhance-brainstorming` に渡す context を組み立てる。**中立語彙で書かれた enhance-superpowers 側に indie-studio 固有値を prompt で明示的に渡す**（ADR-0031 の規律を skill 間 invocation にも適用）。
+**branch 確認**：`enhance-brainstorming` は各 Phase で commit するため、実行前に現 branch を確認する。
+
+- **`main` / `master` 上なら** `shared:start-stage-branch` を invoke して `S-{nn}` 由来の branch を作る（protected branch に直接 commit しない）。
+- **既に feature branch 上ならそのまま使う**（一気通貫で実装まで走る場合、この branch が実装 branch になる）。
+
+**context 組み立て**：Linear issue と上記「入力」の docs を Read し、`enhance-brainstorming` に渡す context を組み立てる。**中立語彙で書かれた enhance-superpowers 側に indie-studio 固有値を prompt で明示的に渡す**（ADR-0031 の規律を skill 間 invocation にも適用）。
 
 - **topic**：チケットのタイトル + 受入条件
 - **architecture 規約**：S3 で確定した monorepo ＋ モジュラーモノリス ＋ クリーンアーキ ＋ DDD（`AGENTS.md` / `CONTEXT.md` を読ませる）
@@ -105,21 +125,44 @@ Linear issue と上記「入力」の docs を Read し、`enhance-brainstorming
 
 **差し戻し時の再入経路**：Step 6-A で差し戻しが出たら、`enhance-brainstorming` 内部の差し戻し protocol（該当 file 再生成 → 5 成果物を揃えて再提示）で収束させる。制御が本スキルに戻った後に追加修正が必要になった場合は、**`enhance-brainstorming` を同一引数で再 invoke** する（Step 0 の中間状態判定が該当 Phase から再開する）。本スキルが 5 成果物を自前で書き直すことはしない（薄いアダプタの責務外）。
 
-### Step 3: Linear issue への書き戻し（自律・ADR-0007）
+### Step 3: 設計承認 marker の記録 + Linear issue への書き戻し（自律・ADR-0007）
 
-設計承認後、Linear issue を精緻化する。**issue 精緻化は自律操作**（ADR-0007 / `CONTEXT.md` の大枠ゲート定義「起票・精緻化・push・PR open は自律」）。停止しない。
+**3-a. 設計承認 marker を記録する**
 
-入力は **`{出力先}` の 5 成果物**（Step 2 の設計ゲートを通った経路でも、Step 0 の「5 成果物揃い済み」経路でも同じ）。
+Step 2 の設計承認が完了したら、**plan.md 末尾の「## レビュー履歴」に marker を追記**する：
+
+```text
+{YYYY-MM-DD HH:MM} - 設計承認済み (implementation-design Step 2 / gwt-hash: sha256:xxxx)
+```
+
+- `gwt-hash` は gwt.md の内容ハッシュ。3-b の冪等判定に使う。
+- **5 成果物が揃っているだけでは設計完了と見なさない。** この marker が唯一の完了判定である（`indie-studio:implementation` の Step 0 がこれを確認し、無ければ承認ゲートの迂回として停止する）。生成後・承認前に中断した場合、marker が無いので実装へ進めない。
+
+**3-b. Linear issue へ書き戻す**
+
+**issue 精緻化は自律操作**（ADR-0007 / `CONTEXT.md` の大枠ゲート定義「起票・精緻化・push・PR open は自律」）。停止しない。入力は **`{出力先}` の 5 成果物**（Step 2 の設計ゲートを通った経路でも、Step 0 の「5 成果物揃い済み」経路でも同じ）。
 
 - design.md / gwt.md への参照リンク
 - gwt.md の AC を issue の受入条件へ反映（**既存 AC は置換せず追記し、差分を明示する**）
 - 実装手順の要約（plan.md 由来）
 
-### Step 4: 停止 or 実装へ chain
+**冪等性（必須）**：issue 本文末尾に同期 marker `<!-- indie-studio-sync: S-{nn} gwt-hash:sha256:xxxx -->` を埋め込む。書き戻し前に issue 本文を読み、**同じ `gwt-hash` の marker が既にあれば no-op** で抜ける（Step 0 からの再開や同一設計の再実行で AC が重複しない）。hash が異なる場合のみ差分を追記し、marker を新しい hash に更新する。
 
-1. user に「設計フェーズ完了。実装に進みますか / ここで止めますか」**1 問確認**
-2. 止める → 「実装は `indie-studio:implementation --slice=S-{nn}` で再開できます」と案内して終了（**ケース 1**）
-3. 進む → `Skill` tool で `indie-studio:implementation` を **`--slice=S-{nn}` を渡して** chain invoke（**ケース 3**）
+**Linear issue が無い場合**：Step 0 で「index.md の骨格だけで設計を進める」を選んだ場合、書き戻す先が無い。この場合は **3-b をスキップし、その旨を plan.md のレビュー履歴に記録**する（`{timestamp} - Linear issue 不在のため書き戻しスキップ`）。**Step 4 の「そのまま実装へ進む」は引き続き選べる**（実装の入力は 5 成果物であって Linear issue ではないため）。ただし起票漏れの可能性があるので、Step 4 の提示時に「S4 `decomposition` での起票漏れの可能性」を併せて報告する。
+
+### Step 4: 次の行き先を選ぶ（3 択）
+
+設計成果物は現 branch に commit 済み。ここで **git 上の扱い**を人間が選ぶ（1 問・番号回答）。
+
+1. **そのまま実装へ進む**（ケース 3 = 一気通貫）
+   → `Skill` tool で `indie-studio:implementation` を **`--slice=S-{nn}` を渡して** chain invoke。**branch は切り替えない**（設計成果物が同 branch にあるため見える）。最終的に設計 docs と実装が 1 PR にまとまる。
+2. **設計だけ先に PR を出して merge する**（ケース 1 = 設計先行）
+   → `shared:finish-stage-pr` を invoke して**設計成果物だけの PR** を作成する。merge されれば base（既定 `main`）から見えるようになり、後日どの branch からでも実装できる。PR title は `docs(indie-studio): S-{nn} 実装詳細設計` 等、設計のみと分かる形にする。
+   → 案内：「merge 後に `indie-studio:implementation --slice=S-{nn}` を実行してください（base から branch を切って実装します）」
+3. **ここで止める**（ローカルに置いておく）
+   → 何もせず終了。**同じ branch に戻れば**続きから実行できる。案内：「`git checkout {現 branch}` してから `indie-studio:implementation --slice=S-{nn}`、または本スキルを再 invoke」
+
+**2 を選んだ場合の注意**：設計 PR は G5 の適応ゲート（根幹/非根幹）の対象外（コードを含まないため）。merge 判断は人間が行う。
 
 ## 人間が関与する点（実態・ADR-0032 D4）
 
@@ -156,7 +199,7 @@ Linear issue と上記「入力」の docs を Read し、`enhance-brainstorming
 | `enhance-superpowers` / `shared` 未 install | error 報告 + install 手順を案内して中断（Step 0） |
 | 対象スライスが index.md に無い | 上流 `indie-studio:decomposition` へ差し戻しを提案 |
 | glob が 2 件以上ヒット | どれを使うか user に 1 問確認（slug 変更による重複を報告） |
-| Linear issue が見つからない | index.md の骨格だけで設計を進めるか 1 問確認（起票漏れの可能性を報告） |
+| Linear issue が見つからない | index.md の骨格だけで設計を進めるか 1 問確認（起票漏れの可能性を報告）。進める場合は Step 3-b をスキップし plan.md に記録、Step 4 の実装 chain は可（実装の入力は 5 成果物であり Linear issue ではないため） |
 | S3 技術設計に F-ID 機能一覧が無い | 上流 `indie-studio:tech-design` へ差し戻し（decomposition と同じ停止条件） |
 | `enhance-brainstorming` が `--output-dir` を無視して `docs/superpowers/{branch}/` に出力 | 成果物を正しい出力先へ移動 → user に報告。再発するなら enhance-superpowers ADR-0014 E1 の実装を見直す |
 | 設計ゲートで根本的なスコープ相違が発覚 | 上流 `indie-studio:decomposition`（スライス粒度）へ差し戻しを提案 |

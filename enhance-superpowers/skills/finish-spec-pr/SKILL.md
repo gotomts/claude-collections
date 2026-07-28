@@ -46,12 +46,13 @@ maintainer: gotomts
 
 1. **`{出力先}` を確定**: `--output-dir` があればその値、無ければ `git rev-parse --abbrev-ref HEAD` → サニタイズ (`/` → `-`) → `docs/superpowers/{branch}/`
 2. `{出力先}` を Glob で列挙、`*-pr-description.md` / `*-review-response.md` の存在有無を確認
-3. **前提**: pr-description.md が存在すること (Spec フェーズ完了)。無ければ error "pr-description.md がありません。enhance-brainstorming Phase 3 を完了させてください" + 中断
-4. **前提**: `git branch --show-current` が `main` でないこと。main なら error "main 直作業では PR を出せません" + 中断
-5. review-response.md 存在 = レビュー対応まで完了、pr-description.md「## やったこと」が実装 diff と齟齬ないかを判定に含める
-6. 既存 PR check: `gh pr list --head <current-branch>` で同 branch の open PR が既にあるか確認 (あれば「既存 PR に上書き push だけで良いか、新規 PR 作成か」を user に 1 問確認)
-7. `handoff.md` が同ディレクトリにあれば Read (補助情報)
-8. 判定結果を user に「現在 Phase = X、Step Y から再開します」と明示、user 1 問確認
+3. **明示引数を優先**: `pr-description-path` が渡されていればそれを採用し、glob 探索より優先する。
+4. **前提**: (明示引数が無い場合) pr-description.md が存在すること (Spec フェーズ完了)。無ければ error "pr-description.md がありません。enhance-brainstorming Phase 3 を完了させてください" + 中断
+5. **前提**: `git branch --show-current` が `main` でないこと。main なら error "main 直作業では PR を出せません" + 中断
+6. review-response.md 存在 = レビュー対応まで完了、pr-description.md「## やったこと」が実装 diff と齟齬ないかを判定に含める
+7. 既存 PR check: `gh pr list --head <current-branch>` で同 branch の open PR が既にあるか確認 (あれば「既存 PR に上書き push だけで良いか、新規 PR 作成か」を user に 1 問確認)
+8. `handoff.md` が同ディレクトリにあれば Read (補助情報)
+9. 判定結果を user に「現在 Phase = X、Step Y から再開します」と明示、user 1 問確認
 
 ### Step 1: 前提確認 + pr-description.md 読み込み + AI 利用ポリシー案内 (ADR-0010)
 
