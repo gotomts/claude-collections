@@ -16,6 +16,7 @@
 - **エージェントは実在職種名で**設計する（成果物名・概念で割らない）。
 - **エージェントの起動は `plugin:agent` 形式の修飾名で行う**（例：`shared:software-architect` / `indie-studio:ux-researcher`）。**bare name は解決されない**。同名 agent を持つ plugin が共存すると片方の agent セットが registry から丸ごと落ちるため、**コレクション間で agent 名を重複させないこと**（ADR-0009）。skill は名前空間が効くのでこの制約を受けない。
 - 設計判断は該当コレクションの `docs/adr/` を読む。決定は inline／git／ADR に残す（専用の決定ログ file は作らない）。
+- ADR は原則 immutable（決定の根拠を保存するため直接書き換え・削除しない。方針変更は新 ADR で supersede／extends する）。**例外**：decision を伴わない誤記録（非-decision を誤って ADR 化した bug／void な記録）は、痕跡を残さず削除してよい（immutable が守るのは「判断の根拠」であって、判断でないものは保存対象外）。末尾番号を削除した場合は後続 ADR を詰めて連番を保つ。
 
 ## shared plugin（共有エージェント／スキル）
 
