@@ -1,7 +1,10 @@
+# !!! GENERATED FILE — DO NOT EDIT !!!
+# Source: .github/release-drafter-template.yml
+# Regenerate: make regen-drafter-configs
 # release-drafter のテンプレ config (ADR-0006 / ADR-0007)。
 #
 # `scripts/regen-drafter-configs.sh` (Makefile target: `regen-drafter-configs`)
-# が本テンプレの {{COLLECTION}} を実際の名前に置換し、
+# が本テンプレの shared を実際の名前に置換し、
 # `.github/release-drafter-<collection>.yml` を生成して commit する。
 # 生成された config は release-drafter@v6 が default branch (main) から
 # API 経由で読む (本仕組みは ADR-0006 Revised 節を参照)。
@@ -15,24 +18,24 @@
 # 「特定コレクションだけ override」の仕組み (例: <collection>/.release-drafter.yml
 #  を見て merge) を検討する。
 
-name-template: "{{COLLECTION}}/v$RESOLVED_VERSION"
-tag-template: "{{COLLECTION}}/v$RESOLVED_VERSION"
+name-template: "shared/v$RESOLVED_VERSION"
+tag-template: "shared/v$RESOLVED_VERSION"
 
 # release-drafter@v6 は既存 draft / last release を tag-prefix で filter して探す
 # (findPreviousReleases)。未設定だと matrix の各 collection job が「repo 内で最初に
 # 見つかった draft」を取り違えて上書きし合う draft race が起きる (ADR-0007 / issue #22)。
 # collection ごとに固有 prefix を与えて draft 探索を隔離する。
 # prefix strip 後 (例 "indie-studio/v0.0.4" → "0.0.4") は正しい semver として version 解決される。
-tag-prefix: "{{COLLECTION}}/v"
+tag-prefix: "shared/v"
 
-# {{COLLECTION}}/ 配下に触れた PR のみ集約。collection 間の draft 漏れを構造的に隔離。
+# shared/ 配下に触れた PR のみ集約。collection 間の draft 漏れを構造的に隔離。
 #
 # vendoring 廃止 (root ADR-0009) 以前は、shared/ の変更が make sync で
 # <collection>/agents/ にも現れるため consumer の draft に載っていた。現在 shared は
 # 独立した plugin であり自前の draft (tag-prefix "shared/v") を持つので、
 # shared/ の変更は shared の draft にのみ載せる。consumer 側で二重計上しない。
 include-paths:
-  - "{{COLLECTION}}/"
+  - "shared/"
 
 categories:
   - title: "✨ Features"
@@ -85,4 +88,4 @@ template: |
 
   $CHANGES
 
-  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...{{COLLECTION}}/v$RESOLVED_VERSION
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...shared/v$RESOLVED_VERSION

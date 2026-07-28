@@ -164,20 +164,20 @@ components:                       # map<string, map<string, string>> 2 階層必
 
 | エージェント | 担当成果物 | 依存 |
 |---|---|---|
-| `product-designer` | direction-pick 対話 → token plan → DESIGN.md compose | S1 成果物・visual-designer 出力 |
-| `visual-designer` | 参考画像 → mood / palette / typography vibe の構造化抽出 | 参考画像（画像なし時は fallback） |
-| `reviewer` | DESIGN.md draft の評価・差し戻し（独立職種・mock は評価対象外） | DESIGN.md draft |
-| `ui-prototyper` | reviewer 合格版 DESIGN.md → HTML mock 生成（token を CSS variable に 1:1 写像） | DESIGN.md（reviewer 合格版）・screens.md |
+| `indie-studio:product-designer` | direction-pick 対話 → token plan → DESIGN.md compose | S1 成果物・visual-designer 出力 |
+| `indie-studio:visual-designer` | 参考画像 → mood / palette / typography vibe の構造化抽出 | 参考画像（画像なし時は fallback） |
+| `shared:reviewer` | DESIGN.md draft の評価・差し戻し（独立職種・mock は評価対象外） | DESIGN.md draft |
+| `indie-studio:ui-prototyper` | reviewer 合格版 DESIGN.md → HTML mock 生成（token を CSS variable に 1:1 写像） | DESIGN.md（reviewer 合格版）・screens.md |
 
 依存順：direction-pick → 画像 ingest（あれば、direction-pick と並列可）→ token plan → AI-defaults critique → compose → reviewer → **mock 生成（ui-prototyper）→ 視覚確認ゲート**。
 
 ## ディレクター制御フロー
 
-**起動機構**：ディレクター（＝スキル本体のメインセッション）は各職種を **Agent tool**（`subagent_type` ＝ エージェントファイル名：`product-designer` / `visual-designer` / `reviewer` / `ui-prototyper`）で spawn する。プロンプトに mode・S1 成果物の所在・参考画像 path（あれば）・既存 DESIGN.md draft の所在（あれば）を渡す。差し戻しは**同じ職種を continuation で再起動**（findings を渡す・ADR-0018）。
+**起動機構**：ディレクター（＝スキル本体のメインセッション）は各職種を **Agent tool** で spawn する。`subagent_type` は **`plugin:agent` 形式の修飾名**を使う（bare name は解決されない・root ADR-0009）：`indie-studio:product-designer` / `indie-studio:visual-designer` / `shared:reviewer` / `indie-studio:ui-prototyper`。プロンプトに mode・S1 成果物の所在・参考画像 path（あれば）・既存 DESIGN.md draft の所在（あれば）を渡す。差し戻しは**同じ職種を continuation で再起動**（findings を渡す・ADR-0018）。
 
-`product-designer` / `visual-designer` / `ui-prototyper` は indie-studio 独自 agent で mode/所在の受け渡しで足りる。一方 **`reviewer` は `shared/agents/` 由来の中立 agent**（body に固有値を持たず「呼び出し元 skill が指定」と宣言）なので、spawn 時に次を prompt へ**明示的に埋める**（ADR-0031）。
+`indie-studio:product-designer` / `indie-studio:visual-designer` / `indie-studio:ui-prototyper` は indie-studio 独自 agent で mode/所在の受け渡しで足りる。一方 **`shared:reviewer` は `shared` plugin の中立 agent**（body に固有値を持たず「呼び出し元 skill が指定」と宣言）なので、spawn 時に次を prompt へ**明示的に埋める**（ADR-0031）。
 
-- **`reviewer`**: **評価観点セット**＝**spec compliance**（DESIGN.md が Google Labs `design.md` spec (alpha) に pin・フラット map / unit suffix / hyphen variant / 英語単独セクション名 / shadows・motion の YAML top-level 不使用。違反は `blocker`・ADR-0029）／真実源整合（S1 corpus・anchors）／内部一貫性。**差し戻し protocol**＝round1 fresh で完全 findings マニフェスト→round2-3 continuation で解消のみ・最大 3R（ADR-0018）。**mock は評価対象外**（視覚確認ゲートで別軸）。観点 ⑤（Steelman/Fails if）は S1b では適用しない（design 憲法評価のため）。
+- **`shared:reviewer`**: **評価観点セット**＝**spec compliance**（DESIGN.md が Google Labs `design.md` spec (alpha) に pin・フラット map / unit suffix / hyphen variant / 英語単独セクション名 / shadows・motion の YAML top-level 不使用。違反は `blocker`・ADR-0029）／真実源整合（S1 corpus・anchors）／内部一貫性。**差し戻し protocol**＝round1 fresh で完全 findings マニフェスト→round2-3 continuation で解消のみ・最大 3R（ADR-0018）。**mock は評価対象外**（視覚確認ゲートで別軸）。観点 ⑤（Steelman/Fails if）は S1b では適用しない（design 憲法評価のため）。
 
 **期待マニフェスト**（完全性ガードの基準）：
 
@@ -189,16 +189,16 @@ components:                       # map<string, map<string, string>> 2 階層必
 
 **並列/直列**：画像 ingest（visual-designer）と direction-pick 序盤の anchors / design-principles 読み込みは並列可。token plan 以降は直列（compose は単一ファイル DESIGN.md への書き込みのため）。mock 生成は reviewer 合格後の直列ステップ（DESIGN.md と並列に書かない）。
 
-1. **direction-pick 対話**（人間ゲート・type-2）：`product-designer` を `mode=direction-pick` で spawn し、3 問の一問一答で direction を 1 つに絞る（後述）。3 問で握れない場合は decide-record-proceed（候補を ⚠️繰り越しで残す）。
-2. **画像 ingest**（任意・並列可）：参考画像があれば `visual-designer` を `mode=extract` で spawn し、画像から mood / palette / typography vibe を構造化抽出。画像なしは `mode=tone-fallback` で design-principles のみから記述子抽出。
-3. **token plan**：`product-designer` を `mode=compose` で continuation 再起動し、color 4-6 hex（named）/ type 2+ roles / spacing scale / radius / signature element を内製。
+1. **direction-pick 対話**（人間ゲート・type-2）：`indie-studio:product-designer` を `mode=direction-pick` で spawn し、3 問の一問一答で direction を 1 つに絞る（後述）。3 問で握れない場合は decide-record-proceed（候補を ⚠️繰り越しで残す）。
+2. **画像 ingest**（任意・並列可）：参考画像があれば `indie-studio:visual-designer` を `mode=extract` で spawn し、画像から mood / palette / typography vibe を構造化抽出。画像なしは `mode=tone-fallback` で design-principles のみから記述子抽出。
+3. **token plan**：`indie-studio:product-designer` を `mode=compose` で continuation 再起動し、color 4-6 hex（named）/ type 2+ roles / spacing scale / radius / signature element を内製。
 4. **AI-defaults critique**（自己 critique・必須）：plan が AI デフォルト3種に陥っていないか自答（後述）。陥っていれば plan に戻す。
-5. **compose DESIGN.md**：`product-designer` continuation で、YAML frontmatter ＋ **mandatory 9 セクション**（必須）＋ **conditional 2 セクション**（要件が成立するときのみ）を **spec pin フォーマット**（ADR-0029）で `<service-repo>/DESIGN.md` に書く。フラット map / unit suffix / hyphen variant / 英語単独セクション名を守る。shadows は components 内 literal、motion は `## Motion` prose のみ。
-6. **reviewer 評価ループ**（ADR-0018）：`reviewer` を spawn（fresh）し、DESIGN.md の findings を完全マニフェストで返させる（**spec compliance** を評価観点に含む）。最大 3 ラウンド差し戻し。round2-3 は continuation で凍結スコープ確認のみ。finding ごとに ✅解消 ／ ➖省略(理由) ／ ⚠️未達(理由) を決着。**mock は reviewer の評価対象外**（次ステップで別軸として視覚確認する）。
-7. **HTML mock 生成**（ADR-0030）：`ui-prototyper` を `mode=mock` で spawn（fresh）。reviewer 合格版 DESIGN.md と `screens.md` を入力に、Component gallery + 主要 1〜2 画面 hybrid を 1 ファイル統合で `<service-repo>/docs/indie-studio/design-direction/mock/<service-slug>-design-mock.html` に書き出す。token は CSS custom property に 1:1 kebab-case 写像。
+5. **compose DESIGN.md**：`indie-studio:product-designer` continuation で、YAML frontmatter ＋ **mandatory 9 セクション**（必須）＋ **conditional 2 セクション**（要件が成立するときのみ）を **spec pin フォーマット**（ADR-0029）で `<service-repo>/DESIGN.md` に書く。フラット map / unit suffix / hyphen variant / 英語単独セクション名を守る。shadows は components 内 literal、motion は `## Motion` prose のみ。
+6. **reviewer 評価ループ**（ADR-0018）：`shared:reviewer` を spawn（fresh）し、DESIGN.md の findings を完全マニフェストで返させる（**spec compliance** を評価観点に含む）。最大 3 ラウンド差し戻し。round2-3 は continuation で凍結スコープ確認のみ。finding ごとに ✅解消 ／ ➖省略(理由) ／ ⚠️未達(理由) を決着。**mock は reviewer の評価対象外**（次ステップで別軸として視覚確認する）。
+7. **HTML mock 生成**（ADR-0030）：`indie-studio:ui-prototyper` を `mode=mock` で spawn（fresh）。reviewer 合格版 DESIGN.md と `screens.md` を入力に、Component gallery + 主要 1〜2 画面 hybrid を 1 ファイル統合で `<service-repo>/docs/indie-studio/design-direction/mock/<service-slug>-design-mock.html` に書き出す。token は CSS custom property に 1:1 kebab-case 写像。
 8. **視覚確認ゲート**（人間ゲート・type-2・最大 2 ループ・ADR-0030）：ディレクターが mock の path を提示し、人間に「1) OK（S2 へ進む） 2) 戻る（修正したい）」の 1 問を投げる。
    - **OK** → ステップ 9 へ。
-   - **戻る**（自由記述許容）：ディレクターが回答を DESIGN.md の該当 token / セクションにマップし、`product-designer` を `mode=compose` で continuation 再起動して token を修正。その後 `ui-prototyper` を continuation で再起動して mock 再生成。再ゲート。
+   - **戻る**（自由記述許容）：ディレクターが回答を DESIGN.md の該当 token / セクションにマップし、`indie-studio:product-designer` を `mode=compose` で continuation 再起動して token を修正。その後 `indie-studio:ui-prototyper` を continuation で再起動して mock 再生成。再ゲート。
    - **2 ループ目も「戻る」** → decide-record-proceed。論点を `⚠️繰り越し` マーカーで `## Visual Theme & Mood` または該当セクションに inline 残し、S2 G2 で人間が確定する論点として送る。
 9. **完全性ガード**（ADR-0011）：期待マニフェストの各セクション ＋ mock の必須要素を ✅ / ➖ / ⚠️ で決着。
 10. **⚠️繰り越し提示**（ADR-0019）：3 問で握れなかった direction 候補・画像から複数 mood が出た場合の択一・視覚確認ゲートで未決着の論点など、繰り越し inline マーカーを集めてディレクターが終端でレポート提示。プロトを触ってから G2 で確定する論点として残す。
@@ -207,7 +207,7 @@ components:                       # map<string, map<string, string>> 2 階層必
 
 3 問の一問一答で direction を 1 つに絞る。各問は **yes / no か番号** で答えられるよう必ず選択肢化する（一問一答規律）。
 
-**デフォルト 3 軸**（`product-designer` はサービス性質に応じて差し替え可）：
+**デフォルト 3 軸**（`indie-studio:product-designer` はサービス性質に応じて差し替え可）：
 
 1. **温度**：1) warm（暖色寄り・親しみ） 2) cool（寒色寄り・正確）
 2. **密度**：1) spacious（余白多・1 ビュー 1 要点） 2) dense（情報密集・1 ビュー 多要点）
@@ -221,18 +221,18 @@ components:                       # map<string, map<string, string>> 2 階層必
 
 ## 画像 ingest（visual-designer の役割）
 
-参考画像があれば `visual-designer` に渡す。画像は：
+参考画像があれば `indie-studio:visual-designer` に渡す。画像は：
 
 - **UI スクショ**：typography・layout・component vibe を抽出。
 - **風景・絵画・写真・プロダクト写真等**：palette・atmosphere・形容詞群を抽出。
 
-`visual-designer` は Claude Vision で画像を読み、**構造化抽出レポート**（中間データ、別ファイル化しない）を product-designer に返す。形式と規律は `visual-designer.md` 参照。
+`indie-studio:visual-designer` は Claude Vision で画像を読み、**構造化抽出レポート**（中間データ、別ファイル化しない）を product-designer に返す。形式と規律は `visual-designer.md` 参照。
 
 **画像入力経路**：ユーザーが Claude Code チャットに直接添付（Vision API）／または絶対 path 指定。**画像ピクセルは repo に commit しない**（容量・著作権リスク）。出典・パスは DESIGN.md `## Visual Theme & Mood` 内に記載のみ。
 
 ## HTML mock 生成（ui-prototyper の役割・ADR-0030）
 
-`ui-prototyper` は reviewer 合格版の DESIGN.md と `screens.md` を入力に、1 ファイル統合の HTML mock を生成する。token を CSS custom property に 1:1 kebab-case で写像し、視覚で direction の妥当性を確認できる「実体」を作る。担い手は **UI プロトタイパー（実在職種）**で、`product-designer`（DESIGN.md compose 担当）とは職務スコープを分離する（試し作りで見せる専任）。
+`indie-studio:ui-prototyper` は reviewer 合格版の DESIGN.md と `screens.md` を入力に、1 ファイル統合の HTML mock を生成する。token を CSS custom property に 1:1 kebab-case で写像し、視覚で direction の妥当性を確認できる「実体」を作る。担い手は **UI プロトタイパー（実在職種）**で、`indie-studio:product-designer`（DESIGN.md compose 担当）とは職務スコープを分離する（試し作りで見せる専任）。
 
 **構造（hybrid・1 ファイル統合）**：
 
@@ -260,10 +260,10 @@ components:                       # map<string, map<string, string>> 2 階層必
 1. ディレクターが mock の path を 1 行で提示（例：「mock を生成しました：`docs/indie-studio/design-direction/mock/<service-slug>-design-mock.html`」）。
 2. **1 問**：「mock を確認しました：1) OK（S2 へ進む） 2) 戻る（修正したい）」。一問一答（自由記述で来た場合は番号化を促してリトライ、提示済み選択肢にマップ可能なら自動マップしつつ確認を取ってよい）。
 3. **OK** → ⚠️繰り越し提示 → S2 へ。
-4. **戻る** → 「何を直したいですか？」を自由記述で受け取る（Claude Code チャット環境で番号制約を物理的にかけられない代替）。回答が来たら、ディレクターが **DESIGN.md の該当 token / セクションにマップ**してから `product-designer` を `mode=compose` で continuation 再起動。token / セクション修正後、`ui-prototyper` を continuation で再起動して mock 再生成。再ゲート。
+4. **戻る** → 「何を直したいですか？」を自由記述で受け取る（Claude Code チャット環境で番号制約を物理的にかけられない代替）。回答が来たら、ディレクターが **DESIGN.md の該当 token / セクションにマップ**してから `indie-studio:product-designer` を `mode=compose` で continuation 再起動。token / セクション修正後、`indie-studio:ui-prototyper` を continuation で再起動して mock 再生成。再ゲート。
 5. **2 ループ目も「戻る」** → decide-record-proceed。論点を `⚠️繰り越し` マーカーで `## Visual Theme & Mood` または該当セクションに inline 残す。S2 G2 で人間が確定する論点として送る。**3 ループ目には進まない**（infinite-tweak 防止）。
 
-**collateral damage 防止**：1 ループ目の修正が他セクションに矛盾を生んでいないか、`ui-prototyper` が mock 再生成時に self-grill で確認する。矛盾を発見した場合は finding として director に報告（mock 内のコメントではなく対話で返す）。
+**collateral damage 防止**：1 ループ目の修正が他セクションに矛盾を生んでいないか、`indie-studio:ui-prototyper` が mock 再生成時に self-grill で確認する。矛盾を発見した場合は finding として director に報告（mock 内のコメントではなく対話で返す）。
 
 ## AI-defaults critique（必須・陥落チェック）
 
@@ -296,7 +296,7 @@ components:                       # map<string, map<string, string>> 2 階層必
 
 - DESIGN.md は **repo-root** に置く（ADR-0020）。`docs/indie-studio/discovery/design/` 配下には置かない。
 - HTML mock は `docs/indie-studio/design-direction/mock/` 配下に置く（ADR-0028 namespace + ADR-0030）。repo-root には置かない（service repo 固有のドキュメントと混在防止）。
-- `visual-designer` の中間抽出レポート（画像ごとの構造化出力）は DESIGN.md `## Visual Theme & Mood` 本文に**取り込み**、別ファイルとしては残さない（二重管理回避）。
+- `indie-studio:visual-designer` の中間抽出レポート（画像ごとの構造化出力）は DESIGN.md `## Visual Theme & Mood` 本文に**取り込み**、別ファイルとしては残さない（二重管理回避）。
 - 参考画像そのものは repo に commit しない（容量・著作権リスク）。出典・パスは DESIGN.md 内に記載する。
 - HTML mock に画像ファイル・動画ファイルを embed しない。emoji / SVG / unicode は許容。フォントは Google Fonts CDN（preconnect 経由）・OS フォントを推奨。
 
@@ -313,7 +313,7 @@ components:                       # map<string, map<string, string>> 2 階層必
 
 - push / PR / merge / 課金 / 外部送信はしない。repo へのファイル書き込みと commit に留める。
 - アンカー（`docs/indie-studio/discovery/anchors/`）は決め直さない（G1 で確定済み・読むだけ）。
-- screen-specs（`docs/indie-studio/discovery/design/screen-specs/`）は触らない（S1 `product-designer` 担当・並列ジョブ競合回避）。
+- screen-specs（`docs/indie-studio/discovery/design/screen-specs/`）は触らない（S1 `indie-studio:product-designer` 担当・並列ジョブ競合回避）。
 - 画像ピクセルを repo に commit しない（出典は path のみ DESIGN.md 内記載）。
 - mock html に画像ファイル・動画ファイルを embed しない（emoji / SVG / unicode は許容）。
 
@@ -324,4 +324,4 @@ components:                       # map<string, map<string, string>> 2 階層必
 
 ## 関連 ADR
 
-スキル追加判断＝ADR-0023。DESIGN.md＝ADR-0020（決定 5 resolved）。**format spec pin＝ADR-0029（Google Labs `design.md` alpha に pin・shadows/motion・section alias）**。**HTML mock step + ui-prototyper agent＝ADR-0030**。共通形＝ADR-0013。評価ループ＝ADR-0018。決定記録＝ADR-0019。ロスター＝ADR-0022 拡張（`visual-designer` 追加・`product-designer` 拡張・**ADR-0030 で `ui-prototyper` 追加**）。出力位置＝ADR-0020（DESIGN.md）／ADR-0028 + ADR-0030（mock）。サブステージ命名＝ADR-0025。
+スキル追加判断＝ADR-0023。DESIGN.md＝ADR-0020（決定 5 resolved）。**format spec pin＝ADR-0029（Google Labs `design.md` alpha に pin・shadows/motion・section alias）**。**HTML mock step + ui-prototyper agent＝ADR-0030**。共通形＝ADR-0013。評価ループ＝ADR-0018。決定記録＝ADR-0019。ロスター＝ADR-0022 拡張（`indie-studio:visual-designer` 追加・`indie-studio:product-designer` 拡張・**ADR-0030 で `indie-studio:ui-prototyper` 追加**）。出力位置＝ADR-0020（DESIGN.md）／ADR-0028 + ADR-0030（mock）。サブステージ命名＝ADR-0025。

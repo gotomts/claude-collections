@@ -27,9 +27,9 @@ AI 自律開発ハーネスの **ステージ5（実装）** スキル。実行�
 
 | エージェント | 役割 |
 |---|---|
-| `frontend-engineer` / `backend-engineer` / `mobile-engineer` | スタック別の実装（**S3 のスタックに応じて該当分のみ並列起動**） |
-| `infrastructure-engineer` | 器構築・CI/CD・IaC 実装（S3 と同じ職種・S5 では実装側） |
-| `code-reviewer` / `security-engineer` / `performance-engineer` | 評価3観点（品質 / セキュリティ / 性能。S3 の security-engineer を S5 ではレビュー観点で再利用） |
+| `shared:frontend-engineer` / `shared:backend-engineer` / `shared:mobile-engineer` | スタック別の実装（**S3 のスタックに応じて該当分のみ並列起動**） |
+| `shared:infrastructure-engineer` | 器構築・CI/CD・IaC 実装（S3 と同じ職種・S5 では実装側） |
+| `shared:code-reviewer` / `shared:security-engineer` / `shared:performance-engineer` | 評価3観点（品質 / セキュリティ / 性能。S3 の security-engineer を S5 ではレビュー観点で再利用） |
 
 **QA は置かない**：開発エンジニアが unit/widget/受入/E2E を書く（垂直スライス＝test を貫く）。網羅性は評価3観点が見る。E2E 方針はスタック依存で **S3 テスト戦略**が決める（Web=Playwright／モバイル=Maestro・integration_test+patrol で主要フローに絞る）。
 
@@ -42,7 +42,7 @@ AI 自律開発ハーネスの **ステージ5（実装）** スキル。実行�
 
 ### 起動 context（中立 agent への invocation 必須要素・ADR-0031）
 
-`shared/agents/` の開発職種（`frontend-engineer` / `backend-engineer` / `mobile-engineer` / `infrastructure-engineer`）と評価職種（`code-reviewer` / `security-engineer` / `performance-engineer`）は body に indie-studio 固有値を持たない中立 agent（入力契約で「呼び出し元 skill が指定」と宣言）。ディレクターは spawn 時に次を prompt へ**明示的に埋める**。
+開発職種（`shared:frontend-engineer` / `shared:backend-engineer` / `shared:mobile-engineer` / `shared:infrastructure-engineer`）と評価職種（`shared:code-reviewer` / `shared:security-engineer` / `shared:performance-engineer`）は `shared` plugin の中立 agent（body に indie-studio 固有値を持たず、入力契約で「呼び出し元 skill が指定」と宣言）。**`subagent_type` は上記の `plugin:agent` 修飾名をそのまま使う**（bare name は解決されない・root ADR-0009）。ディレクターは spawn 時に次を prompt へ**明示的に埋める**。
 
 - **共通**:
   - **architecture 規約**: S3 で確定した monorepo ＋ モジュラーモノリス ＋ クリーンアーキ ＋ DDD（`AGENTS.md`/`CONTEXT.md` を読ませる）。

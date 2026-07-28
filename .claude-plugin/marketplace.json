@@ -1,22 +1,28 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "claude-collections",
-  "description": "Self-contained Claude Code skills/agents collections. Hosts the indie-studio autonomous development harness and the enhance-superpowers workflow extension.",
+  "description": "Self-contained Claude Code skills/agents collections. Hosts the indie-studio autonomous development harness, the enhance-superpowers workflow extension, and the shared neutral agent/skill base that both depend on.",
   "owner": {
     "name": "gotomts",
     "email": "mh.goto.web@gmail.com"
   },
   "plugins": [
     {
+      "name": "shared",
+      "source": "./shared",
+      "description": "collection 非依存の中立エージェント/スキル基盤。engineering 系 13 職種と helper skill 2 本を単一の真実源として配る。indie-studio / enhance-superpowers の共通依存 (両者を使う場合は本 plugin が必須)。",
+      "category": "development-workflow"
+    },
+    {
       "name": "indie-studio",
       "source": "./indie-studio",
-      "description": "AI 自律開発ハーネス：個人開発のサービス設計〜デザイン〜開発をオールインで回す（G1 アンカー / S1 企画→ブリーフ / S2 プロトタイプ / S3 技術設計 / S4 分解 / S5 実装）。",
+      "description": "AI 自律開発ハーネス：個人開発のサービス設計〜デザイン〜開発をオールインで回す（G1 アンカー / S1 企画→ブリーフ / S2 プロトタイプ / S3 技術設計 / S4 分解 / S5 実装）。`shared` plugin の install が必須 (ADR-0009)。",
       "category": "development-workflow"
     },
     {
       "name": "enhance-superpowers",
       "source": "./enhance-superpowers",
-      "description": "superpowers 拡張: Spec フェーズで 5 成果物 (summary/design/gwt/pr-description/plan) を plan-last 順序で確定、実装フェーズは enhance-executing-plans (ADR-0012)、後工程 (gwt-test/write-review-response/finish-spec-pr) を連鎖駆動。全 skill に Step 0 状態判定 + agent 能動 dispatch (silent failure 回避) + 監査ログ + セキュリティレビュー + コンプライアンス trigger を内包。",
+      "description": "superpowers 拡張: Spec フェーズで 5 成果物 (summary/design/gwt/pr-description/plan) を plan-last 順序で確定、実装フェーズは enhance-executing-plans (ADR-0012)、後工程 (gwt-test/write-review-response/finish-spec-pr) を連鎖駆動。全 skill に Step 0 状態判定 + agent 能動 dispatch (silent failure 回避) + 監査ログ + セキュリティレビュー + コンプライアンス trigger を内包。dispatch する engineering 系 13 職種は `shared` plugin から参照する (install 必須・ADR-0009)。",
       "category": "development-workflow"
     }
   ]

@@ -1,7 +1,7 @@
 ---
 name: finish-spec-pr
 description: |
-  Spec フェーズで作成済みの pr-description.md を body として、shared/skills/finish-stage-pr を
+  Spec フェーズで作成済みの pr-description.md を body として、`shared:finish-stage-pr` を
   body-source-path 指定で呼んで PR 作成する skill。enhance-brainstorming Phase 6 で生成された
   pr-description.md (`## やったこと` / `## 補足` / `## 動作確認方法` の 3 セクション) を整え、
   title を user に 1 問確認、finish-stage-pr の Step 8 でユーザー最終確認 → push + gh pr create。
@@ -27,7 +27,7 @@ maintainer: gotomts
 |---|---|---|---|
 | 0 | `docs/superpowers/{branch}/*-pr-description.md` 存在 + `review-response.md` 存在 (優先) | (判定) | 状態判定完了、Step 番号を確定 |
 | 整え | pr-description.md | 実装結果に整えた pr-description.md | `## やったこと` が実装 diff と揃う (user 確認済) |
-| 作成 | pr-description.md + 未 push commit | GitHub PR | shared/skills/finish-stage-pr で作成完了 |
+| 作成 | pr-description.md + 未 push commit | GitHub PR | `shared:finish-stage-pr` で作成完了 |
 
 ## 動作 (7 ステップ)
 
@@ -69,9 +69,9 @@ maintainer: gotomts
 2. user に「この title で進めて良いですか? (yes / 別案を提示)」と 1 問確認
 3. `yes` → Step 5 へ / `別案` → user 入力を待って title を差し替えて再確認
 
-### Step 5: `shared/skills/finish-stage-pr` を body-source-path 指定で invoke
+### Step 5: `shared:finish-stage-pr` を body-source-path 指定で invoke
 
-1. `Skill` tool で `finish-stage-pr` を invoke、argument に title + body-source-path を渡す:
+1. `Skill` tool で `shared:finish-stage-pr` を invoke、argument に title + body-source-path を渡す:
    ```
    <title-confirmed> {absolute path to pr-description.md}
    ```
@@ -107,4 +107,4 @@ maintainer: gotomts
 - ADR-0010 (ai-utilization-policy-loading)
 - ADR-0012 (implementation-phase-skill-and-state-detection) — Step 0 状態判定
 - write-review-response SKILL.md (前工程 sub-skill)
-- shared/skills/finish-stage-pr SKILL.md (本 skill が body-source-path 指定で invoke)
+- `shared:finish-stage-pr` SKILL.md (本 skill が body-source-path 指定で invoke)

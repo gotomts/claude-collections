@@ -5,6 +5,7 @@
 ## 構成規約
 
 - 各コレクションは `<collection>/` 配下に**自己完結**する：`skills/`・`agents/`・`docs/adr/`・`CONTEXT.md`・`ROADMAP.md`・`.claude-plugin/plugin.json`。
+- **例外：`shared/`** は plugin だがコレクションではない（agents/skills の共有基盤・ADR-0009）。`CONTEXT.md` / `ROADMAP.md` / `docs/adr/` は持たず、設計判断は root `docs/adr/` に置く。ただし `.claude-plugin/plugin.json` を持つため release-drafter の auto-discovery には collection として載り、`shared/v0.0.x` の draft/tag を持つ。
 - root には repo 横断の `AGENTS.md`（本ファイル）・`CLAUDE.md`（ポインタ）・`CONTEXT-MAP.md`（コレクション索引）・`docs/adr/`（横断決定）・`.claude-plugin/marketplace.json`（plugin marketplace 宣言）。
 - コレクション一覧と所在は `CONTEXT-MAP.md`。
 - 配布構造（marketplace + 各 plugin）の決定は [`docs/adr/0003`](docs/adr/0003-plugin-marketplace-distribution.md)。
@@ -13,34 +14,22 @@
 
 - 該当コレクションの `<collection>/skills/<skill>/SKILL.md` ／ `<collection>/agents/<name>.md` に置く（root 直下に置かない）。
 - **エージェントは実在職種名で**設計する（成果物名・概念で割らない）。
-- スキル/エージェントは frontmatter の `name` で識別・起動される（`subagent_type` も `name` 参照・path 非依存）。ディレクトリを深くしても呼び出しは壊れない。
+- **エージェントの起動は `plugin:agent` 形式の修飾名で行う**（例：`shared:software-architect` / `indie-studio:ux-researcher`）。**bare name は解決されない**。同名 agent を持つ plugin が共存すると片方の agent セットが registry から丸ごと落ちるため、**コレクション間で agent 名を重複させないこと**（ADR-0009）。skill は名前空間が効くのでこの制約を受けない。
 - 設計判断は該当コレクションの `docs/adr/` を読む。決定は inline／git／ADR に残す（専用の決定ログ file は作らない）。
 
-## shared/ の共有エージェント
+## shared plugin（共有エージェント／スキル）
 
-- engineering 系（executor / quality / leadership）の共通エージェントは `shared/agents/` を真実源とする（ADR-0004）。
-- 各コレクションは `<collection>/.claude-plugin/dependencies.json` の `shared.agents[]` で取り込み宣言する。
-- 取り込みの実体化は `make sync COLLECTION=<name>` で指定 collection を sync。`make sync` 単独実行時は TTY なら interactive picker（`fzf` インストール時は矢印キー + fuzzy search、未インストール時は番号入力 fallback）、非 TTY（CI/pipe）なら全 collection を一括 sync。`<collection>/agents/<name>.md` に generated file が書き出される（frontmatter に `x-source` / `x-source-hash` / `x-synced-at` を持つ）。
-- generated file は **手編集禁止**。shared 側を編集して `make sync` で反映させる。手編集してしまった場合は `make verify` が `Edited: ...` で検知する（`x-body-hash` で footprint を保持）。
-- `make verify` は 2 種類の drift を検知（CI も実行）：(a) shared/ が更新されたが make sync 忘れ → `Drifted: ... (source-hash mismatch)`、(b) dst の body が手編集された → `Edited: ... (body modified)`。手元での確認は `make status`。
-- 手編集を取り消す場合は `git checkout <dst>` または `make sync` で master 上書き（master always wins）。残したい変更があれば shared/ 側に移してから `make sync`。
-- shared/agents/ の編集 PR では、影響を受ける全 collection の generated を `make sync` で更新してから commit する。CI verify が忘れを構造的に防ぐ。
-- コレクション固有のエージェント（例：indie-studio の business-strategist 等）は従来通り `<collection>/agents/` に手書きで置く。shared/ と同名にしないこと。
-
-## shared/ の共有スキル
-
-- helper 系（例：start-stage-branch / finish-stage-pr）の共通スキルは `shared/skills/` を真実源とする（ADR-0005）。
-- 各コレクションは `<collection>/.claude-plugin/dependencies.json` の `shared.skills[]` で取り込み宣言する（`shared.agents[]` と同階層・任意フィールド）。
-- 取り込みの実体化は `make sync COLLECTION=<name>` で。`<collection>/skills/<name>/SKILL.md` に generated file が書き出される（frontmatter に `x-source` / `x-source-hash` / `x-body-hash` / `x-synced-at` を持つ）。
-- generated file は **手編集禁止**。shared 側を編集して `make sync` で反映。
-- `make verify` の drift 検知は agents と同型（source-hash mismatch / body modified）。
-- 当面 1 skill = 1 SKILL.md（補助ファイルは sync 対象外）。複雑な skill 構成が必要になった時点で本 ADR を拡張。
-- コレクション固有のスキルは従来通り `<collection>/skills/` に手書きで置く。shared/ と同名にしないこと（agents と同規律）。
+- engineering 系（executor / quality / leadership）の共通エージェント 13 体と helper 系スキル 2 本（start-stage-branch / finish-stage-pr）は、**`shared` plugin が単一の実体として提供する**（ADR-0009）。vendoring（`make sync` による複製）は **廃止**した。
+- 各コレクションは `shared` を **install 前提の依存**として扱い、skill 内から `shared:<agent>` / `shared:<skill>` を修飾名で参照する（agent は修飾必須、skill は表記統一のため）。`dependencies.json` は不要（削除済み）。
+- `shared/agents/` は **collection 非依存の中立語彙で書く**（ADR-0004 から継承した原則）。collection 固有 context（ステージ番号 / 参照 docs パス / 進行 protocol 等）は呼び出し元 skill が invocation 時に prompt で渡す。
+- shared/ を編集すれば全 consumer へ即座に反映される（複製が無いため sync 忘れという失敗モードが存在しない）。
+- コレクション固有のエージェント（例：indie-studio の business-strategist 等）は従来通り `<collection>/agents/` に手書きで置く。**shared/ および他コレクションと同名にしないこと**（同名衝突は agent セットの消失を招く・ADR-0009）。
 
 ## 既存コレクション
 
 - **`indie-studio`**：個人開発のサービス設計〜デザイン〜開発を自律で回すハーネス。設計の真実源は `indie-studio/CONTEXT.md` と `indie-studio/docs/adr/`。
 - **`enhance-superpowers`**：公式 superpowers plugin の直線フロー (brainstorming → writing-plans → executing-plans) に、5 成果物 Spec フェーズ確定 / agent 能動 dispatch / 監査ログ / コンプライアンス trigger を被せた強化版。設計の真実源は `enhance-superpowers/CONTEXT.md` と `enhance-superpowers/docs/adr/`。
+- **`shared`**（コレクションではなく共有基盤 plugin）：上記 2 つが依存する中立 agent 13 体 + helper skill 2 本。設計の真実源は root `docs/adr/0009`。リリースノート運用は他と同じく GitHub Releases（tag prefix `shared/v`）に従う。
 
 ## リリースノート運用
 

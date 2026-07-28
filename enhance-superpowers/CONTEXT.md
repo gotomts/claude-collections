@@ -26,26 +26,26 @@ skill 連鎖の中で agent 能動 dispatch を強制する境目。本コレク
 Spec フェーズで設計の認識ズレを早期検出する 3 重の関所 — ① summary 合意 (大枠ズレ、Phase 2) / ② gwt 合意 (AC ズレ、Phase 3) / ③ pr-description 合意 (動作確認方法ズレ、Phase 3)。② と ③ は Phase 3 の 3 file 一括レビューに集約される (ADR-0011)。
 
 **agent dispatch matrix** (2026-07-04 更新):
-各 skill ステップで能動 dispatch する agent / skill と目的の一覧。`import するだけで使わない` silent failure pattern を回避するための明示的な対応表。全 13 agent + code-review skill を vendoring (ADR-0005):
+各 skill ステップで能動 dispatch する agent / skill と目的の一覧。`import するだけで使わない` silent failure pattern を回避するための明示的な対応表。engineering 系 13 agent は `shared` plugin が提供し、**dispatch は `shared:<agent>` の修飾名で行う** (bare name は解決されない・root ADR-0009。vendoring は廃止、ADR-0005 は supersede 済):
 
 | skill / step | 能動 dispatch (agent / skill) | 目的 |
 |---|---|---|
-| enhance-brainstorming Phase 1 | software-architect + reviewer | アプローチの Clean Architecture / SOLID + 独立観点評価 (真実源整合 / 反証可能性) |
-| enhance-brainstorming Phase 2 (summary) | software-architect + reviewer | SOLID / YAGNI + summary 反証可能性 |
-| enhance-brainstorming Phase 3 (design) | software-architect + security-engineer + principal-engineer + 機微情報チェック | SOLID / モジュール境界 / セキュリティ / 独立技術設計評価 / 機微情報 (ADR-0008) |
-| enhance-brainstorming Phase 3 (gwt) | qa-engineer | AC 網羅性 |
-| enhance-brainstorming Phase 4 (plan) | qa-engineer + security-engineer + tech-lead + engineering-manager + principal-engineer + ライセンスチェック | テスト戦略 / セキュリティ / スタック判断 / slice 分解 / 分解評価 / ライセンス (ADR-0009) |
-| enhance-executing-plans Step 2 (実装前) | software-architect | 実装方針 pre-flight review (ADR-0012) |
-| enhance-executing-plans Step 3 (実装本体) | backend/frontend/mobile/infrastructure-engineer (slice 対応で選定) | executor 能動 dispatch (ADR-0012 D1 redesign) |
-| enhance-executing-plans Step 4 (slice review) | **code-review skill (optional 1問確認)** + security-engineer + performance-engineer | code review activity は code-review skill を default (ADR-0013 拡張) |
-| gwt-test Step 5 (AC 未達時) | qa-engineer | 差し戻し findings 言語化 |
-| gwt-test Step 6 (AC 完了時) | qa-engineer 常時 | AC 網羅性 review (ADR-0013 D1) |
-| gwt-test Step 8 (STOP POINT 2) | **code-review skill auto-invoke** (課金前 1 問確認) + security-engineer 能動 | CodeRabbit + security-focused review (ADR-0013 D2、M4 fix で scope 分離) |
-| write-review-response Step 2 (判定迷い / セキュリティ / 大規模 refactor) | code-reviewer (判定 aid) / security-engineer / reviewer | 判定補助 |
-| write-review-response Step 4 (再 push 前) | **code-review skill** (課金前 1 問確認) | 差し戻しレビューは code-review skill (ADR-0013 拡張) |
+| enhance-brainstorming Phase 1 | shared:software-architect + shared:reviewer | アプローチの Clean Architecture / SOLID + 独立観点評価 (真実源整合 / 反証可能性) |
+| enhance-brainstorming Phase 2 (summary) | shared:software-architect + shared:reviewer | SOLID / YAGNI + summary 反証可能性 |
+| enhance-brainstorming Phase 3 (design) | shared:software-architect + shared:security-engineer + shared:principal-engineer + 機微情報チェック | SOLID / モジュール境界 / セキュリティ / 独立技術設計評価 / 機微情報 (ADR-0008) |
+| enhance-brainstorming Phase 3 (gwt) | shared:qa-engineer | AC 網羅性 |
+| enhance-brainstorming Phase 4 (plan) | shared:qa-engineer + shared:security-engineer + shared:tech-lead + shared:engineering-manager + shared:principal-engineer + ライセンスチェック | テスト戦略 / セキュリティ / スタック判断 / slice 分解 / 分解評価 / ライセンス (ADR-0009) |
+| enhance-executing-plans Step 2 (実装前) | shared:software-architect | 実装方針 pre-flight review (ADR-0012) |
+| enhance-executing-plans Step 3 (実装本体) | shared:{backend,frontend,mobile,infrastructure}-engineer (slice 対応で選定) | executor 能動 dispatch (ADR-0012 D1 redesign) |
+| enhance-executing-plans Step 4 (slice review) | **code-review:code-review skill (optional 1問確認)** + shared:security-engineer + shared:performance-engineer | code review activity は code-review:code-review skill を default (ADR-0013 拡張) |
+| gwt-test Step 5 (AC 未達時) | shared:qa-engineer | 差し戻し findings 言語化 |
+| gwt-test Step 6 (AC 完了時) | shared:qa-engineer 常時 | AC 網羅性 review (ADR-0013 D1) |
+| gwt-test Step 8 (STOP POINT 2) | **code-review:code-review skill auto-invoke** (課金前 1 問確認) + shared:security-engineer 能動 | CodeRabbit + security-focused review (ADR-0013 D2、M4 fix で scope 分離) |
+| write-review-response Step 2 (判定迷い / セキュリティ / 大規模 refactor) | shared:code-reviewer (判定 aid) / shared:security-engineer / shared:reviewer | 判定補助 |
+| write-review-response Step 4 (再 push 前) | **code-review:code-review skill** (課金前 1 問確認) | 差し戻しレビューは code-review:code-review skill (ADR-0013 拡張) |
 | finish-spec-pr | (なし、mechanical) | — |
 
-`code-reviewer` agent は判定 aid 専用 (false positive 判定補助 / 大規模 refactor 判定補助)。実際のコードレビュー activity は `code-review` skill (CodeRabbit) を使う (ADR-0005 / ADR-0013 2026-07-04 拡張)。
+`shared:code-reviewer` agent は判定 aid 専用 (false positive 判定補助 / 大規模 refactor 判定補助)。実際のコードレビュー activity は `code-review` skill (CodeRabbit) を使う (ADR-0013 2026-07-04 拡張)。
 
 dispatch log の追記先 mapping は ADR-0007 参照。
 
@@ -90,7 +90,7 @@ enhance-superpowers は superpowers (公式) の直線フロー (brainstorming �
 | review-response.md | 同上 |
 | handoff.md (任意、状態判定の補助) | 同上 |
 | コレクション固有 ADR | `enhance-superpowers/docs/adr/` |
-| skill / agent / template | `enhance-superpowers/{skills,agents,templates}/` |
+| skill / template | `enhance-superpowers/{skills,templates}/` (固有 agent は 0 体、engineering 系は `shared` plugin) |
 
 ## 関連
 

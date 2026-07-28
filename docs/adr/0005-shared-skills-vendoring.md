@@ -4,7 +4,9 @@ collection 間で共通利用したいスキル（helper 系：branch 作成 / P
 
 ## Status
 
-accepted（[ADR-0004](0004-shared-agent-vendoring.md) を extends：同じ vendoring パターンを skill にも適用）
+**Superseded by [ADR-0009](0009-shared-as-plugin-agent-namespace.md)** (2026-07-28)。`shared/` の plugin 化に伴い skill も単一実体で配る方式に移行し、vendoring を廃止した。本 ADR が想定した「collection 側で固有拡張を入れる余地」は実際には一度も使われなかった。
+
+（原文）accepted（[ADR-0004](0004-shared-agent-vendoring.md) を extends：同じ vendoring パターンを skill にも適用）
 
 ## Considered Options
 

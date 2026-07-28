@@ -4,7 +4,9 @@ collection 間で共通利用したいエージェント（engineer 系・review
 
 ## Status
 
-accepted（[ADR-0003](0003-plugin-marketplace-distribution.md) を extends：plugin 境界をまたいで agent を共有する手段を追加）
+**Superseded by [ADR-0009](0009-shared-as-plugin-agent-namespace.md)** (2026-07-28)。vendoring 方式は同名 agent の registry 衝突を招くことが判明したため廃止し、`shared/` を plugin 化して単一実体で配る方式に移行した。本 ADR のうち「`shared/agents/` は collection 非依存の中立語彙で書く」原則のみ ADR-0009 が継承する。
+
+（原文）accepted（[ADR-0003](0003-plugin-marketplace-distribution.md) を extends：plugin 境界をまたいで agent を共有する手段を追加）
 
 Updated (2026-07-04): shared/agents/ の body を **collection 非依存の中立語彙で書く** ことを追加原則として明文化。
 

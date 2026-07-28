@@ -56,21 +56,21 @@ AI 自律開発ハーネスの **ステージ3（技術設計）** スキル。�
 
 | エージェント | 担当（既存 + ADR-0027 追加観点） |
 |---|---|
-| `software-architect` | アーキ・ディレクトリ構成・モジュール一覧・型・ドメインモデル(Mermaid)・接頭辞付き機能一覧 `F-{MODULE}-{連番}`・ユビキタス言語(CONTEXT 種まき)・**パフォーマンス予算（NFR→技術選定マッピング・追加）** |
-| `tech-lead` | （スタックは S1a 確定済を読むだけ）・`AGENTS.md`(正本)＋`CLAUDE.md`(ポインタ)・開発プロセス・git 運用・テスト戦略・**build vs buy 詳細（コスト試算・SLA リスク・移行コスト・追加）** |
-| `infrastructure-engineer` | インフラ・IaC・CI/CD・非機能実現・運用基盤・**コスト積算（追加）**・**運用 sustainability（追加）** |
-| `security-engineer` | セキュリティ設計・**規制・法令（GDPR / accessibility / 業界規制・追加）** |
-| `principal-engineer` | 評価（設計レビュー・差し戻し・ADR-0018）・**リスク台帳（SPOF / ベンダーロックイン / bus factor / 追加）**・**G3 スコアカード派生ビュー（追加）** |
+| `shared:software-architect` | アーキ・ディレクトリ構成・モジュール一覧・型・ドメインモデル(Mermaid)・接頭辞付き機能一覧 `F-{MODULE}-{連番}`・ユビキタス言語(CONTEXT 種まき)・**パフォーマンス予算（NFR→技術選定マッピング・追加）** |
+| `shared:tech-lead` | （スタックは S1a 確定済を読むだけ）・`AGENTS.md`(正本)＋`CLAUDE.md`(ポインタ)・開発プロセス・git 運用・テスト戦略・**build vs buy 詳細（コスト試算・SLA リスク・移行コスト・追加）** |
+| `shared:infrastructure-engineer` | インフラ・IaC・CI/CD・非機能実現・運用基盤・**コスト積算（追加）**・**運用 sustainability（追加）** |
+| `shared:security-engineer` | セキュリティ設計・**規制・法令（GDPR / accessibility / 業界規制・追加）** |
+| `shared:principal-engineer` | 評価（設計レビュー・差し戻し・ADR-0018）・**リスク台帳（SPOF / ベンダーロックイン / bus factor / 追加）**・**G3 スコアカード派生ビュー（追加）** |
 
 依存順：（スタックは S1a 確定済）→ モジュール → ドメインモデル → パフォーマンス予算 → build vs buy 詳細 → 運用基盤 → コスト積算・運用 sustainability・規制・リスク台帳。ステージ1（architect・tech-lead）合格 → ステージ2（infra・security・principal）。
 
 ## ディレクター制御フロー
 
-スキル1（service-discovery）と同型。**Agent tool**（`subagent_type`＝エージェント名）で spawn、**ADR-0018 の評価ループ**（インクリメンタル＋依存順・round1 fresh→凍結 continuation・成果物ごと3R・上流再オープン深さ1）、**完全性ガード**（期待マニフェスト＝tech corpus ＋ repo セットアップ一式、✅/➖/⚠️）、ゲートで**ギャップレポート＋繰り越し一覧**を提示（ADR-0019）。`principal-engineer` が評価役。
+スキル1（service-discovery）と同型。**Agent tool**（`subagent_type` は `plugin:agent` 形式の修飾名。bare name は解決されない・root ADR-0009）で spawn、**ADR-0018 の評価ループ**（インクリメンタル＋依存順・round1 fresh→凍結 continuation・成果物ごと3R・上流再オープン深さ1）、**完全性ガード**（期待マニフェスト＝tech corpus ＋ repo セットアップ一式、✅/➖/⚠️）、ゲートで**ギャップレポート＋繰り越し一覧**を提示（ADR-0019）。`shared:principal-engineer` が評価役。
 
 ### 起動 context（中立 agent への invocation 必須要素・ADR-0031）
 
-`shared/agents/` の職種（`software-architect` / `tech-lead` / `infrastructure-engineer` / `security-engineer` / `principal-engineer`）は body に indie-studio 固有値を持たない中立 agent（入力契約で「呼び出し元 skill が指定」と宣言）。ディレクターは spawn 時に次を prompt へ**明示的に埋める**（埋めないと agent が本スキルの stage / 出力先 / protocol を知らずに劣化起動する）。
+`shared` plugin の職種（`shared:software-architect` / `shared:tech-lead` / `shared:infrastructure-engineer` / `shared:security-engineer` / `shared:principal-engineer`）は body に indie-studio 固有値を持たない中立 agent（入力契約で「呼び出し元 skill が指定」と宣言）。ディレクターは spawn 時に次を prompt へ**明示的に埋める**（埋めないと agent が本スキルの stage / 出力先 / protocol を知らずに劣化起動する）。
 
 - **共通（全職種）**:
   - **architecture 規約**: monorepo ＋ モジュラーモノリス ＋ クリーンアーキ ＋ DDD（既定の型・ADR-0015）。ゼロから選び直させない。
@@ -78,11 +78,11 @@ AI 自律開発ハーネスの **ステージ3（技術設計）** スキル。�
   - **stage/mode**: `mode=tech-design`。ステージ1（architect・tech-lead）→ ステージ2（infra・security・principal）の依存順。
   - **入力の所在**: S1 corpus（`docs/indie-studio/discovery/`）／S1a stack-direction 出力（`docs/indie-studio/tech/stack-direction/`・**読むだけ・決め直さない**・ADR-0026）／プロトタイプバンドル・DESIGN.md（読むだけ・ADR-0020）。
   - **出力先**: `docs/indie-studio/tech/` 配下の担当ファイル（下記）。
-- **`software-architect`**: 出力先 `architecture.md` / `domain-model.md`（Mermaid）/ `perf-budget.md`。**接頭辞付き機能一覧 `F-{MODULE}-{連番}` を必ず生成**（下流 decomposition の被覆基準）。ユビキタス言語を `CONTEXT.md` に種まき。パフォーマンス予算＝NFR 目標値→技術選定マッピング（ADR-0027）。
-- **`tech-lead`**: 出力先 `AGENTS.md`（正本）/ `CLAUDE.md`（ポインタ）/ `build-vs-buy-detail.md`。スタックは S1a 確定値を読むだけ。build vs buy 詳細＝コスト試算・SLA リスク・移行コスト（ADR-0027）。開発プロセス・git 運用・テスト戦略。
-- **`infrastructure-engineer`**: 出力先 `ops.md` / `cost-model.md` / `ops-sustainability.md`。インフラ・IaC・CI/CD・非機能実現・コスト積算・運用 sustainability（ADR-0027）。
-- **`security-engineer`**: 出力先 `security.md` / `compliance.md`。セキュリティ設計・規制/法令（GDPR / accessibility / 業界規制・ADR-0027）。
-- **`principal-engineer`（評価）**: **評価観点**＝真実源整合／カバレッジ逆引き／内部一貫性。**差し戻し protocol**＝round1 fresh で完全 findings マニフェスト→round2-3 continuation で解消のみ・成果物ごと最大 3R（ADR-0018）。**リスク台帳**（SPOF / ベンダーロックイン / bus factor・ADR-0027）と **G3 実現可能性スコアカード 12 軸**を findings の**派生ビュー（集約参照・コピーしない）**として組み込む。
+- **`shared:software-architect`**: 出力先 `architecture.md` / `domain-model.md`（Mermaid）/ `perf-budget.md`。**接頭辞付き機能一覧 `F-{MODULE}-{連番}` を必ず生成**（下流 decomposition の被覆基準）。ユビキタス言語を `CONTEXT.md` に種まき。パフォーマンス予算＝NFR 目標値→技術選定マッピング（ADR-0027）。
+- **`shared:tech-lead`**: 出力先 `AGENTS.md`（正本）/ `CLAUDE.md`（ポインタ）/ `build-vs-buy-detail.md`。スタックは S1a 確定値を読むだけ。build vs buy 詳細＝コスト試算・SLA リスク・移行コスト（ADR-0027）。開発プロセス・git 運用・テスト戦略。
+- **`shared:infrastructure-engineer`**: 出力先 `ops.md` / `cost-model.md` / `ops-sustainability.md`。インフラ・IaC・CI/CD・非機能実現・コスト積算・運用 sustainability（ADR-0027）。
+- **`shared:security-engineer`**: 出力先 `security.md` / `compliance.md`。セキュリティ設計・規制/法令（GDPR / accessibility / 業界規制・ADR-0027）。
+- **`shared:principal-engineer`（評価）**: **評価観点**＝真実源整合／カバレッジ逆引き／内部一貫性。**差し戻し protocol**＝round1 fresh で完全 findings マニフェスト→round2-3 continuation で解消のみ・成果物ごと最大 3R（ADR-0018）。**リスク台帳**（SPOF / ベンダーロックイン / bus factor・ADR-0027）と **G3 実現可能性スコアカード 12 軸**を findings の**派生ビュー（集約参照・コピーしない）**として組み込む。
 
 ## 対話点
 
@@ -90,7 +90,7 @@ AI 自律開発ハーネスの **ステージ3（技術設計）** スキル。�
 
 ## G3 ゲート：実現可能性スコアカード（ADR-0027）
 
-G3 ゲートで人間に晒すべき意思決定情報を 1 枚に集約する。`principal-engineer` が完了報告に**派生ビュー（集約参照）**として組み込み、専用ログファイルは作らない（ADR-0019）。観点 12 軸（既存 6 + ADR-0027 追加 6）ごとに **A 成立 / B 疑義あり / C 困難** を A/B/C で表示する。
+G3 ゲートで人間に晒すべき意思決定情報を 1 枚に集約する。`shared:principal-engineer` が完了報告に**派生ビュー（集約参照）**として組み込み、専用ログファイルは作らない（ADR-0019）。観点 12 軸（既存 6 + ADR-0027 追加 6）ごとに **A 成立 / B 疑義あり / C 困難** を A/B/C で表示する。
 
 形式：
 

@@ -28,26 +28,26 @@ AI 自律開発ハーネスの **ステージ4（分解）** スキル。実行�
 
 | エージェント | 担当 |
 |---|---|
-| `engineering-manager` | 垂直スライス分解（=1PR）・依存順・capability 束ね（束ね親）・HITL/AFK 判定・レビュー要否タグ |
-| `qa-engineer` | 各スライスの受入条件（BDD/チェックリスト） |
-| `principal-engineer` | 評価（分解レビュー・差し戻し・ADR-0018） |
+| `shared:engineering-manager` | 垂直スライス分解（=1PR）・依存順・capability 束ね（束ね親）・HITL/AFK 判定・レビュー要否タグ |
+| `shared:qa-engineer` | 各スライスの受入条件（BDD/チェックリスト） |
+| `shared:principal-engineer` | 評価（分解レビュー・差し戻し・ADR-0018） |
 
 依存順：EM がスライス分解・依存・束ね → QA が受入条件 → principal-engineer が評価。**器構築 issue を依存の根**に置く。
 
 ## ディレクター制御フロー
 
-スキル1/2 と同型。Agent tool で spawn、**ADR-0018 の評価ループ**、**完全性ガード（F-ID カバレッジ漏れゼロ）**。ゲートで**ギャップレポート＋繰り越し一覧**を提示。
+スキル1/2 と同型。Agent tool で spawn（`subagent_type` は `plugin:agent` 形式の修飾名。bare name は解決されない・root ADR-0009）、**ADR-0018 の評価ループ**、**完全性ガード（F-ID カバレッジ漏れゼロ）**。ゲートで**ギャップレポート＋繰り越し一覧**を提示。
 
 ### 起動 context（中立 agent への invocation 必須要素・ADR-0031）
 
-`shared/agents/` の `engineering-manager` / `qa-engineer` / `principal-engineer` は body に indie-studio 固有値を持たない中立 agent（入力契約で「呼び出し元 skill が指定」と宣言）。ディレクターは spawn 時に次を prompt へ**明示的に埋める**。
+`shared` plugin の `shared:engineering-manager` / `shared:qa-engineer` / `shared:principal-engineer` は body に indie-studio 固有値を持たない中立 agent（入力契約で「呼び出し元 skill が指定」と宣言）。ディレクターは spawn 時に次を prompt へ**明示的に埋める**。
 
 - **共通**:
   - **進行 protocol**: 停止ゼロ／decide-record-proceed（根拠は inline・ADR-0019）／未決は `⚠️繰り越し` マーカー／専用の決定ログ file を作らない。
   - **入力の所在**: S3 技術設計（`docs/indie-studio/tech/`・**接頭辞付き機能一覧 `F-{MODULE}-{連番}`・モジュール構造・ドメインモデル**。欠ければ停止・上流差し戻し）／S1 screen-specs（`docs/indie-studio/discovery/design/screen-specs/`）。
-- **`engineering-manager`**: **分解単位＝垂直スライス＝1PR**（画面〜ドメイン〜データを貫く tracer bullet）。**F-ID を漏れなく被覆**（漏れは端折り）。器構築 issue を依存の根に。capability 束ね（下流 implementation の起動単位）。出力先＝`docs/indie-studio/decomposition/index.md`（骨格）。**タグ体系 2 レイヤ**を付与＝(a) HITL/AFK（self-grill への粗ヒント・ADR-0005）(b) レビュー要否＝根幹/非根幹（G5 の自動/人間 merge を分ける・ADR-0008）。**issue 起票はしない**（G4 人間承認後にディレクターが Linear へ・ADR-0007/0008）。
-- **`qa-engineer`**: 各スライスの受入条件（BDD/チェックリスト）。材料＝screen-specs。出力先＝index.md 内の各スライス受入条件。
-- **`principal-engineer`（評価）**: **評価観点**＝F-ID 被覆漏れゼロ／スライス粒度（横断/細分しすぎ）／依存順（器構築が根・循環なし）／capability 束ねの妥当性。**差し戻し protocol**＝round1 fresh→continuation・最大 3R（ADR-0018）。
+- **`shared:engineering-manager`**: **分解単位＝垂直スライス＝1PR**（画面〜ドメイン〜データを貫く tracer bullet）。**F-ID を漏れなく被覆**（漏れは端折り）。器構築 issue を依存の根に。capability 束ね（下流 implementation の起動単位）。出力先＝`docs/indie-studio/decomposition/index.md`（骨格）。**タグ体系 2 レイヤ**を付与＝(a) HITL/AFK（self-grill への粗ヒント・ADR-0005）(b) レビュー要否＝根幹/非根幹（G5 の自動/人間 merge を分ける・ADR-0008）。**issue 起票はしない**（G4 人間承認後にディレクターが Linear へ・ADR-0007/0008）。
+- **`shared:qa-engineer`**: 各スライスの受入条件（BDD/チェックリスト）。材料＝screen-specs。出力先＝index.md 内の各スライス受入条件。
+- **`shared:principal-engineer`（評価）**: **評価観点**＝F-ID 被覆漏れゼロ／スライス粒度（横断/細分しすぎ）／依存順（器構築が根・循環なし）／capability 束ねの妥当性。**差し戻し protocol**＝round1 fresh→continuation・最大 3R（ADR-0018）。
 
 ## 出力と起票（2段）
 

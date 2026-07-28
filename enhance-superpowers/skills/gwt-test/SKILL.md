@@ -29,8 +29,8 @@ maintainer: gotomts
 |---|---|---|---|
 | 0 | `docs/superpowers/{branch}/*-gwt.md` 存在 | (判定) | 状態判定完了、Step 番号を確定 |
 | 検証 | gwt.md + 実装済コード | gwt.md checklist 更新 (`- [ ]` → `- [x]`) | 各 AC を agent-browser で検証 |
-| 網羅性 review | gwt.md checklist 全 [x] | gwt.md レビュー履歴に qa-engineer log 追記 | qa-engineer が網羅性 OK と判定 (ADR-0013) |
-| セルフレビュー | 実装済コード | review-response.md への dispatch log 引継ぎ | code-review skill auto-invoke 完了 + security-engineer dispatch 完了 |
+| 網羅性 review | gwt.md checklist 全 [x] | gwt.md レビュー履歴に shared:qa-engineer log 追記 | shared:qa-engineer が網羅性 OK と判定 (ADR-0013) |
+| セルフレビュー | 実装済コード | review-response.md への dispatch log 引継ぎ | code-review skill auto-invoke 完了 + shared:security-engineer dispatch 完了 |
 
 ## 動作 (9 ステップ)
 
@@ -81,7 +81,7 @@ maintainer: gotomts
 
 ### Step 5: AC 未達時 qa-engineer 能動 dispatch
 
-1. `qa-engineer` を能動 dispatch — 差し戻し findings の言語化 + テストコード同期確認
+1. `shared:qa-engineer` を能動 dispatch — 差し戻し findings の言語化 + テストコード同期確認
 2. `gwt.md` の変更履歴 (逆時系列) に追記: `{YYYY-MM-DD}: {対象AC} — {変更内容}（{変更理由・関連 issue / PR}）`
 3. gwt.md 末尾「## レビュー履歴」セクションに dispatch log を追記 (ADR-0007)
 4. user に「AC 未達につき実装に差し戻します」と提示 → user 1 問確認 → 実装フェーズに戻る (`enhance-executing-plans` skill に chain、または直接 STOP POINT 1 に戻す)
@@ -90,7 +90,7 @@ maintainer: gotomts
 
 全 AC 達成後、silent failure 回避のため以下を実行:
 
-1. `qa-engineer` を **常時能動 dispatch** — AC 網羅性 (異常系 / 境界値 / 空状態 / seasonality 等) の review、抜けたシナリオの検出
+1. `shared:qa-engineer` を **常時能動 dispatch** — AC 網羅性 (異常系 / 境界値 / 空状態 / seasonality 等) の review、抜けたシナリオの検出
 2. dispatch log を gwt.md 末尾「## レビュー履歴」セクションに追記 (ADR-0007)
 3. qa-engineer が「抜けたシナリオあり」と判定した場合、user に 1 問確認 → gwt.md の AC 追加 → Step 3 (再検証) へ戻る
 4. 網羅性 OK → Step 7 (dev/docker 停止) へ
@@ -107,13 +107,14 @@ maintainer: gotomts
 2. **code-review skill 課金前 1 問確認** (ADR-0013 D2、M4 fix 2026-07-04: **scope は code-review のみ**、security-engineer と write-review-response chain は独立):
    - 「code-review skill (CodeRabbit) を自動 invoke します、続けてよいですか? user account に課金されます」を user に提示
    - yes → 3 へ / no → 3 を skip、gwt.md レビュー履歴に「STOP POINT 2 で code-review skip (user 選択、user 手動 invoke へ委譲)」を追記して 4 へ (silent failure 回避のため security-engineer + write-review-response chain は必ず実行)
-3. `Skill` tool で `code-review` skill を **auto-invoke** (CodeRabbit の機械的レビュー、ADR-0013 D2)
-4. **`security-engineer` を能動 dispatch** (評価 mode、Step 2 の yes/no と独立、必ず実行) — security-focused なコードレビューを 1 回実施 (silent failure 回避、ADR-0013 D2 scope)
+3. `Skill` tool で `code-review:code-review` skill を **auto-invoke** (CodeRabbit の機械的レビュー、ADR-0013 D2)
+4. **`shared:security-engineer` を能動 dispatch** (評価 mode、Step 2 の yes/no と独立、必ず実行) — security-focused なコードレビューを 1 回実施 (silent failure 回避、ADR-0013 D2 scope)
 5. dispatch log は write-review-response 内で review-response.md のレビュー履歴に集約されるが、gwt-test 内でも「STOP POINT 2 実行完了 (code-review = {実行 / skip}、security-engineer = 実行)」を gwt.md レビュー履歴に追記 (再開判定 hint)
-6. `Skill` tool で `write-review-response` skill を chain invoke (常に実行、silent failure 回避)
+6. `Skill` tool で `enhance-superpowers:write-review-response` skill を chain invoke (常に実行、silent failure 回避)
 
 ## 規律明示
 
+- **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:software-architect`)。bare name は解決されない。engineering 系 13 職種は `shared` plugin が提供する (root ADR-0009)
 - Step 0 状態判定で再開可能な skill 設計 (ADR-0012 D2)、SKILL.md 冒頭の Phase 定義 table を再開判定の仕様源 (ADR-0012 D3)
 - agent-browser → chrome-devtools-mcp → 相談 の優先順序
 - 実装修正 → テストコード同期確認 (不要時も 1 行根拠を残す)
@@ -132,9 +133,9 @@ maintainer: gotomts
 | README 不在 / 起動コマンド不明 | error 報告 + 中断 ("手動起動してから再 invoke") |
 | port 占有 | `lsof -i :<port>` 提示 → 既存停止 or 別 port 指定を 1 問確認 |
 | agent-browser が対象機能非対応 | chrome-devtools-mcp 使用是非を 1 問確認 → 未導入なら install 是非も 1 問確認 |
-| AC 未達 | qa-engineer dispatch → gwt.md 変更履歴追記 → 実装差し戻し提案 → user 1 問確認 |
-| Step 6 で qa-engineer が抜けシナリオ検出 | user 承認後 gwt.md AC 追加 → Step 3 再検証 |
-| Step 8 で code-review skill 課金確認 no | code-review skip して security-engineer のみ dispatch、user に手動 invoke を残す |
+| AC 未達 | shared:qa-engineer dispatch → gwt.md 変更履歴追記 → 実装差し戻し提案 → user 1 問確認 |
+| Step 6 で shared:qa-engineer が抜けシナリオ検出 | user 承認後 gwt.md AC 追加 → Step 3 再検証 |
+| Step 8 で code-review skill 課金確認 no | code-review skip して shared:security-engineer のみ dispatch、user に手動 invoke を残す |
 | 異常終了で dev server / docker 停止漏れ | cleanup ロジックで停止試行、失敗時は PID + コマンドを user に通知 |
 
 ## 関連
