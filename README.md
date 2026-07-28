@@ -29,7 +29,7 @@ claude-collections/
 
 ## コレクション
 
-- **[`indie-studio`](indie-studio/)** — 個人開発のサービス設計〜デザイン〜開発をオールインで回す AI 自律開発ハーネス。アンカー（人間が握る土台）から企画・デザイン・技術設計・分解・実装までを、人間の数ゲートだけで自律的に進める。**`shared` と `enhance-superpowers` の install が必要**（S5 実装ステージを enhance-superpowers へ委譲・ADR-0032）。
+- **[`indie-studio`](indie-studio/)** — 個人開発のサービス設計〜デザイン〜開発をオールインで回す AI 自律開発ハーネス。アンカー（人間が握る土台）から企画・デザイン・技術設計・分解・実装までを、人間の数ゲートだけで自律的に進める。**`shared` と `enhance-superpowers` の install が必要**（S5 実装ステージを enhance-superpowers へ委譲・indie-studio ADR-0032）。
 - **[`enhance-superpowers`](enhance-superpowers/)** — 公式 superpowers plugin の直線フロー（brainstorming → writing-plans → executing-plans）に、5 成果物 Spec フェーズ確定・agent 能動 dispatch・監査ログ・コンプライアンス trigger を被せた強化版。
 - **[`shared`](shared/)** — 上記 2 つが共通で使う基盤。collection 非依存の中立語彙で書かれた engineering 系 13 職種エージェントと helper skill 2 本を提供する。**上記いずれかを使う場合は併せて install が必要**（ADR-0009）。
 
@@ -74,3 +74,4 @@ GitHub 経由で marketplace を登録する。public リポジトリなので�
 4. root の `marketplace.json` に新 plugin を 1 entry 追加
 5. `make regen-drafter-configs` で release-drafter の config を生成
 6. `CONTEXT-MAP.md` にコレクションの所在と概要を追記
+7. **初回 merge 後、release draft の tag を `v0.1.0` → `v0.0.1` に付け替える**（新規コレクションは直前のリリースが無いため version-resolver の patch 固定が効かず、release-drafter の初期値 `0.1.0` が出る）：`gh release edit --repo gotomts/claude-collections <collection>/v0.1.0 --tag <collection>/v0.0.1 --title <collection>/v0.0.1`

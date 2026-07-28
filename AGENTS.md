@@ -17,6 +17,7 @@
 - **エージェントの起動は `plugin:agent` 形式の修飾名で行う**（例：`shared:software-architect` / `indie-studio:ux-researcher`）。**bare name は解決されない**。同名 agent を持つ plugin が共存すると片方の agent セットが registry から丸ごと落ちるため、**コレクション間で agent 名を重複させないこと**（ADR-0009）。skill は名前空間が効くのでこの制約を受けない。
 - 設計判断は該当コレクションの `docs/adr/` を読む。決定は inline／git／ADR に残す（専用の決定ログ file は作らない）。
 - ADR は原則 immutable（決定の根拠を保存するため直接書き換え・削除しない。方針変更は新 ADR で supersede／extends する）。**例外**：decision を伴わない誤記録（非-decision を誤って ADR 化した bug／void な記録）は、痕跡を残さず削除してよい（immutable が守るのは「判断の根拠」であって、判断でないものは保存対象外）。末尾番号を削除した場合は後続 ADR を詰めて連番を保つ。
+- **ADR 番号は名前空間ごとに独立している**（root `docs/adr/` と各 `<collection>/docs/adr/` で同じ番号が別物を指す。例：root ADR-0009 = shared plugin 化／enhance-superpowers ADR-0009 = ライセンスチェック／indie-studio ADR-0009 = agents がハーネスのホーム）。したがって**裸の `ADR-000N` は「そのファイルが属する名前空間の ADR」を指す**規約とし、他名前空間を参照するときは必ず修飾する — collection のファイルから root を指すなら `root ADR-000N`、root のファイルから collection を指すなら `indie-studio ADR-000N` のように書く。修飾を怠ると同一ファイル内で同じ番号が 2 つの意味に解決されうる。
 
 ## shared plugin（共有エージェント／スキル）
 
@@ -41,6 +42,7 @@
 - format: `<collection>/v<semver>` (slash 区切り、例: `indie-studio/v0.0.1`)
 - テスト期: `v0.0.x` 系で publish、version-resolver は全 patch 固定 (`0.1.0` 自動突入を抑制)
 - 安定化フェーズ: `v0.1.0` 以降 semver (ADR-0004 を extends する新 ADR で切り替え)
+- **⚠️ 新規コレクションの初回 draft は `v0.1.0` になる。publish 前に `v0.0.1` へ付け替えること。** version-resolver の patch 固定は「**直前のリリースから +1**」する仕組みなので、リリースがまだ 1 つも無い新規コレクションには効かず、release-drafter 組み込みの初期値 `0.1.0` が出る。放置して publish すると以後 `0.1.x` 系に固定され、他コレクションの `0.0.x` と体系がズレる。修正は `gh release edit --repo gotomts/claude-collections <collection>/v0.1.0 --tag <collection>/v0.0.1 --title <collection>/v0.0.1`（draft のうちに直せば git tag は作られていないので副作用なし）。2 回目以降は patch 固定が正しく効く。
 
 ### publish 判断 (PR merge 後 trigger)
 
