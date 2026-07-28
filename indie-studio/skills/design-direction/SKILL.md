@@ -265,8 +265,10 @@ components:                       # map<string, map<string, string>> 2 階層必
 
 **spec compliance 再チェック（ADR-0033）**：視覚確認ゲートの「戻る」は **reviewer 合格後の DESIGN.md を書き換える**ため、そのまま mock 再生成へ進むと ADR-0029 の spec pin フォーマット（フラット map / unit suffix / hyphen variant / 英語単独セクション名）の適合が再検証されないまま確定してしまう。これを塞ぐため、修正後・mock 再生成前に `shared:reviewer` を **continuation で再起動**して次を確認する。
 
-- **scope 凍結**：**変更されたセクション / token の spec compliance のみ**。ステップ 6 で合格済みの内容や未変更セクションは再評価しない（人間ゲートの往復回数を増やさないため、fresh 起動はしない）。
-- **判定**：形式違反があれば `indie-studio:product-designer` を continuation で再起動して修正 → 再チェック。**このループは視覚ゲートの 2 ループ制限とは別枠**（形式適合は妥協点がないため）。ただし同一 finding が 3 回連続で解消しなければ ⚠️未達として決着させ、ディレクターが終端レポートに載せる。
+- **scope 凍結（2 層）**：(1) **変更されたセクション / token の spec compliance**、(2) **変更 diff が波及しうる document-level の形式不変条件**＝セクション順序 / 重複見出し / frontmatter のフラット map / unit suffix / variant の hyphen 連結 / 英語単独セクション名。ステップ 6 で合格済みの**内容**（意味・妥当性）は再評価しないが、**形式は文書全体で見る**（token 1 個の書き換えが map 構造や見出し重複を壊しうるため）。人間ゲートの往復を増やさないため fresh 起動はしない。
+- **判定**：形式違反があれば `indie-studio:product-designer` を continuation で再起動して修正 → 再チェック。**このループは視覚ゲートの 2 ループ制限とは別枠**（形式適合は妥協点がないため）。
+- **失敗上限は「再チェック 3 回」**（finding 単位ではなく**ループ全体の回数**。finding が入れ替わっても 3 回で打ち切る）。
+- **3 回で合格しなければ ⚠️未達として終端**：**mock を再生成せず、再ゲートにも S2 にも進まない**。ディレクターが未解消 findings を提示して人間の判断を仰ぎ、停止する。
 - **合格後にのみ** `indie-studio:ui-prototyper` を起動して mock を再生成する。
 
 **collateral damage 防止**：1 ループ目の修正が他セクションに矛盾を生んでいないか、`indie-studio:ui-prototyper` が mock 再生成時に self-grill で確認する。矛盾を発見した場合は finding として director に報告（mock 内のコメントではなく対話で返す）。これは**意味的な**矛盾検出であり、上記の spec compliance 再チェック（**形式的**適合）とは別軸で、互いを代替しない。
