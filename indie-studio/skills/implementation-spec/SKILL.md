@@ -60,7 +60,7 @@ docs/indie-studio/implementation/{S-nn}-{slug}/
 | **suffix は `design`** | 呼称は「spec」だが**ファイル名は `design`**。`enhance-executing-plans` と `gwt-test` が `design` で glob するため、`spec.md` にすると発見されない |
 | `plan.md` | `## レビュー履歴` セクション必須（`enhance-executing-plans` の状態判定が読む） |
 | `gwt.md` | `- [ ] AC-N: ...` 形式の checklist、`## 変更履歴`（`{YYYY-MM-DD HH:MM}` 逆時系列）、`## レビュー履歴` 必須（`gwt-test` が読む） |
-| `pr-description.md` | `## やったこと` / `## 補足` / `## 動作確認方法` の 3 セクション（`finish-spec-pr` が読む） |
+| `pr-description.md` | `## やったこと` / `## 動作確認方法` は必須。**`## 補足` は内容が無ければセクションごと削除してよい**（`finish-spec-pr` 自身が「内容がなければセクションごと削除」と規定しているため、空で残すほうが契約違反） |
 
 ## 動作
 
@@ -72,13 +72,13 @@ docs/indie-studio/implementation/{S-nn}-{slug}/
    | 状況 | 挙動 |
    |---|---|
    | Linear issue **あり** | 正規。それを起点にする |
-   | issue 無し・**`index.md` にスライスあり** | **起票漏れ**。その場で Linear へ起票して正規フローに乗せる |
+   | issue 無し・**`index.md` にスライスあり** | **起票漏れ**。ただし起票は外部書き込みなので、**`index.md` が G4 承認済みであることを確認**してから起票する（G4 承認は S4 の前提・ADR-0008）。承認済みか判定できなければ user に明示承認を取る。起票後は正規フローに乗せる |
    | issue 無し・**`index.md` にも無し** | S4 を通さない単発作業。**ヒアリングで要件を聞き取り Spec を書く。issue は作らず Step 3（issue 精緻化）をスキップ**。骨格作成・起票は行わない（S4 の責務・ADR-0032 D1） |
 
 3. 出力先を glob して既存成果物を確認：
    - 未存在 → Step 1 から
    - 一部存在 → 欠けている成果物から再開
-   - 5 つ揃い済み → plan.md の `設計承認済み` marker（Step 3-a）を確認。**あり** → Step 4（委譲）へ／**なし** → Step 2 の承認から
+   - 5 つ揃い済み → **design.md の `## レビュー履歴` にある `設計承認済み` marker**（Step 3-a）を確認。**あり** → Step 5（委譲）へ／**なし** → Step 2 の承認から（marker は Step 3-a 時点で plan.md が未生成のため design.md に書く）
 4. 判定結果を user に明示。
 
 ### Step 1: summary 生成
