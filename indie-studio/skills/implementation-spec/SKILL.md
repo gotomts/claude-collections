@@ -52,7 +52,10 @@ docs/indie-studio/implementation/{S-nn}-{slug}/
 
 ## ⚠️ 委譲先の入力契約（勝手に変えない・ADR-0032 D2）
 
-**成果物の形式は `enhance-superpowers` 側の仕様**である。委譲先が Step 0 の状態判定で glob するため、**崩すと連鎖が壊れる**。
+**成果物の形式は `enhance-superpowers` 側の仕様**である。ただし**全てが必須なわけではない** — 実際に崩すと連鎖が壊れるのは次の 2 つで、他は緩い。
+
+- **`*-plan.md` の存在**（`enhance-executing-plans` の Step 0 が前提として要求。無ければ error 中断）
+- **`*-gwt.md` の checklist と履歴セクション**（`gwt-test` が読んで判定に使う）
 
 | 項目 | 契約 |
 |---|---|

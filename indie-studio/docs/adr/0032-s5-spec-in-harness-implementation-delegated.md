@@ -45,7 +45,7 @@ Spec の生成順は **enhance-superpowers の順序に合わせる**（`summary
 
 ### D2. 成果物は enhance-superpowers の入力契約に従う
 
-委譲先が Step 0 の状態判定で成果物を glob するため、**形式は enhance-superpowers 側の仕様に合わせる**。これは**暗黙の契約**であり、勝手に変えると連鎖が壊れる。
+委譲先が成果物を読むため、**形式は enhance-superpowers 側の仕様に合わせる**。これは**暗黙の契約**である。ただし**必須の強さは一様でない** — ハード要件は `*-plan.md` の存在（`enhance-executing-plans` Step 0 が無ければ error 中断）と `*-gwt.md` の checklist / 履歴セクション（`gwt-test` が判定に使う）の 2 つで、他は緩い。
 
 | 項目 | 契約 |
 |---|---|
