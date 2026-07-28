@@ -7,8 +7,9 @@ description: |
   実装前 = software-architect (実装方針 review)、slice ごと = code-review skill (optional 1問確認) + security-engineer + performance-engineer 能動 dispatch。
   dispatch log は plan.md のレビュー履歴に集約 (ADR-0007)。
   Step 0 で状態判定 (ADR-0012 D2)、Step 1 で .ai-restrictions.md を Read して AI 利用ポリシー案内 (ADR-0010)。
+  引数 --output-dir / --gate-mode で出力先・gate 集約を制御 (省略時は従来挙動、ADR-0014)。
   完了後は gwt-test skill を chain invoke。
-argument-hint: "[plan-file-path]  # plan.md のパス (省略時は docs/superpowers/{branch}/ から自動検出)"
+argument-hint: "[plan-file-path] [--output-dir=<path>] [--gate-mode=per-phase|aggregate]  # plan.md のパス (省略時は出力先から自動検出)。引数は外部 collection 利用向け、省略時は従来挙動 (ADR-0014)"
 allowed-tools:
   - Read
   - Write
@@ -24,11 +25,22 @@ maintainer: gotomts
 
 enhance-superpowers コレクションの実装フェーズ skill (ADR-0012 で新設)。ユーザーは通常 enhance-brainstorming の skill chain 経由で自動 invoke されるが、単独 invoke も可能。
 
+## 引数 (ADR-0014)
+
+いずれも任意。**省略時は従来挙動と完全に同一**。
+
+| 引数 | 既定 | 効果 |
+|---|---|---|
+| `--output-dir=<path>` | `docs/superpowers/{branch}/` | 成果物の所在。**Step 0 の状態判定と plan.md の自動検出先**になる |
+| `--gate-mode=aggregate` | `per-phase` | Step 4 の code-review 1 問確認を**実行に固定**し、Step 5 の chain 起動 1 問確認を**自動 yes** にする。attempt / final marker の idempotent 制御は維持 |
+
+以降、本 SKILL の `{出力先}` は「`--output-dir` 指定時はその値、省略時は `docs/superpowers/{branch}/`」を指す。
+
 ## Phase 定義 (ADR-0012 D3)
 
 | Phase | 前提 file | 出力 | 出力条件 |
 |---|---|---|---|
-| 0 | `docs/superpowers/{branch}/*-plan.md` 存在 | (判定) | 状態判定完了、Step 番号を確定 |
+| 0 | `{出力先}/*-plan.md` 存在 | (判定) | 状態判定完了、Step 番号を確定 |
 | 1 | plan.md | 実装前 review 記録 | shared:software-architect dispatch 完了、plan.md レビュー履歴に追記 |
 | 2 | plan.md | 実装コード | enhance-executing-plans が対象 executor agent (`shared:{backend,frontend,mobile,infrastructure}-engineer`) を skill 側から **直接 dispatch** して slice 実装 (2026-07-04 OD1 fix、superpowers 委譲廃止) |
 | 3 | 実装スライスごと | slice review 記録 | code-review skill (optional) + shared:security-engineer + shared:performance-engineer dispatch 完了、plan.md レビュー履歴に追記 |
@@ -38,21 +50,22 @@ enhance-superpowers コレクションの実装フェーズ skill (ADR-0012 で�
 
 ### Step 0: 状態判定 (ADR-0012 D2)
 
-1. `git rev-parse --abbrev-ref HEAD` で現ブランチ取得、サニタイズ (`/` → `-`)
-2. `docs/superpowers/{branch}/` の既存 file を Glob で列挙、`summary/design/gwt/pr-description/plan` の存在有無を確認
-3. **前提**: `*-plan.md` が存在すること。無ければ error "plan.md がありません。enhance-brainstorming Phase 4 を完了させてください" + 中断
-4. plan.md 末尾の「## レビュー履歴」を Read し、以下を判定:
+1. **`{出力先}` を確定**: `--output-dir` があればその値、無ければ `git rev-parse --abbrev-ref HEAD` → サニタイズ (`/` → `-`) → `docs/superpowers/{branch}/`
+2. `{出力先}` の既存 file を Glob で列挙、`summary/design/gwt/pr-description/plan` の存在有無を確認
+3. **明示引数を優先**: `plan-file-path` が渡されていればそれを対象 plan.md として採用し、glob 探索より優先する。
+4. **前提**: (明示引数が無い場合) `{出力先}` に `*-plan.md` が存在すること。無ければ error "plan.md がありません。enhance-brainstorming Phase 4 を完了させてください" + 中断
+5. plan.md 末尾の「## レビュー履歴」を Read し、以下を判定:
    - 「実装前 software-architect dispatch」ログ有無 → 無ければ Step 1 から / あれば Step 3 (slice 単位 executor dispatch + review) から
    - 「gwt-test chain 完了」final marker 有 → 呼び出し元に返る (再 chain 不要)
    - 「gwt-test chain 起動 attempt」marker のみ有 (完了 marker なし) → user に「gwt-test を再 chain invoke しますか? (下流で失敗した可能性)」1 問確認 → yes なら Step 5 (再実行、marker は idempotent なので重複追記しない)、no なら終了
-5. `handoff.md` が同ディレクトリにあれば Read して state summary を取得、上記判定と突き合わせ (handoff 情報が優先されるとは限らない、あくまで補助)
-6. 判定結果を user に「現在 Phase = X、Step Y から再開します」と明示、user 1 問確認 (誤検出時の catch)
+6. `handoff.md` が同ディレクトリにあれば Read して state summary を取得、上記判定と突き合わせ (handoff 情報が優先されるとは限らない、あくまで補助)
+7. 判定結果を user に「現在 Phase = X、Step Y から再開します」と明示、user 1 問確認 (誤検出時の catch)
 
 ### Step 1: 前提確認 + AI 利用ポリシー案内 (ADR-0010)
 
 1. `git rev-parse --show-toplevel` で git repo を確認、失敗なら error 中断
 2. プロジェクトルートの `.ai-restrictions.md` を Read (存在すれば内容を user に案内、無ければ skip)
-3. argument 経由 or `docs/superpowers/{branch}/*-plan.md` から plan.md を確定
+3. argument 経由 or `{出力先}/*-plan.md` から plan.md を確定
 
 ### Step 2: 実装前 software-architect 能動 dispatch (ADR-0012 D1)
 
@@ -95,6 +108,7 @@ plan.md 内の各 slice について、以下を順次実行:
    - user に「本 slice で `code-review` skill を実行しますか? (default: skip、STOP POINT 2 で全体まとめて実行)」1 問確認
    - yes → `Skill` tool で `code-review:code-review` skill を invoke (CodeRabbit の機械的レビュー)
    - no → skip (STOP POINT 2 に code-review を集約)
+   - **`--gate-mode=aggregate` 時**: 1 問確認をせず `code-review:code-review` を**実行に固定**する (呼び出し元が停止ゼロ運用のため。billed である点は呼び出し元が了解済みとみなす。ADR-0014 E3)
 2. 実装対象 slice に auth / crypto / データ取扱 / 外部入力等の変更があれば、`shared:security-engineer` を **常時能動 dispatch** (評価 mode、security-focused な実装 review)
 3. 大規模 UI / 大量データ処理等で性能影響が想定される slice なら、`shared:performance-engineer` を能動 dispatch (評価 mode)
 4. dispatch log (code-review 実行 / skip、security-engineer / performance-engineer 実行結果) を plan.md 末尾「## レビュー履歴」セクションに追記 (ADR-0007)
@@ -105,9 +119,10 @@ plan.md 内の各 slice について、以下を順次実行:
 
 1. plan.md の全 slice が実装 + review 済であることを確認
 2. **user に「実装フェーズ完了、gwt-test chain invoke に進みますか?」1 問確認** (user 承認 gate、marker を先に書かない)
-3. yes → 続行 / no → 「後で `gwt-test` を直接 invoke してください」と案内して skill 終了 (attempt marker も書き込まない、再 invoke 時に Step 5 から素直に再開)
+   - **`--gate-mode=aggregate` 時**: 1 問確認をせず**自動 yes** として続行する (ADR-0014 E3)
+3. yes → 続行 / no → 「後で `enhance-superpowers:gwt-test` を直接 invoke してください (**`--output-dir` / `--gate-mode` を同じ値で渡すこと**)」と案内して skill 終了 (attempt marker も書き込まない、再 invoke 時に Step 5 から素直に再開)
 4. plan.md 末尾レビュー履歴に **「{timestamp} - gwt-test chain 起動 attempt」attempt marker** を追記 (idempotent: 既存の attempt marker があれば skip、多重追記を防止)
-5. `Skill` tool で `enhance-superpowers:gwt-test` skill を chain invoke
+5. `Skill` tool で `enhance-superpowers:gwt-test` skill を chain invoke (`--output-dir` / `--gate-mode` を受け取っていれば**そのまま引き継いで渡す**)
 6. chain invoke **成功時のみ** plan.md 末尾レビュー履歴に **「{timestamp} - gwt-test chain 完了」final marker** を追記 (Step 0 の再開判定に使う hint)。失敗時は attempt marker のみ残る = 次回再 invoke で Step 0 が「attempt-only 状態」を検知して user 1 問確認 → 再 Step 5 実行の分岐に入る
 
 ## 規律明示
@@ -138,6 +153,7 @@ plan.md 内の各 slice について、以下を順次実行:
 - ADR-0007 (audit-trail-dispatch-log): dispatch log 集約先 = plan.md
 - ADR-0010 (ai-utilization-policy-loading): Step 1 で Read
 - ADR-0012 (implementation-phase-skill-and-state-detection): 本 skill を規定する ADR
+- ADR-0014 (output-dir-arg-chain-suppression-gate-aggregation): 本 skill の 2 引数 (E1 出力先 / E3 gate 集約)
 - enhance-brainstorming SKILL.md: 前工程 skill、実装フェーズ chain 起動元
 - gwt-test SKILL.md: 後工程 skill、Step 5 で chain invoke
 - `superpowers:executing-plans` skill: 従来 Step 3 で invoke していたが D1 redesign で廃止 (2026-07-04)。参考として名前のみ残置

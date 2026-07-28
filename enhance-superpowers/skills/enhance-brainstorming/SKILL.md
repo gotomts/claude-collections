@@ -7,11 +7,12 @@ description: |
   各 Phase で specialist agent (software-architect / qa-engineer / security-engineer) を能動 dispatch、
   dispatch log は 5 成果物のレビュー履歴セクションに追記 (ADR-0007)。
   Phase 3 で機微情報チェック (ADR-0008)、Phase 4 でライセンスチェック (ADR-0009) を組み込む。
-  Step 0 で状態判定 (docs/superpowers/{branch}/ の既存 file から現在 Phase を判定、ADR-0012)。
+  Step 0 で状態判定 (出力先の既存 file から現在 Phase を判定、ADR-0012)。
+  引数 --output-dir / --no-chain / --gate-mode で出力先・chain 抑止・承認 gate 集約を制御 (省略時は従来挙動、ADR-0014)。
   Step 1 で .ai-restrictions.md を Read して AI 利用ポリシーを案内 (ADR-0010)。
   Spec フェーズ完了後は Step 7 で enhance-executing-plans skill を chain invoke (ADR-0012)、
   その後 gwt-test / write-review-response / finish-spec-pr を連鎖駆動。
-argument-hint: "[topic]  # 開発したい機能 / 課題のキーワード (任意、省略時は会話で詰める)"
+argument-hint: "[topic] [--output-dir=<path>] [--no-chain] [--gate-mode=per-phase|aggregate]  # topic は任意 (省略時は会話で詰める)。3 引数は外部 collection からの利用向け、省略時は従来挙動 (ADR-0014)"
 allowed-tools:
   - Read
   - Write
@@ -27,11 +28,23 @@ maintainer: gotomts
 
 enhance-superpowers コレクションの起点 skill。ユーザーが意識的に呼ぶ唯一の skill。superpowers:brainstorming の責任を拡張し、5 成果物の Spec フェーズ確定 + 後工程連鎖駆動を担う。
 
+## 引数 (ADR-0014)
+
+いずれも任意。外部 collection から実装エンジンとして利用されるときに使う。**`--output-dir` と `--gate-mode` は省略時に従来挙動と完全に同一**。**`--no-chain` のみ既定挙動が変わり**、引数を渡さない場合も Step 7 で「実装へ進むか / Spec で止めるか」の 1 問確認が入る（yes で従来と同じ流れ。ADR-0014 E2）。
+
+| 引数 | 既定 | 効果 |
+|---|---|---|
+| `--output-dir=<path>` | `docs/superpowers/{branch}/` | 5 成果物 / `review-response.md` / `handoff.md` の配置先。**Step 0 の状態判定もこのディレクトリを走査する**。命名規約 `{YYYY-MM-DD}-{slug}-{suffix}.md` は不変 |
+| `--no-chain` | (chain する) | Step 7 で `enhance-superpowers:enhance-executing-plans` を chain invoke せず、案内だけ出して終了 |
+| `--gate-mode=aggregate` | `per-phase` | Phase 2 / 3 / 4 の user 承認を自動通過させ、5 成果物が揃った時点で**一括提示して承認 1 回**。agent 能動 dispatch・機微情報チェック・ライセンスチェックは**全て従来どおり実行する** (gate を減らすだけで検証は減らさない) |
+
+以降、本 SKILL で `{出力先}` と書いた箇所は「`--output-dir` 指定時はその値、省略時は `docs/superpowers/{branch}/`」を指す。
+
 ## Phase 定義 (ADR-0012 D3)
 
 | Phase | 前提 file | 出力 file | 出力条件 |
 |---|---|---|---|
-| 0 | `docs/superpowers/{branch}/` (作成 or 既存) | (判定) | 状態判定完了、Step 番号を確定 |
+| 0 | `{出力先}` (作成 or 既存) | (判定) | 状態判定完了、Step 番号を確定 |
 | 1 | (なし) | (会話合意 = 内部状態) | 2-3 アプローチ提示 + user 合意 |
 | 2 | Phase 1 合意 | `{date}-{slug}-summary.md` | user 承認 + commit |
 | 3 | summary.md | `{date}-{slug}-design.md` + `-gwt.md` + `-pr-description.md` | 3 file 揃って user 承認 1 回 + commit (ADR-0011) |
@@ -42,8 +55,8 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 
 ### Step 0: 状態判定 (ADR-0012 D2)
 
-1. `git rev-parse --abbrev-ref HEAD` で現ブランチ取得 → サニタイズ (`/` → `-`)
-2. `docs/superpowers/{branch}/` を Glob で列挙、`summary/design/gwt/pr-description/plan` の 5 成果物の存在有無を確認
+1. **`{出力先}` を確定**: `--output-dir` があればその値、無ければ `git rev-parse --abbrev-ref HEAD` で現ブランチ取得 → サニタイズ (`/` → `-`) → `docs/superpowers/{branch}/`
+2. `{出力先}` を Glob で列挙、`summary/design/gwt/pr-description/plan` の 5 成果物の存在有無を確認
 3. `handoff.md` が同ディレクトリにあれば Read して state summary を取得 (補助情報)
 4. 上表 Phase 定義に従って現在 Phase / 適切な Step を判定 (M1 fix 2026-07-04: Phase 3 中間状態の細分化):
    - 5 成果物すべて未存在 → Phase 1 (Step 2 から)
@@ -52,14 +65,14 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
    - summary.md + design.md + gwt.md 存在、pr-description.md 未生成 → Phase 3 Step 4-c (pr-description.md 生成) から
    - summary + design + gwt + pr-desc 揃い、plan.md 未存在 → Phase 4 (Step 5 から)
    - plan.md 存在 → STOP POINT 1 (Step 7 で enhance-executing-plans chain)
-   - **中間状態で未 commit の書きかけ file 検出時** (`git status --porcelain docs/superpowers/{branch}/` で untracked or unstaged 判定): user に「Phase 3 差し戻し中の状態のようです、どの file から再開しますか?」と 1 問確認して分岐
+   - **中間状態で未 commit の書きかけ file 検出時** (`git status --porcelain {出力先}` で untracked or unstaged 判定): user に「Phase 3 差し戻し中の状態のようです、どの file から再開しますか?」と 1 問確認して分岐
 5. 判定結果を user に「現在 Phase = X、Step Y-{semantic} から再開します」と明示 (例: 「Phase 3、design.md 生成から」)、user 1 問確認 (誤検出時の catch)
 
 ### Step 1: 前提確認 + AI 利用ポリシー案内 (ADR-0010)
 
 1. `git rev-parse --show-toplevel` で git repo を確認、失敗なら error 中断
 2. `git rev-parse --abbrev-ref HEAD` で現ブランチ取得 → サニタイズ (`/` → `-`)
-3. `docs/superpowers/{branch}/` ディレクトリを作成 (commit 前提、worktree 退避なし)
+3. `{出力先}` ディレクトリを作成 (commit 前提、worktree 退避なし)
 4. **プロジェクトルートの `.ai-restrictions.md` を Read** (存在すれば内容を user に案内、無ければ skip)
 
 ### Step 2: Phase 1 — 会話で問題理解 + 2-3 アプローチ提示
@@ -75,12 +88,13 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 
 1. user 合意済みアプローチを base に、`enhance-superpowers/templates/summary.md` を Read
 2. テンプレのプレースホルダー (`{機能名}` / `{slug}` / `{方式 1}` 等) を埋めて summary.md を生成
-3. ファイル名: `{YYYY-MM-DD}-{slug}-summary.md`、配置: `docs/superpowers/{branch}/`
+3. ファイル名: `{YYYY-MM-DD}-{slug}-summary.md`、配置: `{出力先}`
 4. frontmatter の `design: ./{date}-{slug}-design.md` を先行記載 (実 design.md は Phase 3 で生成)
 5. `shared:software-architect` を能動 dispatch — 方式の要点 / 効いている設計判断を SOLID/YAGNI 観点でレビュー
 6. **`shared:reviewer` を能動 dispatch** (2026-07-04 追加) — summary の反証可能性観点 (Steelman / Fails if / Kill criteria の 3 行併記が summary の "効いている設計判断" に埋まっているか、真実源整合)
 7. **summary.md 末尾「## レビュー履歴」セクションに Phase 1 + Phase 2 の dispatch log を追記** (ADR-0007)
 8. user 承認 → commit (Conventional Commits 形式)
+   - **`--gate-mode=aggregate` 時**: user 承認を取らずに commit して Phase 3 へ進む (承認は Step 6-A の一括提示にまとめる。ADR-0014 E3)
 
 ### Step 4: Phase 3 — design + gwt + pr-description まとめ生成 (認識齟齬検出 ② ③ 統合、ADR-0011)
 
@@ -117,6 +131,8 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 2. user 承認 → 3 file まとめて commit (Conventional Commits 形式)
 3. 差し戻しが発生した場合、該当 file のみ再生成 → 3 file 揃えて再提示 (承認単位は 3 file 一括を維持)
 
+**`--gate-mode=aggregate` 時**: 1-3 を行わず、3 file を commit して Phase 4 へ進む (承認は Step 6-A の一括提示にまとめる)。**機微情報チェック (4-a の 6) の user 確認は集約対象外で、従来どおりここで実施する** (承認 gate ではなくコンプライアンス trigger のため。ADR-0014 E3)。
+
 ### Step 5: Phase 4 — plan.md 生成 + ライセンスチェック
 
 1. `superpowers:writing-plans` を invoke
@@ -128,26 +144,39 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 7. **ライセンスチェック** (ADR-0009): plan で追加予定の依存ライブラリ一覧を抽出、各ライブラリのライセンスを確認 (license-checker 等を推奨案内)、制限ライセンス (GPL / AGPL / SSPL / 商用制限) が含まれる場合は user に警告 + 1 問確認
 8. plan.md 末尾「## レビュー履歴」セクションに Phase 4 の dispatch log を追記 (ADR-0007)
 9. user 承認 → commit
+   - **`--gate-mode=aggregate` 時**: user 承認を取らずに commit し、Step 6-A へ進む。**ライセンスチェック (7) の user 確認は集約対象外で従来どおり実施する** (コンプライアンス trigger のため。ADR-0014 E3)
 
 ### Step 6: Phase 1 / 2 の任意セキュリティ dispatch
 
 Phase 1 / 2 でセキュリティ箇所が検出されたら `shared:security-engineer` を任意 dispatch (Phase 3 / 4 の常時 dispatch とは別)。dispatch log は該当 Phase の成果物 (summary.md) のレビュー履歴に追記。Phase 3 は既に security-engineer 常時 dispatch が design / gwt / pr-description を包含するため、追加の任意 dispatch は不要。
 
+### Step 6-A: 5 成果物の一括承認 (`--gate-mode=aggregate` 時のみ、ADR-0014 E3)
+
+`per-phase` (既定) では本 Step を実行しない (承認は各 Phase で取り済み)。
+
+1. 5 成果物 (summary / design / gwt / pr-description / plan) が `{出力先}` に揃っていることを確認
+2. user に**一括提示**: 各 file の要点 + 各 Phase の agent dispatch 結果サマリ + 機微情報 / ライセンスチェックの結果を 1 回でレビューできる形にまとめる
+3. user 承認 → Step 7 へ
+4. 差し戻し時: 該当 file のみ再生成 (該当 Phase の agent dispatch も再実行) → 5 成果物を揃えて再提示 (承認単位は一括を維持)
+
 ### Step 7: STOP POINT 1 (実装フェーズ) → `enhance-executing-plans` skill chain (ADR-0012)
 
-1. user に「Spec フェーズが完了しました。次は実装です」と明示
-2. `Skill` tool で `enhance-superpowers:enhance-executing-plans` skill を **chain invoke** (ADR-0012 D1 redesign 2026-07-04):
+1. user に「Spec フェーズが完了しました」と明示
+2. **chain 判定** (ADR-0014 E2):
+   - `--no-chain` 指定時 → chain せず「実装は `enhance-superpowers:enhance-executing-plans` を invoke してください (**`--output-dir` と `--gate-mode` を受け取った値のまま渡すこと**。渡さないと出力先を見失い、gate 集約も既定の `per-phase` に戻る)」と案内して**終了**
+   - 指定なし → user に「実装フェーズに進みますか / Spec で止めますか」**1 問確認**。止める場合は上記と同じ案内をして終了
+3. 続行する場合、`Skill` tool で `enhance-superpowers:enhance-executing-plans` skill を **chain invoke** (ADR-0012 D1 redesign 2026-07-04)。`--output-dir` / `--gate-mode` を受け取っていれば**そのまま引き継いで渡す**:
    - 実装前 = `shared:software-architect` 能動 dispatch (実装方針 review)
    - 実装本体 = skill 側から **executor agent (backend/frontend/mobile/infrastructure-engineer) を直接 dispatch** (superpowers:executing-plans 委譲は D1 redesign で廃止 = silent failure の言い換えだった)
    - slice 単位 = `code-review` skill (optional 1問確認、default skip) + `shared:security-engineer` (該当 slice で常時) + `shared:performance-engineer` (該当 slice で)
    - dispatch log は plan.md 末尾レビュー履歴に追記 (ADR-0007)
    - 完了後 = `gwt-test` skill に自動連鎖
-3. 中断時の再開方法を案内: 「(a) `enhance-brainstorming` を再 invoke (Step 0 で状態判定して続きから)、(b) `enhance-executing-plans` を直接 invoke、または (c) `gwt-test` skill を直接 invoke」
+4. 中断時の再開方法を案内: 「(a) `enhance-brainstorming` を再 invoke (Step 0 で状態判定して続きから)、(b) `enhance-superpowers:enhance-executing-plans` を直接 invoke、または (c) `enhance-superpowers:gwt-test` skill を直接 invoke」(**いずれも `--output-dir` / `--gate-mode` を同じ値で渡すこと**。渡さないと既定ディレクトリを走査して「未着手」と誤判定する)
 
 ## 規律明示
 
 - **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:software-architect`)。bare name は解決されない。engineering 系 13 職種は `shared` plugin が提供する (root ADR-0009)
-- 5 成果物の命名: `{YYYY-MM-DD}-{slug}-{suffix}.md`、配置: `docs/superpowers/{branch}/`
+- 5 成果物の命名: `{YYYY-MM-DD}-{slug}-{suffix}.md`、配置: `{出力先}`
 - **生成順**: plan-last (`summary → design → gwt → pr-description → plan`)、design / gwt / pr-description は Phase 3 で連続生成 + 承認 1 回 (ADR-0011)
 - 設計思想: Clean Architecture + Modular Monolith / YAGNI/DRY/KISS/SOLID / SOLID 最優先 / テスト DRY 一部許容
 - コードコメント方針: WHY のみ、JSDoc 抑制
@@ -184,5 +213,6 @@ Phase 1 / 2 でセキュリティ箇所が検出されたら `shared:security-en
 - ADR-0010 (ai-utilization-policy-loading)
 - ADR-0011 (plan-last-order-and-design-gwt-prd-merged) — 本 skill が反映する生成順
 - ADR-0012 (implementation-phase-skill-and-state-detection) — Step 0 状態判定と Step 7 の enhance-executing-plans chain
+- ADR-0014 (output-dir-arg-chain-suppression-gate-aggregation) — 本 skill の 3 引数 (E1 出力先 / E2 chain 抑止 / E3 gate 集約)
 - CONTEXT.md (ユビキタス言語、indie-studio 禁止語彙)
 - enhance-executing-plans SKILL.md: Step 7 で chain invoke する後工程 skill

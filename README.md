@@ -29,7 +29,7 @@ claude-collections/
 
 ## コレクション
 
-- **[`indie-studio`](indie-studio/)** — 個人開発のサービス設計〜デザイン〜開発をオールインで回す AI 自律開発ハーネス。アンカー（人間が握る土台）から企画・デザイン・技術設計・分解・実装までを、人間の数ゲートだけで自律的に進める。
+- **[`indie-studio`](indie-studio/)** — 個人開発のサービス設計〜デザイン〜開発をオールインで回す AI 自律開発ハーネス。アンカー（人間が握る土台）から企画・デザイン・技術設計・分解・実装までを、人間の数ゲートだけで自律的に進める。**`shared` と `enhance-superpowers` の install が必要**（S5 実装ステージを enhance-superpowers へ委譲・ADR-0032）。
 - **[`enhance-superpowers`](enhance-superpowers/)** — 公式 superpowers plugin の直線フロー（brainstorming → writing-plans → executing-plans）に、5 成果物 Spec フェーズ確定・agent 能動 dispatch・監査ログ・コンプライアンス trigger を被せた強化版。
 - **[`shared`](shared/)** — 上記 2 つが共通で使う基盤。collection 非依存の中立語彙で書かれた engineering 系 13 職種エージェントと helper skill 2 本を提供する。**上記いずれかを使う場合は併せて install が必要**（ADR-0009）。
 
@@ -44,6 +44,7 @@ claude-collections/
 ```
 /plugin marketplace add /Users/<you>/ghq/github.com/gotomts/claude-collections
 /plugin install shared@claude-collections
+/plugin install enhance-superpowers@claude-collections
 /plugin install indie-studio@claude-collections
 ```
 
@@ -54,6 +55,7 @@ GitHub 経由で marketplace を登録する。public リポジトリなので�
 ```
 /plugin marketplace add gotomts/claude-collections
 /plugin install shared@claude-collections
+/plugin install enhance-superpowers@claude-collections
 /plugin install indie-studio@claude-collections
 ```
 

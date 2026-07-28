@@ -48,7 +48,8 @@ accepted（ADR-0016 のレイアウト図と ADR-0021 の `docs/discovery/` 表�
    │       │   └── brief.md
    │       ├── tech/           # S1a + S3
    │       │   └── stack-direction/
-   │       └── decomposition/  # S4
+   │       ├── decomposition/  # S4
+   │       └── implementation/ # S5 実装詳細設計（S-{nn}-{slug}/ 単位・ADR-0032 D3 で追加）
    └── src/                    # S5 実装コード
    ```
 
