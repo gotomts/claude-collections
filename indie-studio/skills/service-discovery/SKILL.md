@@ -102,7 +102,7 @@ ADR-0002 / 0015。4つの**別ドキュメント**：
 
 ## ディレクター制御フロー
 
-**起動機構**：ディレクター（＝スキル本体のメインセッション）は各職種を **Agent tool** で spawn する。`subagent_type` は **`plugin:agent` 形式の修飾名**を使う（bare name は解決されない・root ADR-0009）：`indie-studio:ux-researcher` / `indie-studio:product-manager` / `indie-studio:business-strategist` / `indie-studio:product-designer` / `shared:reviewer`。プロンプトに mode/area・アンカーの所在・出力先・上流成果物のパスを渡す（各エージェントの入力契約参照）。差し戻しは**同じ職種を continuation で再起動**（findings を渡す・ADR-0018）。
+**起動機構**：ディレクター（＝スキル本体のメインセッション）は各職種を **Agent tool** で spawn する。`subagent_type` は **`plugin:agent` 形式の修飾名**を使う（bare name は解決されない・root ADR-0010）：`indie-studio:ux-researcher` / `indie-studio:product-manager` / `indie-studio:business-strategist` / `indie-studio:product-designer` / `shared:reviewer`。プロンプトに mode/area・アンカーの所在・出力先・上流成果物のパスを渡す（各エージェントの入力契約参照）。差し戻しは**同じ職種を continuation で再起動**（findings を渡す・ADR-0018）。
 
 導出職種（`indie-studio:ux-researcher` / `indie-studio:product-manager` / `indie-studio:business-strategist` / `indie-studio:product-designer`）は indie-studio 独自 agent で、stage / 出力先 / self-grill / 観点 ⑤ 規約を body に持つため mode/area・所在の受け渡しで足りる。一方 **`shared:reviewer` は `shared` plugin の中立 agent**（body に固有値を持たず「呼び出し元 skill が指定」と宣言）なので、spawn 時に次を prompt へ**明示的に埋める**（ADR-0031）。
 

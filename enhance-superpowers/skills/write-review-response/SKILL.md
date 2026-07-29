@@ -109,7 +109,7 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 
 ## 規律明示
 
-- **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:software-architect`)。bare name は解決されない。engineering 系 13 職種は `shared` plugin が提供する (root ADR-0009)
+- **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:software-architect`)。bare name は解決されない。engineering 系 13 職種は `shared` plugin が提供する (root ADR-0010)
 - CodeRabbit へのリプライは送らない (修正 push → 自動 resolve → 残 unresolved のみ判定)
 - 採用/Skip 2 値 (保留禁止、全件判定必須)
 - 採用後の実装修正でテストコード同期不要時は 1 行根拠を残す

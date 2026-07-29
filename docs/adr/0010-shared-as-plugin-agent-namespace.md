@@ -1,14 +1,14 @@
-# 0009. shared/ を plugin 化し、agent の vendoring を廃止する
+# 0010. shared/ を plugin 化し、agent の vendoring を廃止する
 
 ## Status
 
 Accepted (2026-07-28)。ADR-0004 (shared-agent-vendoring) と ADR-0005 (shared-skills-vendoring) を **supersede** する。**ADR-0003 が定めた配布構造** (リポジトリ = 1 marketplace、各コレクション = 1 plugin) はそのまま継承し、marketplace に配る plugin を 2 個から 3 個に増やす。
 
-> 注記 (2026-07-28)：本 ADR の初版は配布経路を「ADR-0003 / ADR-0008 が定めた local path + public repo の二経路」と書いていたが、ここで参照していた**旧 ADR-0008（`public-repo-distribution`）は非-decision の誤記録として PR #30 で削除済み**だった（外部 consumer サポートを決めた事実が無いのに、それを決定として記録していたため）。よって本 ADR が依拠する配布構造の根拠は **ADR-0003 のみ**とし、public/private の framing は本 ADR の主張から外す。本 ADR の決定内容（plugin 数を 3 に増やす）は影響を受けない。
+> 注記 (2026-07-28)：本 ADR の初版は配布経路を「ADR-0003 / 旧 ADR-0008 が定めた local path + public repo の二経路」と書いていたが、ここで参照していた**旧 ADR-0008（`public-repo-distribution`）は非-decision の誤記録として PR #30 で削除済み**だった（外部 consumer サポートを決めた事実が無いのに、それを決定として記録していたため）。よって本 ADR が依拠する配布構造の根拠は **ADR-0003 のみ**とし、public/private の framing は本 ADR の主張から外す。本 ADR の決定内容（plugin 数を 3 に増やす）は影響を受けない。
 >
-> **現在の [ADR-0008](0008-repository-visibility-public.md) は別物**（`repository-visibility-public`・2026-07-28 に新規作成）。削除で空いた番号を連番維持のために継いだもので、上記で削除されたものとは内容が異なる。
-
-> ※ 注記 (2026-07-29)：本 ADR が記録した agent 名の重複禁止は、[ADR-0010](0010-external-plugin-agent-name-collision.md) で**外部 marketplace の plugin まで適用範囲を拡張**した。衝突は本リポジトリの collection 間で閉じない。同 ADR で `shared:code-reviewer` は `shared:implementation-reviewer` に改名されている。
+> **現在の [ADR-0009](0009-repository-visibility-public.md) は別物**（`repository-visibility-public`・2026-07-28 に新規作成）。削除で空いた番号を連番維持のために継いだもので、上記で削除されたものとは内容が異なる。
+>
+> ※ 注記 (2026-07-29)：本 ADR が記録した agent 名の重複禁止は、[ADR-0011](0011-external-plugin-agent-name-collision.md) で**外部 marketplace の plugin まで適用範囲を拡張**した。衝突は本リポジトリの collection 間で閉じない。同 ADR で `shared:code-reviewer` は `shared:implementation-reviewer` に改名されている。
 
 
 
@@ -54,8 +54,8 @@ skill も agent と同様に vendoring を廃止する。skill 自体は衝突�
 - indie-studio と enhance-superpowers は `shared` plugin に**依存**する。両者を使う場合は `shared` の install が必須であり、README / marketplace description で明示する。
 - registry に載る engineering 系 agent は 26 体 (13 × 2 の重複) から 13 体になる。
 - `make sync` / `make verify` / `make status` は消滅する。shared/ を編集したら即座に全 consumer へ反映されるため、sync 忘れという失敗モード自体が無くなる。CI の `verify-shared` job も不要になる。
-- `shared/` が `.claude-plugin/plugin.json` を持つため、release-drafter の auto-discovery (ADR-0006) が `shared` を collection として認識し、専用の draft と tag prefix (`shared/v0.0.x`) を持つようになる。`make regen-drafter-configs` で config を生成する。
-- あわせて drafter の `include-paths` から `shared/skills/finish-stage-pr/` を除去し、各 collection の draft は `<collection>/` 配下のみを集約する。vendoring 時代は shared/ の変更が `make sync` で `<collection>/agents/` にも現れるため consumer の draft に載っていたが、`shared` が自前の draft を持つ以上、**shared/ の変更は shared の draft にのみ載せる**（consumer 側で二重計上しない）。ADR-0006 が記した include-paths の前提（「vendoring 元」「全コレクションが finish-stage-pr を vendoring している前提」）は本 ADR で失効する。
+- `shared/` が `.claude-plugin/plugin.json` を持つため、release-drafter の auto-discovery (ADR-0007) が `shared` を collection として認識し、専用の draft と tag prefix (`shared/v0.0.x`) を持つようになる。`make regen-drafter-configs` で config を生成する。
+- あわせて drafter の `include-paths` から `shared/skills/finish-stage-pr/` を除去し、各 collection の draft は `<collection>/` 配下のみを集約する。vendoring 時代は shared/ の変更が `make sync` で `<collection>/agents/` にも現れるため consumer の draft に載っていたが、`shared` が自前の draft を持つ以上、**shared/ の変更は shared の draft にのみ載せる**（consumer 側で二重計上しない）。ADR-0007 が記した include-paths の前提（「vendoring 元」「全コレクションが finish-stage-pr を vendoring している前提」）は本 ADR で失効する。
 - root `AGENTS.md` の agent 起動に関する記述 (`name` 参照・path 非依存) を、`plugin:agent` 修飾必須に訂正する。
 - 「各コレクションは自己完結する」という構成規約は、**ディレクトリ構造の規約**として読む。実行時に他 plugin の agent / skill を参照することは妨げない。
 
@@ -69,5 +69,5 @@ skill も agent と同様に vendoring を廃止する。skill 自体は衝突�
 
 - ADR-0003 (plugin-marketplace-distribution): 配布構造 (marketplace + per-collection plugin)。本 ADR は plugin 数のみ増やし、構造は継承する
 - ADR-0004 (shared-agent-vendoring) / ADR-0005 (shared-skills-vendoring): 本 ADR が supersede する。中立語彙原則のみ継承
-- ADR-0006 (release-drafter-auto-discovery): `shared` が collection として auto-discover される
+- ADR-0007 (release-drafter-auto-discovery): `shared` が collection として auto-discover される
 - indie-studio ADR-0031 (skill-invocation-context-for-neutral-agents): 中立 agent への context 受け渡し規律。本 ADR 後も有効

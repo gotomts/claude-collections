@@ -66,7 +66,7 @@ AI 自律開発ハーネスの **ステージ3（技術設計）** スキル。�
 
 ## ディレクター制御フロー
 
-スキル1（service-discovery）と同型。**Agent tool**（`subagent_type` は `plugin:agent` 形式の修飾名。bare name は解決されない・root ADR-0009）で spawn、**ADR-0018 の評価ループ**（インクリメンタル＋依存順・round1 fresh→凍結 continuation・成果物ごと3R・上流再オープン深さ1）、**完全性ガード**（期待マニフェスト＝tech corpus ＋ repo セットアップ一式、✅/➖/⚠️）、ゲートで**ギャップレポート＋繰り越し一覧**を提示（ADR-0019）。`shared:principal-engineer` が評価役。
+スキル1（service-discovery）と同型。**Agent tool**（`subagent_type` は `plugin:agent` 形式の修飾名。bare name は解決されない・root ADR-0010）で spawn、**ADR-0018 の評価ループ**（インクリメンタル＋依存順・round1 fresh→凍結 continuation・成果物ごと3R・上流再オープン深さ1）、**完全性ガード**（期待マニフェスト＝tech corpus ＋ repo セットアップ一式、✅/➖/⚠️）、ゲートで**ギャップレポート＋繰り越し一覧**を提示（ADR-0019）。`shared:principal-engineer` が評価役。
 
 ### 起動 context（中立 agent への invocation 必須要素・ADR-0031）
 

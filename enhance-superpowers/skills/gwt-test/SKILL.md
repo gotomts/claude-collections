@@ -128,7 +128,7 @@ maintainer: gotomts
 
 ## 規律明示
 
-- **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:software-architect`)。bare name は解決されない。engineering 系 13 職種は `shared` plugin が提供する (root ADR-0009)
+- **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:software-architect`)。bare name は解決されない。engineering 系 13 職種は `shared` plugin が提供する (root ADR-0010)
 - Step 0 状態判定で再開可能な skill 設計 (ADR-0012 D2)、SKILL.md 冒頭の Phase 定義 table を再開判定の仕様源 (ADR-0012 D3)
 - agent-browser → chrome-devtools-mcp → 相談 の優先順序
 - 実装修正 → テストコード同期確認 (不要時も 1 行根拠を残す)

@@ -72,7 +72,7 @@
 - 信頼度ダイヤル（自動 merge ゾーン拡大）の運用基準と critical surface のパス/モジュール定義
 - アンカーの DoD（PRFAQ がターゲットと中核シナリオを鋭く名指す）の明文化
 
-## リリース運用 (ADR-0004)
+## リリース運用 (root ADR-0006)
 
 `indie-studio` の変更履歴は GitHub Releases (`indie-studio/v0.0.x` 系) に集約する。設定は `.github/release-drafter-indie-studio.yml` + `.github/workflows/release-drafter-indie-studio.yml`、運用規約 (PR merge 後の publish 判断 trigger / セッション開始時の draft 確認 / 導入 PR の bootstrap) は root [`AGENTS.md`](../../AGENTS.md) の「## リリースノート運用」節を参照。
 
@@ -91,6 +91,6 @@ PR merge 後の Claude Code セッションでの判断 (primary)、セッショ
 ADR-0003 の version 戦略 2 段階移行で `indie-studio` を安定化フェーズに切り替える際:
 
 - `indie-studio/.claude-plugin/plugin.json` に `version: "0.1.0"` を明示 (ADR-0003 を extends する新 ADR)
-- `.github/release-drafter-indie-studio.yml` の `version-resolver` を kissasoft-mcp 同形 (`feat→minor` / `major→major`) に書き換え (ADR-0004 を extends する新 ADR)
+- `.github/release-drafter-indie-studio.yml` の `version-resolver` を kissasoft-mcp 同形 (`feat→minor` / `major→major`) に書き換え (root ADR-0006 を extends する新 ADR)
 - `💥 Breaking` category を追加、autolabeler の major 検出パターン追加 (同上)
 - 上記 ADR を 1 本にまとめても可

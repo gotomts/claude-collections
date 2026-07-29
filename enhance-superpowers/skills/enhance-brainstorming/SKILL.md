@@ -175,7 +175,7 @@ Phase 1 / 2 でセキュリティ箇所が検出されたら `shared:security-en
 
 ## 規律明示
 
-- **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:software-architect`)。bare name は解決されない。engineering 系 13 職種は `shared` plugin が提供する (root ADR-0009)
+- **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:software-architect`)。bare name は解決されない。engineering 系 13 職種は `shared` plugin が提供する (root ADR-0010)
 - 5 成果物の命名: `{YYYY-MM-DD}-{slug}-{suffix}.md`、配置: `{出力先}`
 - **生成順**: plan-last (`summary → design → gwt → pr-description → plan`)、design / gwt / pr-description は Phase 3 で連続生成 + 承認 1 回 (ADR-0011)
 - 設計思想: Clean Architecture + Modular Monolith / YAGNI/DRY/KISS/SOLID / SOLID 最優先 / テスト DRY 一部許容

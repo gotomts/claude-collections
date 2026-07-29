@@ -1,4 +1,4 @@
-# 0008. リポジトリ visibility を public にする（配布構造は不変）
+# 0009. リポジトリ visibility を public にする（配布構造は不変）
 
 `claude-collections` リポジトリの visibility を **public** にする。ADR-0003 が「却下：public repo として公開／採用：local path + **private** repo の併用」と決めた配布経路のうち、**repo の visibility 部分のみ**を変更する。marketplace 宣言・per-collection plugin・2 経路併用・version 2 段階移行という配布**構造**の decision は一切変更しない。
 
@@ -6,7 +6,7 @@
 
 accepted（2026-07-28）。[ADR-0003](0003-plugin-marketplace-distribution.md) を **extends** する（supersede ではない — ADR-0003 の構造 decision は全て有効なまま）。
 
-> **番号について**：本 ADR は ADR-0009 より後に書かれたが番号は 0008 である。旧 ADR-0008（`public-repo-distribution`）が PR #30 で削除されて空いた番号を、本 ADR が継いで連番を回復した（PR #31 が 0009 を取ったため一時的に gap が生じていた）。採番規約の正本は `AGENTS.md`「ADR 番号の採番規約」を参照。
+> **番号について**：本 ADR は ADR-0010 より後に書かれたが番号は 0009 である。当初は旧 ADR-0008（`public-repo-distribution`）が PR #30 で削除されて空いた `0008` を継いで連番を回復した（PR #31 が当時の `0009` を取ったため一時的に gap が生じていた）。その後、`0004` が 2 つ存在していた採番バグを解消した際に以降の番号を 1 つずつスライドさせたため、現在は `0009` である。採番規約の正本は `AGENTS.md`「ADR 番号の採番規約」を参照。
 
 ## Context
 
@@ -47,12 +47,12 @@ visibility 変更に伴う差分は次の 2 点のみ：
 
 ## Alternatives Considered
 
-- **却下：記録しない（ADR-0003 を実態と乖離させたまま残す）**。immutable は守れるが、accepted な ADR が事実と矛盾したまま残り、次に読む人が同じ混乱に陥る。実際に本 ADR を書く直前、`shared` plugin 化（ADR-0009）の Status が削除済みの旧 ADR-0008 を参照する dangling リンクを生んでいた。
+- **却下：記録しない（ADR-0003 を実態と乖離させたまま残す）**。immutable は守れるが、accepted な ADR が事実と矛盾したまま残り、次に読む人が同じ混乱に陥る。実際に本 ADR を書く直前、`shared` plugin 化（ADR-0010）の Status が削除済みの旧 ADR-0008 を参照する dangling リンクを生んでいた。
 - **却下：ADR-0003 に注記を入れて「private を visibility 非依存に読み替える」と書く**。本 PR の初版がこれだったが、ADR 本文が「却下：public／採用：private」と記録したままなので、**同一 ADR 内で decision と注記が矛盾**する。これは誤記訂正ではなく decision の適用範囲の変更であり、immutable 原則に反する（外部レビューで指摘され撤回）。
 - **却下：ADR-0003 を supersede する**。変更するのは visibility だけで、配布構造の decision は全て有効。supersede は過剰。
 
 ## 関連
 
 - ADR-0003 (plugin-marketplace-distribution): 本 ADR が extends する親。配布構造・2 経路・version 2 段階は継承
-- ADR-0009 (shared-as-plugin-agent-namespace): marketplace に配る plugin を 3 個に増やした決定。配布構造は ADR-0003 を継承
+- ADR-0010 (shared-as-plugin-agent-namespace): marketplace に配る plugin を 3 個に増やした決定。配布構造は ADR-0003 を継承
 - PR #30: 旧 ADR-0008（public-repo-distribution）を非-decision として削除。本 ADR はその判断を踏襲しつつ、framing を正して事実のみ記録する

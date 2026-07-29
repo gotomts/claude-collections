@@ -1,18 +1,18 @@
-# 0010. agent 名の重複禁止を外部 plugin まで拡張し、shared:code-reviewer を implementation-reviewer に改名する
+# 0011. agent 名の重複禁止を外部 plugin まで拡張し、shared:code-reviewer を implementation-reviewer に改名する
 
 ## Status
 
-Accepted (2026-07-29)。ADR-0009 (shared-as-plugin-agent-namespace) を **extends** する。ADR-0009 の決定（shared の plugin 化・vendoring 廃止・`plugin:agent` 修飾必須）はそのまま有効で、本 ADR はその「agent 名を重複させない」制約の**適用範囲**だけを広げる。
+Accepted (2026-07-29)。ADR-0010 (shared-as-plugin-agent-namespace) を **extends** する。ADR-0010 の決定（shared の plugin 化・vendoring 廃止・`plugin:agent` 修飾必須）はそのまま有効で、本 ADR はその「agent 名を重複させない」制約の**適用範囲**だけを広げる。
 
 ## Context
 
-ADR-0009 は agent 名の重複禁止を「**コレクション間で** agent 名を重複させないこと」と書いた。この書き方は、衝突が本リポジトリの marketplace 内で閉じるかのように読める。実際には閉じない。
+ADR-0010 は agent 名の重複禁止を「**コレクション間で** agent 名を重複させないこと」と書いた。この書き方は、衝突が本リポジトリの marketplace 内で閉じるかのように読める。実際には閉じない。
 
 `shared/agents/code-reviewer.md` の `name: code-reviewer` は、Anthropic 公式 marketplace の **`feature-dev` plugin が持つ `code-reviewer`** と同名である。両者は別 marketplace の別 plugin だが、ユーザーの環境では同時に install されうるし、実際にされていた。
 
-**ただし、この衝突はまだ発火していなかった。** 2026-07-29 に「`shared:*` の 13 agent がセッションに登録されない」という事象を調査した結果、原因は衝突ではなく `shared@claude-collections` が `enabledPlugins` に登録されていなかったこと（install ≠ enable）だった。衝突が表面化していなかったのは、負けた側が消える以前に shared 自体がロードされていなかったためにすぎない。enable すれば ADR-0009 が記録した失敗モード（同名 agent を持つ 2 plugin が共存すると、負けた側の agent セットが registry から丸ごと落ち、衝突していない agent まで巻き添えになる）に そのまま乗る。
+**ただし、この衝突はまだ発火していなかった。** 2026-07-29 に「`shared:*` の 13 agent がセッションに登録されない」という事象を調査した結果、原因は衝突ではなく `shared@claude-collections` が `enabledPlugins` に登録されていなかったこと（install ≠ enable）だった。衝突が表面化していなかったのは、負けた側が消える以前に shared 自体がロードされていなかったためにすぎない。enable すれば ADR-0010 が記録した失敗モード（同名 agent を持つ 2 plugin が共存すると、負けた側の agent セットが registry から丸ごと落ち、衝突していない agent まで巻き添えになる）に そのまま乗る。
 
-つまり本 ADR が扱うのは、**実測済みの故障ではなく、ADR-0009 で実測済みのメカニズムに対する既知の未発火リスク**である。この区別を残しておかないと、後から「衝突で shared が消えた」という誤った因果が読み取られる。
+つまり本 ADR が扱うのは、**実測済みの故障ではなく、ADR-0010 で実測済みのメカニズムに対する既知の未発火リスク**である。この区別を残しておかないと、後から「衝突で shared が消えた」という誤った因果が読み取られる。
 
 ## Decision
 
@@ -38,7 +38,7 @@ ADR-0009 は agent 名の重複禁止を「**コレクション間で** agent �
 
 ## 関連
 
-- ADR-0009 (shared-as-plugin-agent-namespace): 本 ADR が extends する。衝突時の失敗モード（負けた側の agent セットが丸ごと落ちる）の実測記録
+- ADR-0010 (shared-as-plugin-agent-namespace): 本 ADR が extends する。衝突時の失敗モード（負けた側の agent セットが丸ごと落ちる）の実測記録
 - ADR-0004 (shared-agent-vendoring): 中立語彙原則。本 ADR は「中立 ≠ 衝突しない」を補足する
 - enhance-superpowers ADR-0013 (gwt-test-qa-engineer-always-dispatch-and-code-review-auto-invoke): この agent を判定 aid 専用に予約した決定。名前のみ変更
 - indie-studio ADR-0031 (skill-invocation-context-for-neutral-agents): 中立 agent への context 受け渡し規律。本 ADR 後も有効
