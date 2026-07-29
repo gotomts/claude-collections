@@ -20,7 +20,7 @@ AI 自律開発ハーネスの **ステージ5** スキル。実行環境は **C
 
 ## 前提（plugin 依存）
 
-`enhance-superpowers` と `shared` の install が必須（root ADR-0009 / ADR-0032）。未 install なら Step 0 で error 中断する。
+`enhance-superpowers` と `shared` の install が必須（root ADR-0010 / ADR-0032）。未 install なら Step 0 で error 中断する。
 
 ## 担当範囲
 
@@ -194,4 +194,4 @@ enhance-superpowers:enhance-executing-plans --output-dir=docs/indie-studio/imple
 
 ## 関連 ADR
 
-本スキル＝ADR-0032（D1 担当範囲 / D2 入力契約 / D3 上流由来 / D4 委譲 / D5 enhance-superpowers 不変）。**ファイル名 suffix ＝ADR-0034**（ADR-0032 D2 を改定し `design` → `spec`）。ステージ全体＝ADR-0013/0017。評価ループ＝ADR-0018。決定記録＝ADR-0019。適応 PR ゲート＝ADR-0008。issue 精緻化の自律＝ADR-0007。出力レイアウト＝ADR-0016/0028。中立 agent への context 受け渡し＝ADR-0031。plugin 依存＝root ADR-0009。委譲先の引数＝enhance-superpowers ADR-0014。
+本スキル＝ADR-0032（D1 担当範囲 / D2 入力契約 / D3 上流由来 / D4 委譲 / D5 enhance-superpowers 不変）。**ファイル名 suffix ＝ADR-0034**（ADR-0032 D2 を改定し `design` → `spec`）。ステージ全体＝ADR-0013/0017。評価ループ＝ADR-0018。決定記録＝ADR-0019。適応 PR ゲート＝ADR-0008。issue 精緻化の自律＝ADR-0007。出力レイアウト＝ADR-0016/0028。中立 agent への context 受け渡し＝ADR-0031。plugin 依存＝root ADR-0010。委譲先の引数＝enhance-superpowers ADR-0014。

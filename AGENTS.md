@@ -5,7 +5,7 @@
 ## 構成規約
 
 - 各コレクションは `<collection>/` 配下に**自己完結**する：`skills/`・`agents/`・`docs/adr/`・`CONTEXT.md`・`ROADMAP.md`・`.claude-plugin/plugin.json`。
-- **例外：`shared/`** は plugin だがコレクションではない（agents/skills の共有基盤・ADR-0009）。`CONTEXT.md` / `ROADMAP.md` / `docs/adr/` は持たず、設計判断は root `docs/adr/` に置く。ただし `.claude-plugin/plugin.json` を持つため release-drafter の auto-discovery には collection として載り、`shared/v0.0.x` の draft/tag を持つ。
+- **例外：`shared/`** は plugin だがコレクションではない（agents/skills の共有基盤・ADR-0010）。`CONTEXT.md` / `ROADMAP.md` / `docs/adr/` は持たず、設計判断は root `docs/adr/` に置く。ただし `.claude-plugin/plugin.json` を持つため release-drafter の auto-discovery には collection として載り、`shared/v0.0.x` の draft/tag を持つ。
 - root には repo 横断の `AGENTS.md`（本ファイル）・`CLAUDE.md`（ポインタ）・`CONTEXT-MAP.md`（コレクション索引）・`docs/adr/`（横断決定）・`.claude-plugin/marketplace.json`（plugin marketplace 宣言）。
 - コレクション一覧と所在は `CONTEXT-MAP.md`。
 - 配布構造（marketplace + 各 plugin）の決定は [`docs/adr/0003`](docs/adr/0003-plugin-marketplace-distribution.md)。
@@ -14,8 +14,8 @@
 
 - 該当コレクションの `<collection>/skills/<skill>/SKILL.md` ／ `<collection>/agents/<name>.md` に置く（root 直下に置かない）。
 - **エージェントは実在職種名で**設計する（成果物名・概念で割らない）。
-- **エージェントの起動は `plugin:agent` 形式の修飾名で行う**（例：`shared:software-architect` / `indie-studio:ux-researcher`）。**bare name は解決されない**。同名 agent を持つ plugin が共存すると片方の agent セットが registry から丸ごと落ちるため、**agent 名を重複させないこと**（ADR-0009）。skill は名前空間が効くのでこの制約を受けない。
-- **重複禁止の対象はコレクション間に閉じない。外部 marketplace の plugin も含む**（ADR-0010）。実例：`shared:code-reviewer` は Anthropic 公式 `feature-dev` plugin の `code-reviewer` と同名だったため `implementation-reviewer` に改名した。**中立語彙であることと、ありふれた名前でないことは別**で、衝突を招くのは後者。agent を足す前に install 済み plugin の agent 名と突き合わせる：
+- **エージェントの起動は `plugin:agent` 形式の修飾名で行う**（例：`shared:software-architect` / `indie-studio:ux-researcher`）。**bare name は解決されない**。同名 agent を持つ plugin が共存すると片方の agent セットが registry から丸ごと落ちるため、**agent 名を重複させないこと**（ADR-0010）。skill は名前空間が効くのでこの制約を受けない。
+- **重複禁止の対象はコレクション間に閉じない。外部 marketplace の plugin も含む**（ADR-0011）。実例：`shared:code-reviewer` は Anthropic 公式 `feature-dev` plugin の `code-reviewer` と同名だったため `implementation-reviewer` に改名した。**中立語彙であることと、ありふれた名前でないことは別**で、衝突を招くのは後者。agent を足す前に install 済み plugin の agent 名と突き合わせる：
 
   ```bash
   find ~/.claude/plugins/cache -path "*/agents/*.md" -exec grep -l "^name: <新 agent 名>$" {} +
@@ -32,38 +32,38 @@
   2. **参照ゼロ**であること。**確認先は 2 系統あり、両方を見る**：
      - **repo 内**：`grep -rn "ADR-000N" .`（他 ADR・SKILL.md・CONTEXT.md・README 等）
      - **公開済みリリースノート**：`gh api repos/gotomts/claude-collections/releases --paginate --jq '.[]|select(.draft==false)|"\(.tag_name)\t\(.body)"' | grep "ADR-000N"`
-     - ⚠️ **リリースノートは repo 内に無いので `grep -rn` では絶対に検出できない**。実際 `shared/v0.0.1` の本文は `root ADR-0009` / `ADR-0004` / `ADR-0005` を参照しており、repo 内 grep には現れない。**publish 済みのノートは事後変更が難しい**ため、ここを見落とすと恒久的な dangling 参照になる。
+     - ⚠️ **リリースノートは repo 内に無いので `grep -rn` では絶対に検出できない**。実際 `shared/v0.0.1` の本文は `root ADR-0010` / `ADR-0004` / `ADR-0005` を参照しており、repo 内 grep には現れない。**publish 済みのノートは事後変更が難しい**ため、ここを見落とすと恒久的な dangling 参照になる。
   - **参照が 1 つでもあれば削除しない。** 代わりに Status を `Void（理由）` にして本文を残す（参照側を全て直すより安全）。
-  - 削除後は**その番号を参照する記述を新たに書かない**。実例：旧 root ADR-0008 は削除時点で無参照だったが、後から書かれた ADR-0009 が参照して dangling 化した。
+  - 削除後は**その番号を参照する記述を新たに書かない**。実例：旧 root ADR-0008 は削除時点で無参照だったが、後から書かれた ADR-0010 が参照して dangling 化した。
 - **ADR 番号の採番規約**（連番を保つことが目的）：
-  - **削除で空いた番号は、次に作られる ADR が継ぐ**（末尾・中間いずれの gap も同じ扱い）。よって**作成順と番号順は必ずしも一致しない**（例：root ADR-0008 `repository-visibility-public` は ADR-0009 より後に書かれたが、旧 0008 の削除で空いた番号を埋めている）。番号は識別子であって時系列の保証ではない。
+  - **削除で空いた番号は、次に作られる ADR が継ぐ**（末尾・中間いずれの gap も同じ扱い）。よって**作成順と番号順は必ずしも一致しない**（例：root ADR-0009 `repository-visibility-public` は ADR-0010 より後に書かれている。当初は旧 ADR-0008 の削除で空いた `0008` を継いだが、後に `0004` の重複を解消した際のスライドで `0009` になった）。番号は識別子であって時系列の保証ではない。
   - **既に存在する ADR の renumber は行わない。** 番号は SKILL.md・CONTEXT.md・他 ADR・**公開済みリリースノート**（repo 外・事後変更が難しい）から参照される識別子であり、付け替えは参照を壊す。空き番号を次の ADR が埋めれば連番は保たれるので、renumber の必要がない。
   - 番号は名前空間ごとに独立（下記）。
-- **ADR 番号は名前空間ごとに独立している**（root `docs/adr/` と各 `<collection>/docs/adr/` で同じ番号が別物を指す。例：root ADR-0009 = shared plugin 化／enhance-superpowers ADR-0009 = ライセンスチェック／indie-studio ADR-0009 = agents がハーネスのホーム）。したがって**裸の `ADR-000N` は「そのファイルが属する名前空間の ADR」を指す**規約とし、他名前空間を参照するときは必ず修飾する — collection のファイルから root を指すなら `root ADR-000N`、root のファイルから collection を指すなら `indie-studio ADR-000N` のように書く。修飾を怠ると同一ファイル内で同じ番号が 2 つの意味に解決されうる。
+- **ADR 番号は名前空間ごとに独立している**（root `docs/adr/` と各 `<collection>/docs/adr/` で同じ番号が別物を指す。例：root ADR-0010 = shared plugin 化／enhance-superpowers ADR-0009 = ライセンスチェック／indie-studio ADR-0009 = agents がハーネスのホーム）。したがって**裸の `ADR-000N` は「そのファイルが属する名前空間の ADR」を指す**規約とし、他名前空間を参照するときは必ず修飾する — collection のファイルから root を指すなら `root ADR-000N`、root のファイルから collection を指すなら `indie-studio ADR-000N` のように書く。修飾を怠ると同一ファイル内で同じ番号が 2 つの意味に解決されうる。
 
 ## shared plugin（共有エージェント／スキル）
 
-- engineering 系（executor / quality / leadership）の共通エージェント 13 体と helper 系スキル 2 本（start-stage-branch / finish-stage-pr）は、**`shared` plugin が単一の実体として提供する**（ADR-0009）。vendoring（`make sync` による複製）は **廃止**した。
+- engineering 系（executor / quality / leadership）の共通エージェント 13 体と helper 系スキル 2 本（start-stage-branch / finish-stage-pr）は、**`shared` plugin が単一の実体として提供する**（ADR-0010）。vendoring（`make sync` による複製）は **廃止**した。
 - 各コレクションは `shared` を **install 前提の依存**として扱い、skill 内から `shared:<agent>` / `shared:<skill>` を修飾名で参照する（agent は修飾必須、skill は表記統一のため）。`dependencies.json` は不要（削除済み）。
 - `shared/agents/` は **collection 非依存の中立語彙で書く**（ADR-0004 から継承した原則）。collection 固有 context（ステージ番号 / 参照 docs パス / 進行 protocol 等）は呼び出し元 skill が invocation 時に prompt で渡す。
 - shared/ を編集すれば全 consumer へ即座に反映される（複製が無いため sync 忘れという失敗モードが存在しない）。
-- コレクション固有のエージェント（例：indie-studio の business-strategist 等）は従来通り `<collection>/agents/` に手書きで置く。**shared/・他コレクション・install 済みの外部 plugin と同名にしないこと**（同名衝突は agent セットの消失を招く・ADR-0009 / ADR-0010）。
+- コレクション固有のエージェント（例：indie-studio の business-strategist 等）は従来通り `<collection>/agents/` に手書きで置く。**shared/・他コレクション・install 済みの外部 plugin と同名にしないこと**（同名衝突は agent セットの消失を招く・ADR-0010 / ADR-0011）。
 
 ## 既存コレクション
 
 - **`indie-studio`**：個人開発のサービス設計〜デザイン〜開発を自律で回すハーネス。設計の真実源は `indie-studio/CONTEXT.md` と `indie-studio/docs/adr/`。
 - **`enhance-superpowers`**：公式 superpowers plugin の直線フロー (brainstorming → writing-plans → executing-plans) に、5 成果物 Spec フェーズ確定 / agent 能動 dispatch / 監査ログ / コンプライアンス trigger を被せた強化版。設計の真実源は `enhance-superpowers/CONTEXT.md` と `enhance-superpowers/docs/adr/`。
-- **`shared`**（コレクションではなく共有基盤 plugin）：上記 2 つが依存する中立 agent 13 体 + helper skill 2 本。設計の真実源は root `docs/adr/0009`。リリースノート運用は他と同じく GitHub Releases（tag prefix `shared/v`）に従う。
+- **`shared`**（コレクションではなく共有基盤 plugin）：上記 2 つが依存する中立 agent 13 体 + helper skill 2 本。設計の真実源は root `docs/adr/0010`。リリースノート運用は他と同じく GitHub Releases（tag prefix `shared/v`）に従う。
 
 ## リリースノート運用
 
-各コレクションの変更履歴は GitHub Releases に集約する (リポジトリ内 `CHANGELOG.md` ファイルは持たない)。ツールは [release-drafter@v6](https://github.com/release-drafter/release-drafter)、**単一の workflow + テンプレ config** (`.github/workflows/release-drafter.yml` + `.github/release-drafter-template.yml`) で repo top-level を auto-discover して各コレクション専用の draft を作成する。コレクション追加時に drafter 設定の手作業は不要 (`<new>/.claude-plugin/plugin.json` が main に乗れば次の push trigger で drafter が自動認識)。設計判断は [`docs/adr/0004`](docs/adr/0004-release-notes-workflow.md) (ノート運用全体) と [`docs/adr/0006`](docs/adr/0006-release-drafter-auto-discovery.md) (auto-discovery + テンプレ化)。
+各コレクションの変更履歴は GitHub Releases に集約する (リポジトリ内 `CHANGELOG.md` ファイルは持たない)。ツールは [release-drafter@v6](https://github.com/release-drafter/release-drafter)、**単一の workflow + テンプレ config** (`.github/workflows/release-drafter.yml` + `.github/release-drafter-template.yml`) で repo top-level を auto-discover して各コレクション専用の draft を作成する。コレクション追加時に drafter 設定の手作業は不要 (`<new>/.claude-plugin/plugin.json` が main に乗れば次の push trigger で drafter が自動認識)。設計判断は [`docs/adr/0006`](docs/adr/0006-release-notes-workflow.md) (ノート運用全体) と [`docs/adr/0007`](docs/adr/0007-release-drafter-auto-discovery.md) (auto-discovery + テンプレ化)。
 
 ### tag 命名
 
 - format: `<collection>/v<semver>` (slash 区切り、例: `indie-studio/v0.0.1`)
 - テスト期: `v0.0.x` 系で publish、version-resolver は全 patch 固定 (`0.1.0` 自動突入を抑制)
-- 安定化フェーズ: `v0.1.0` 以降 semver (ADR-0004 を extends する新 ADR で切り替え)
+- 安定化フェーズ: `v0.1.0` 以降 semver (ADR-0006 を extends する新 ADR で切り替え)
 - **⚠️ 新規コレクションの初回 draft は `v0.1.0` になる。** version-resolver の patch 固定は「**直前のリリースから +1**」する仕組みなので、リリースがまだ 1 つも無い新規コレクションには効かず、release-drafter 組み込みの初期値 `0.1.0` が出る。放置して publish すると以後 `0.1.x` 系に固定され、他コレクションの `0.0.x` と体系がズレる。
 - **⚠️ draft への tag 付け替えは「publish と同時」に行うこと。** draft の状態で `--tag` だけ直しても、**次に main へ push された時点で release-drafter が draft を再生成し、tag が `v0.1.0` に戻る**（実測：2026-07-28 に `shared` で発生）。正しい手順は retag と publish を **1 コマンドで同時実行**する:
 

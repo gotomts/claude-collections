@@ -36,7 +36,7 @@ AI 自律開発ハーネスの **ステージ4（分解）** スキル。実行�
 
 ## ディレクター制御フロー
 
-スキル1/2 と同型。Agent tool で spawn（`subagent_type` は `plugin:agent` 形式の修飾名。bare name は解決されない・root ADR-0009）、**ADR-0018 の評価ループ**、**完全性ガード（F-ID カバレッジ漏れゼロ）**。ゲートで**ギャップレポート＋繰り越し一覧**を提示。
+スキル1/2 と同型。Agent tool で spawn（`subagent_type` は `plugin:agent` 形式の修飾名。bare name は解決されない・root ADR-0010）、**ADR-0018 の評価ループ**、**完全性ガード（F-ID カバレッジ漏れゼロ）**。ゲートで**ギャップレポート＋繰り越し一覧**を提示。
 
 ### 起動 context（中立 agent への invocation 必須要素・ADR-0031）
 

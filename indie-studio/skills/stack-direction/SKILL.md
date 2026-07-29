@@ -67,7 +67,7 @@ docs/indie-studio/tech/stack-direction/
 
 ## ディレクター制御フロー
 
-**起動機構**：ディレクターは `shared:tech-lead` を **Agent tool**（`subagent_type=shared:tech-lead`。`plugin:agent` 修飾必須・bare name は解決されない・root ADR-0009）で spawn。プロンプトに `mode=stack-direction`・アンカーの所在・S1 corpus の所在・出力先（`docs/indie-studio/tech/stack-direction/`）を渡す。差し戻しは continuation で再起動（ADR-0018）。
+**起動機構**：ディレクターは `shared:tech-lead` を **Agent tool**（`subagent_type=shared:tech-lead`。`plugin:agent` 修飾必須・bare name は解決されない・root ADR-0010）で spawn。プロンプトに `mode=stack-direction`・アンカーの所在・S1 corpus の所在・出力先（`docs/indie-studio/tech/stack-direction/`）を渡す。差し戻しは continuation で再起動（ADR-0018）。
 
 **起動 context（中立 agent への invocation 必須要素・ADR-0031）**：`shared` plugin の `shared:tech-lead` / `shared:reviewer` は body に indie-studio 固有値を持たない中立 agent（入力契約で「呼び出し元 skill が指定」と宣言）。上記の mode/所在/出力先に加え、次も prompt へ**明示的に埋める**。
 

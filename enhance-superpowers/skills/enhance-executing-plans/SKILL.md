@@ -127,7 +127,7 @@ plan.md 内の各 slice について、以下を順次実行:
 
 ## 規律明示
 
-- **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:software-architect`)。bare name は解決されない。engineering 系 13 職種は `shared` plugin が提供する (root ADR-0009)
+- **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:software-architect`)。bare name は解決されない。engineering 系 13 職種は `shared` plugin が提供する (root ADR-0010)
 - 実装前後の agent 能動 dispatch を必ず実行 (silent failure 回避、ADR-0001 コンセプト、ADR-0012)
 - dispatch log は plan.md の「## レビュー履歴」セクションに集約 (ADR-0007)
 - 実装本体は skill 側から executor agent (backend/frontend/mobile/infrastructure-engineer) を直接 dispatch (2026-07-04 D1 redesign)。superpowers:executing-plans への委譲は silent failure の言い換えだったため廃止

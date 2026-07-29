@@ -4,7 +4,7 @@
 
 Accepted (2026-07-04). Updated (2026-07-04): **コードレビュー activity 全体で `code-review` skill を default とする方針**に拡張。`code-reviewer` agent は「判定 aid 専用」(false positive 判定補助 / 大規模 refactor 判定補助) に予約する。適用箇所: enhance-executing-plans Step 4 (per-slice review、optional user 1 問確認)、write-review-response Step 4 (再 push 前 review、課金前 user 1 問確認)、gwt-test Step 8 (STOP POINT 2、本 ADR D2 通り)。ADR-0005 の code-reviewer 用途もこの方針に統一。
 
-> ※ 本文中の `code-reviewer` は root [ADR-0010](../../../docs/adr/0010-external-plugin-agent-name-collision.md) で **`implementation-reviewer` に改名**された（外部 plugin との agent 名衝突回避）。本 ADR が定めた「判定 aid 専用に予約」という決定はそのまま有効で、dispatch 名が `shared:implementation-reviewer` になる。
+> ※ 本文中の `code-reviewer` は root [ADR-0011](../../../docs/adr/0011-external-plugin-agent-name-collision.md) で **`implementation-reviewer` に改名**された（外部 plugin との agent 名衝突回避）。本 ADR が定めた「判定 aid 専用に予約」という決定はそのまま有効で、dispatch 名が `shared:implementation-reviewer` になる。
 
 ## Context
 

@@ -65,7 +65,7 @@ accepted
 
 - `.github/release-drafter-indie-studio.yml` + `.github/workflows/release-drafter-indie-studio.yml` の 2 ファイルが追加される。将来 collection 増加時は同形の 2 ファイル追加で拡張 (`release-drafter-<collection>.yml`)。
 - root `AGENTS.md` に「## リリースノート運用」節が加わる。内容: PR merge 後の Claude Code セッションで publish 判断を必ず実行 / セッション開始時の未 publish draft 確認 / 月次 draft レビュー (backup) / 導入 PR の bootstrap 手順。
-- `indie-studio/docs/ROADMAP.md` に「## リリース運用 (ADR-0004)」セクションが加わる。月次 draft 状態レビューと安定化フェーズ移行 TODO を記録。
+- `indie-studio/docs/ROADMAP.md` に「## リリース運用 (ADR-0006)」セクションが加わる。月次 draft 状態レビューと安定化フェーズ移行 TODO を記録。
 - 安定化フェーズ移行時に本 ADR を **extends する新 ADR** を起こす。記録内容: version-resolver を kissasoft-mcp 同形 (`feat→minor` / `major→major`) に書き換え / `💥 Breaking` category 追加 / autolabeler の major 検出パターン追加 / plugin.json semver 明示 (ADR-0003 を extends する形と併せて 1 ADR にまとめても可)。
 - 「Phase 2 として GitHub Actions + claude-code-action による半自動化」は session 漏れが頻発 / 外部 contributor 増加で検討。本 ADR を extends する新 ADR で記録。
 - 本 ADR は repo 横断の決定 (全 collection 共通の運用ルール) であるため root `docs/adr/` に置く (ADR-0001 「横断決定は root」原則に従う)。

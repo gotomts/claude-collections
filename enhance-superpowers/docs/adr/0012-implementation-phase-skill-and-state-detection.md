@@ -6,7 +6,7 @@ Accepted (2026-07-04).
 
 Supersedes ADR-0003.
 
-> ※ 本文中の `code-reviewer` は root [ADR-0010](../../../docs/adr/0010-external-plugin-agent-name-collision.md) で **`implementation-reviewer` に改名**された（外部 plugin との agent 名衝突回避）。役割・決定内容は変わらず、dispatch 名が `shared:implementation-reviewer` になる。
+> ※ 本文中の `code-reviewer` は root [ADR-0011](../../../docs/adr/0011-external-plugin-agent-name-collision.md) で **`implementation-reviewer` に改名**された（外部 plugin との agent 名衝突回避）。役割・決定内容は変わらず、dispatch 名が `shared:implementation-reviewer` になる。
 
 ## Context
 

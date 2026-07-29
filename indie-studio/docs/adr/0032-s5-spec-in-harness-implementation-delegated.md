@@ -114,5 +114,5 @@ issue が無いのは 2 通りあり、扱いを分ける。
 - ADR-0016（出力レイアウト）／ADR-0028（docs 名前空間）：S5 の成果物置き場を追加する
 - ADR-0007（五大枠ゲート）：issue 精緻化は自律操作
 - ADR-0008（適応 PR ゲート）：G5 の merge 判断は委譲先の PR に対して適用する
-- root ADR-0009（shared plugin 化）：plugin 間参照の前提
+- root ADR-0010（shared plugin 化）：plugin 間参照の前提
 - enhance-superpowers ADR-0011（plan-last / Phase 3 まとめ生成）：D1 の生成順と D2 の形式契約の出所。**本 ADR は enhance-superpowers を変更しない**

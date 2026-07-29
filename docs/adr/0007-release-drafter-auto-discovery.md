@@ -1,12 +1,12 @@
-# 0006. release-drafter の auto-discovery + テンプレ config 化
+# 0007. release-drafter の auto-discovery + テンプレ config 化
 
 ## Status
 
-Accepted (2026-06-28). ADR-0004 (release-notes-workflow) を extends し、per-collection の drafter 設定を unified 構造に置換する。Revised (2026-06-29): release-drafter@v6 が config を default branch (main) から API 経由で読む制約があるため、当初の「runtime sed render」アプローチは機能せず PR #18 merge 後の workflow が `Invalid config file` で fail。**per-collection config を commit する形に方針転換**: template + 自動再生成スクリプト (`scripts/regen-drafter-configs.sh`) + Makefile target (`regen-drafter-configs` / `verify-drafter-configs`) + CI guard で「再生成忘れ」を構造的に塞ぐ。
+Accepted (2026-06-28). ADR-0006 (release-notes-workflow) を extends し、per-collection の drafter 設定を unified 構造に置換する。Revised (2026-06-29): release-drafter@v6 が config を default branch (main) から API 経由で読む制約があるため、当初の「runtime sed render」アプローチは機能せず PR #18 merge 後の workflow が `Invalid config file` で fail。**per-collection config を commit する形に方針転換**: template + 自動再生成スクリプト (`scripts/regen-drafter-configs.sh`) + Makefile target (`regen-drafter-configs` / `verify-drafter-configs`) + CI guard で「再生成忘れ」を構造的に塞ぐ。
 
 ## Context
 
-ADR-0004 で導入した release-drafter は **collection ごとに config + workflow を分離** する設計 (`.github/release-drafter-<collection>.yml` + `.github/workflows/release-drafter-<collection>.yml`)。enhance-superpowers コレクション新設時 (PR #15 → #16) に release 判断のタイミングで以下の問題が顕在化:
+ADR-0006 で導入した release-drafter は **collection ごとに config + workflow を分離** する設計 (`.github/release-drafter-<collection>.yml` + `.github/workflows/release-drafter-<collection>.yml`)。enhance-superpowers コレクション新設時 (PR #15 → #16) に release 判断のタイミングで以下の問題が顕在化:
 
 1. enhance-superpowers の drafter config / workflow を作り忘れていた → enhance-superpowers/v0.0.1 の draft が自動生成されないままだった
 2. 既存 indie-studio drafter が `paths:` filter のみで `include-paths:` (drafter 側の PR 内容フィルタ) を持たなかったため、enhance-superpowers 専用 PR (#13/#14/#15) を `indie-studio/v0.0.3` Draft に巻き込んでいた
@@ -56,7 +56,7 @@ per-collection の drafter ファイルを全廃し、**単一の workflow + 単
 
 ## 関連
 
-- ADR-0004 (release-notes-workflow): 本 ADR の親。tag 命名 / publish 判断 / bootstrap の規律は ADR-0004 を継承
-- ADR-0007 (release-drafter-draft-race-tag-prefix): 本 ADR の matrix 構造で顕在化した draft race を tag-prefix で隔離する子 ADR (issue #22)
+- ADR-0006 (release-notes-workflow): 本 ADR の親。tag 命名 / publish 判断 / bootstrap の規律は ADR-0006 を継承
+- ADR-0008 (release-drafter-draft-race-tag-prefix): 本 ADR の matrix 構造で顕在化した draft race を tag-prefix で隔離する子 ADR (issue #22)
 - PR #17 (drafter setup): 本 ADR で superseded されるため close 予定
 - enhance-superpowers/v0.0.1 (PR #15 + #16) の release 判断時に発覚した問題系列

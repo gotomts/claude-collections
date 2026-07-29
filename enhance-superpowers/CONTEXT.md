@@ -26,7 +26,7 @@ skill 連鎖の中で agent 能動 dispatch を強制する境目。本コレク
 Spec フェーズで設計の認識ズレを早期検出する 3 重の関所 — ① summary 合意 (大枠ズレ、Phase 2) / ② gwt 合意 (AC ズレ、Phase 3) / ③ pr-description 合意 (動作確認方法ズレ、Phase 3)。② と ③ は Phase 3 の 3 file 一括レビューに集約される (ADR-0011)。
 
 **agent dispatch matrix** (2026-07-04 更新):
-各 skill ステップで能動 dispatch する agent / skill と目的の一覧。`import するだけで使わない` silent failure pattern を回避するための明示的な対応表。engineering 系 13 agent は `shared` plugin が提供し、**dispatch は `shared:<agent>` の修飾名で行う** (bare name は解決されない・root ADR-0009。vendoring は廃止、ADR-0005 は supersede 済):
+各 skill ステップで能動 dispatch する agent / skill と目的の一覧。`import するだけで使わない` silent failure pattern を回避するための明示的な対応表。engineering 系 13 agent は `shared` plugin が提供し、**dispatch は `shared:<agent>` の修飾名で行う** (bare name は解決されない・root ADR-0010。vendoring は廃止、ADR-0005 は supersede 済):
 
 | skill / step | 能動 dispatch (agent / skill) | 目的 |
 |---|---|---|

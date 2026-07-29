@@ -173,7 +173,7 @@ components:                       # map<string, map<string, string>> 2 階層必
 
 ## ディレクター制御フロー
 
-**起動機構**：ディレクター（＝スキル本体のメインセッション）は各職種を **Agent tool** で spawn する。`subagent_type` は **`plugin:agent` 形式の修飾名**を使う（bare name は解決されない・root ADR-0009）：`indie-studio:product-designer` / `indie-studio:visual-designer` / `shared:reviewer` / `indie-studio:ui-prototyper`。プロンプトに mode・S1 成果物の所在・参考画像 path（あれば）・既存 DESIGN.md draft の所在（あれば）を渡す。差し戻しは**同じ職種を continuation で再起動**（findings を渡す・ADR-0018）。
+**起動機構**：ディレクター（＝スキル本体のメインセッション）は各職種を **Agent tool** で spawn する。`subagent_type` は **`plugin:agent` 形式の修飾名**を使う（bare name は解決されない・root ADR-0010）：`indie-studio:product-designer` / `indie-studio:visual-designer` / `shared:reviewer` / `indie-studio:ui-prototyper`。プロンプトに mode・S1 成果物の所在・参考画像 path（あれば）・既存 DESIGN.md draft の所在（あれば）を渡す。差し戻しは**同じ職種を continuation で再起動**（findings を渡す・ADR-0018）。
 
 `indie-studio:product-designer` / `indie-studio:visual-designer` / `indie-studio:ui-prototyper` は indie-studio 独自 agent で mode/所在の受け渡しで足りる。一方 **`shared:reviewer` は `shared` plugin の中立 agent**（body に固有値を持たず「呼び出し元 skill が指定」と宣言）なので、spawn 時に次を prompt へ**明示的に埋める**（ADR-0031）。
 
