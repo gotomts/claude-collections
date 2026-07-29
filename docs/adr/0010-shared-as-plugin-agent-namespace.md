@@ -4,10 +4,10 @@
 
 Accepted (2026-07-28)。ADR-0004 (shared-agent-vendoring) と ADR-0005 (shared-skills-vendoring) を **supersede** する。**ADR-0003 が定めた配布構造** (リポジトリ = 1 marketplace、各コレクション = 1 plugin) はそのまま継承し、marketplace に配る plugin を 2 個から 3 個に増やす。
 
-> 注記 (2026-07-28)：本 ADR の初版は配布経路を「ADR-0003 / ADR-0009 が定めた local path + public repo の二経路」と書いていたが、ここで参照していた**旧 ADR-0008（`public-repo-distribution`）は非-decision の誤記録として PR #30 で削除済み**だった（外部 consumer サポートを決めた事実が無いのに、それを決定として記録していたため）。よって本 ADR が依拠する配布構造の根拠は **ADR-0003 のみ**とし、public/private の framing は本 ADR の主張から外す。本 ADR の決定内容（plugin 数を 3 に増やす）は影響を受けない。
+> 注記 (2026-07-28)：本 ADR の初版は配布経路を「ADR-0003 / 旧 ADR-0008 が定めた local path + public repo の二経路」と書いていたが、ここで参照していた**旧 ADR-0008（`public-repo-distribution`）は非-decision の誤記録として PR #30 で削除済み**だった（外部 consumer サポートを決めた事実が無いのに、それを決定として記録していたため）。よって本 ADR が依拠する配布構造の根拠は **ADR-0003 のみ**とし、public/private の framing は本 ADR の主張から外す。本 ADR の決定内容（plugin 数を 3 に増やす）は影響を受けない。
 >
 > **現在の [ADR-0009](0009-repository-visibility-public.md) は別物**（`repository-visibility-public`・2026-07-28 に新規作成）。削除で空いた番号を連番維持のために継いだもので、上記で削除されたものとは内容が異なる。
-
+>
 > ※ 注記 (2026-07-29)：本 ADR が記録した agent 名の重複禁止は、[ADR-0011](0011-external-plugin-agent-name-collision.md) で**外部 marketplace の plugin まで適用範囲を拡張**した。衝突は本リポジトリの collection 間で閉じない。同 ADR で `shared:code-reviewer` は `shared:implementation-reviewer` に改名されている。
 
 
