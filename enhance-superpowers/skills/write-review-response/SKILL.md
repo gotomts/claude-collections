@@ -42,7 +42,7 @@ code-review (CodeRabbit) 指摘への対応方針を md ファイルとして記
 |---|---|---|---|
 | 0 | gwt.md checklist 全 `- [x]` + code-review skill 出力 or PR unresolved comments | (判定) | 状態判定完了、Step 番号を確定 |
 | 判定 | CodeRabbit 指摘一覧 (ローカル + PR unresolved) | `{date}-{slug}-review-response.md` | 全指摘を採用/Skip 判定完了 (保留禁止) |
-| 反映 | review-response.md 採用分 | 修正コード + 再 push | shared:implementation-reviewer 差し戻し review OK + user 承認 |
+| 反映 | review-response.md 採用分 | 修正コード + 再 push | code-review skill の再 push 前レビュー完了 (実行 or skip) + user 承認 |
 
 ## 動作 (6 ステップ)
 
