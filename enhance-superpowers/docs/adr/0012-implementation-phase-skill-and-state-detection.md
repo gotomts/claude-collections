@@ -6,6 +6,8 @@ Accepted (2026-07-04).
 
 Supersedes ADR-0003.
 
+> ※ 本文中の `code-reviewer` は root [ADR-0010](../../../docs/adr/0010-external-plugin-agent-name-collision.md) で **`implementation-reviewer` に改名**された（外部 plugin との agent 名衝突回避）。役割・決定内容は変わらず、dispatch 名が `shared:implementation-reviewer` になる。
+
 ## Context
 
 ADR-0003 は skill 連鎖と 2 STOP POINT (実装 / セルフレビュー) を定義した。STOP POINT 1 (実装フェーズ) は「人間 or 実装 AI に委ねる」設計で、enhance-brainstorming SKILL.md Step 7 が「実装中の推奨 agent 利用パターンを案内」する **案内文言のみ** で終わっていた (skill による agent 能動 dispatch なし)。

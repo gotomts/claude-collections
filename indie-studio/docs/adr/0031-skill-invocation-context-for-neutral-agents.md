@@ -22,6 +22,7 @@ accepted（root ADR-0004 を extends する indie-studio 側の帰結。既存 S
   - `tech-design`（S3）: software-architect / tech-lead / infrastructure-engineer / security-engineer / principal-engineer
   - `decomposition`（S4）: engineering-manager / qa-engineer / principal-engineer
   - `implementation`（S5）: frontend / backend / mobile / infrastructure-engineer / code-reviewer / security-engineer / performance-engineer
+    - > ※ ここでの `code-reviewer` は root [ADR-0010](../../../docs/adr/0010-external-plugin-agent-name-collision.md) で **`implementation-reviewer` に改名**された（外部 plugin との agent 名衝突回避）。dispatch 名は `shared:implementation-reviewer`。
   - `stack-direction`（S1a）: tech-lead / reviewer
   - `service-discovery`（S1）: reviewer のみ
   - `design-direction`（S1b）: reviewer のみ

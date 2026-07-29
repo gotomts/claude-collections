@@ -8,6 +8,8 @@ Accepted (2026-07-28)。ADR-0004 (shared-agent-vendoring) と ADR-0005 (shared-s
 >
 > **現在の [ADR-0008](0008-repository-visibility-public.md) は別物**（`repository-visibility-public`・2026-07-28 に新規作成）。削除で空いた番号を連番維持のために継いだもので、上記で削除されたものとは内容が異なる。
 
+> ※ 注記 (2026-07-29)：本 ADR が記録した agent 名の重複禁止は、[ADR-0010](0010-external-plugin-agent-name-collision.md) で**外部 marketplace の plugin まで適用範囲を拡張**した。衝突は本リポジトリの collection 間で閉じない。同 ADR で `shared:code-reviewer` は `shared:implementation-reviewer` に改名されている。
+
 
 
 ## Context

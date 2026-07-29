@@ -41,11 +41,11 @@ Spec フェーズで設計の認識ズレを早期検出する 3 重の関所 �
 | gwt-test Step 5 (AC 未達時) | shared:qa-engineer | 差し戻し findings 言語化 |
 | gwt-test Step 6 (AC 完了時) | shared:qa-engineer 常時 | AC 網羅性 review (ADR-0013 D1) |
 | gwt-test Step 8 (STOP POINT 2) | **code-review:code-review skill auto-invoke** (課金前 1 問確認) + shared:security-engineer 能動 | CodeRabbit + security-focused review (ADR-0013 D2、M4 fix で scope 分離) |
-| write-review-response Step 2 (判定迷い / セキュリティ / 大規模 refactor) | shared:code-reviewer (判定 aid) / shared:security-engineer / shared:reviewer | 判定補助 |
+| write-review-response Step 2 (判定迷い / セキュリティ / 大規模 refactor) | shared:implementation-reviewer (判定 aid) / shared:security-engineer / shared:reviewer | 判定補助 |
 | write-review-response Step 4 (再 push 前) | **code-review:code-review skill** (課金前 1 問確認) | 差し戻しレビューは code-review:code-review skill (ADR-0013 拡張) |
 | finish-spec-pr | (なし、mechanical) | — |
 
-`shared:code-reviewer` agent は判定 aid 専用 (false positive 判定補助 / 大規模 refactor 判定補助)。実際のコードレビュー activity は `code-review` skill (CodeRabbit) を使う (ADR-0013 2026-07-04 拡張)。
+`shared:implementation-reviewer` agent は判定 aid 専用 (false positive 判定補助 / 大規模 refactor 判定補助)。実際のコードレビュー activity は `code-review` skill (CodeRabbit) を使う (ADR-0013 2026-07-04 拡張)。
 
 dispatch log の追記先 mapping は ADR-0007 参照。
 
