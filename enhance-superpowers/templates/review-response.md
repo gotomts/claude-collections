@@ -62,7 +62,7 @@ gwt: ./{YYYY-MM-DD}-{slug}-gwt.md
 
 ## レビュー履歴
 
-> code-reviewer / security-engineer の dispatch log を集約。STOP POINT 2 で実施した security-engineer のコードセキュリティレビュー結果もここに記録。形式は ADR-0007 参照。
+> implementation-reviewer / security-engineer の dispatch log を集約。STOP POINT 2 で実施した security-engineer のコードセキュリティレビュー結果もここに記録。形式は ADR-0007 参照。
 
 - {YYYY-MM-DD HH:MM} - `{agent-name}` を write-review-response で dispatch (目的: {目的}) → 「{回答要約}」
 - {YYYY-MM-DD HH:MM} - `security-engineer` を STOP POINT 2 で dispatch (目的: security-focused コードレビュー) → 「{回答要約}」

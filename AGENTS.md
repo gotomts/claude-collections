@@ -14,7 +14,12 @@
 
 - 該当コレクションの `<collection>/skills/<skill>/SKILL.md` ／ `<collection>/agents/<name>.md` に置く（root 直下に置かない）。
 - **エージェントは実在職種名で**設計する（成果物名・概念で割らない）。
-- **エージェントの起動は `plugin:agent` 形式の修飾名で行う**（例：`shared:software-architect` / `indie-studio:ux-researcher`）。**bare name は解決されない**。同名 agent を持つ plugin が共存すると片方の agent セットが registry から丸ごと落ちるため、**コレクション間で agent 名を重複させないこと**（ADR-0009）。skill は名前空間が効くのでこの制約を受けない。
+- **エージェントの起動は `plugin:agent` 形式の修飾名で行う**（例：`shared:software-architect` / `indie-studio:ux-researcher`）。**bare name は解決されない**。同名 agent を持つ plugin が共存すると片方の agent セットが registry から丸ごと落ちるため、**agent 名を重複させないこと**（ADR-0009）。skill は名前空間が効くのでこの制約を受けない。
+- **重複禁止の対象はコレクション間に閉じない。外部 marketplace の plugin も含む**（ADR-0010）。実例：`shared:code-reviewer` は Anthropic 公式 `feature-dev` plugin の `code-reviewer` と同名だったため `implementation-reviewer` に改名した。**中立語彙であることと、ありふれた名前でないことは別**で、衝突を招くのは後者。agent を足す前に install 済み plugin の agent 名と突き合わせる：
+
+  ```bash
+  find ~/.claude/plugins/cache -path "*/agents/*.md" -exec grep -l "^name: <新 agent 名>$" {} +
+  ```
 - 設計判断は該当コレクションの `docs/adr/` を読む。決定は inline／git／ADR に残す（専用の決定ログ file は作らない）。
 - ADR は原則 immutable（決定の根拠を保存するため直接書き換え・削除しない。方針変更は新 ADR で supersede／extends する）。
 - **例外：ナビゲーション注記の追加・更新は immutable に反しない。** immutable が守るのは**決定の根拠**であって、後から辿れるようにする道標ではない。既存 ADR に次を書き足す／直すのは**推奨される運用**（indie-studio ADR-0028 が「ADR-0016 / 0021 本文は immutable・inline 注記で本 ADR を指す」と明示的に採用した先例に従う）：
@@ -42,7 +47,7 @@
 - 各コレクションは `shared` を **install 前提の依存**として扱い、skill 内から `shared:<agent>` / `shared:<skill>` を修飾名で参照する（agent は修飾必須、skill は表記統一のため）。`dependencies.json` は不要（削除済み）。
 - `shared/agents/` は **collection 非依存の中立語彙で書く**（ADR-0004 から継承した原則）。collection 固有 context（ステージ番号 / 参照 docs パス / 進行 protocol 等）は呼び出し元 skill が invocation 時に prompt で渡す。
 - shared/ を編集すれば全 consumer へ即座に反映される（複製が無いため sync 忘れという失敗モードが存在しない）。
-- コレクション固有のエージェント（例：indie-studio の business-strategist 等）は従来通り `<collection>/agents/` に手書きで置く。**shared/ および他コレクションと同名にしないこと**（同名衝突は agent セットの消失を招く・ADR-0009）。
+- コレクション固有のエージェント（例：indie-studio の business-strategist 等）は従来通り `<collection>/agents/` に手書きで置く。**shared/・他コレクション・install 済みの外部 plugin と同名にしないこと**（同名衝突は agent セットの消失を招く・ADR-0009 / ADR-0010）。
 
 ## 既存コレクション
 
