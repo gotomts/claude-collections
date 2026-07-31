@@ -2,8 +2,8 @@
 name: enhance-brainstorming
 description: |
   enhance-superpowers コレクションの起点 skill。superpowers:brainstorming + writing-plans を内部 invoke し、
-  Spec フェーズで 5 成果物 (summary / design / gwt / pr-description / plan) を plan-last 順序で確定
-  (design / gwt / pr-description は Phase 3 で連続生成、3 file 揃って user 承認 1 回、ADR-0011)。
+  Spec フェーズで 5 成果物 (summary / spec / gwt / pr-description / plan) を plan-last 順序で確定
+  (spec / gwt / pr-description は Phase 3 で連続生成、3 file 揃って user 承認 1 回、ADR-0011 + ADR-0015)。
   各 Phase で specialist agent (software-architect / qa-engineer / security-engineer) を能動 dispatch、
   dispatch log は 5 成果物のレビュー履歴セクションに追記 (ADR-0007)。
   Phase 3 で機微情報チェック (ADR-0008)、Phase 4 でライセンスチェック (ADR-0009) を組み込む。
@@ -40,6 +40,8 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 
 以降、本 SKILL で `{出力先}` と書いた箇所は「`--output-dir` 指定時はその値、省略時は `docs/superpowers/{branch}/`」を指す。
 
+同様に `{実装仕様}` と書いた箇所は「`{date}-{slug}-spec.md`、ただし Step 0 で legacy `*-design.md` を rename せず保持する選択をした場合はその path」を指す (ADR-0015 D3)。**新規生成する file は常に `*-spec.md`**。
+
 ## Phase 定義 (ADR-0012 D3)
 
 | Phase | 前提 file | 出力 file | 出力条件 |
@@ -47,8 +49,8 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 | 0 | `{出力先}` (作成 or 既存) | (判定) | 状態判定完了、Step 番号を確定 |
 | 1 | (なし) | (会話合意 = 内部状態) | 2-3 アプローチ提示 + user 合意 |
 | 2 | Phase 1 合意 | `{date}-{slug}-summary.md` | user 承認 + commit |
-| 3 | summary.md | `{date}-{slug}-design.md` + `-gwt.md` + `-pr-description.md` | 3 file 揃って user 承認 1 回 + commit (ADR-0011) |
-| 4 | design.md + gwt.md + pr-description.md | `{date}-{slug}-plan.md` | ライセンスチェック済 + user 承認 + commit |
+| 3 | summary.md | `{date}-{slug}-spec.md` + `-gwt.md` + `-pr-description.md` | 3 file 揃って user 承認 1 回 + commit (ADR-0011) |
+| 4 | `{実装仕様}` + gwt.md + pr-description.md | `{date}-{slug}-plan.md` | ライセンスチェック済 + user 承認 + commit |
 | STOP POINT 1 | plan.md | (enhance-executing-plans skill を chain invoke) | 実装フェーズに chain 遷移 (ADR-0012) |
 
 ## 動作 (8 ステップ)
@@ -56,17 +58,21 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 ### Step 0: 状態判定 (ADR-0012 D2)
 
 1. **`{出力先}` を確定**: `--output-dir` があればその値、無ければ `git rev-parse --abbrev-ref HEAD` で現ブランチ取得 → サニタイズ (`/` → `-`) → `docs/superpowers/{branch}/`
-2. `{出力先}` を Glob で列挙、`summary/design/gwt/pr-description/plan` の 5 成果物の存在有無を確認
-3. `handoff.md` が同ディレクトリにあれば Read して state summary を取得 (補助情報)
-4. 上表 Phase 定義に従って現在 Phase / 適切な Step を判定 (M1 fix 2026-07-04: Phase 3 中間状態の細分化):
+2. `{出力先}` を Glob で列挙、`summary/spec/gwt/pr-description/plan` の 5 成果物の存在有無を確認
+3. **legacy `*-design.md` を検出した場合** (ADR-0015 の改名前に着手した branch): `*-spec.md` と同じ成果物として扱い、以降の判定では実装仕様が存在するものとみなす。user に「`{date}-{slug}-design.md` は改名前の実装仕様です。`*-spec.md` に rename して続けますか / そのまま続けますか」と 1 問確認し、**回答に応じて `{実装仕様}` を確定する**:
+   - **rename する** → `git mv` で `*-spec.md` に改名し、**既存 summary.md / gwt.md の frontmatter にある実装仕様への参照 (`design:` / `spec:` の値) も新 path に更新**してから続行 (更新しないと参照が dangling する)。`{実装仕様}` = `*-spec.md`
+   - **そのまま続ける** → `{実装仕様}` = その `*-design.md`。以降の Step (4-b の Read / 4-c のスコープ参照 / 4-d の提示 / 6-A の存在確認) は**この path を使う**。既存 frontmatter は書き換えない
+   - `*-design.md` と `*-spec.md` が**両方ある**場合は `*-spec.md` を正とし、どちらを使うか 1 問確認
+4. `handoff.md` が同ディレクトリにあれば Read して state summary を取得 (補助情報)
+5. 上表 Phase 定義に従って現在 Phase / 適切な Step を判定 (M1 fix 2026-07-04: Phase 3 中間状態の細分化):
    - 5 成果物すべて未存在 → Phase 1 (Step 2 から)
-   - summary.md のみ存在 (commit 済) → Phase 3 Step 4-a (design.md 生成) から
-   - summary.md + design.md 存在、gwt.md 未生成 → Phase 3 Step 4-b (gwt.md 生成) から
-   - summary.md + design.md + gwt.md 存在、pr-description.md 未生成 → Phase 3 Step 4-c (pr-description.md 生成) から
-   - summary + design + gwt + pr-desc 揃い、plan.md 未存在 → Phase 4 (Step 5 から)
+   - summary.md のみ存在 (commit 済) → Phase 3 Step 4-a (spec.md 生成) から
+   - summary.md + spec.md 存在、gwt.md 未生成 → Phase 3 Step 4-b (gwt.md 生成) から
+   - summary.md + spec.md + gwt.md 存在、pr-description.md 未生成 → Phase 3 Step 4-c (pr-description.md 生成) から
+   - summary + spec + gwt + pr-desc 揃い、plan.md 未存在 → Phase 4 (Step 5 から)
    - plan.md 存在 → STOP POINT 1 (Step 7 で enhance-executing-plans chain)
    - **中間状態で未 commit の書きかけ file 検出時** (`git status --porcelain {出力先}` で untracked or unstaged 判定): user に「Phase 3 差し戻し中の状態のようです、どの file から再開しますか?」と 1 問確認して分岐
-5. 判定結果を user に「現在 Phase = X、Step Y-{semantic} から再開します」と明示 (例: 「Phase 3、design.md 生成から」)、user 1 問確認 (誤検出時の catch)
+6. 判定結果を user に「現在 Phase = X、Step Y-{semantic} から再開します」と明示 (例: 「Phase 3、spec.md 生成から」)、user 1 問確認 (誤検出時の catch)
 
 ### Step 1: 前提確認 + AI 利用ポリシー案内 (ADR-0010)
 
@@ -89,45 +95,45 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 1. user 合意済みアプローチを base に、`enhance-superpowers/templates/summary.md` を Read
 2. テンプレのプレースホルダー (`{機能名}` / `{slug}` / `{方式 1}` 等) を埋めて summary.md を生成
 3. ファイル名: `{YYYY-MM-DD}-{slug}-summary.md`、配置: `{出力先}`
-4. frontmatter の `design: ./{date}-{slug}-design.md` を先行記載 (実 design.md は Phase 3 で生成)
+4. frontmatter の `spec: ./{date}-{slug}-spec.md` を先行記載 (実 spec.md は Phase 3 で生成)
 5. `shared:software-architect` を能動 dispatch — 方式の要点 / 効いている設計判断を SOLID/YAGNI 観点でレビュー
 6. **`shared:reviewer` を能動 dispatch** (2026-07-04 追加) — summary の反証可能性観点 (Steelman / Fails if / Kill criteria の 3 行併記が summary の "効いている設計判断" に埋まっているか、真実源整合)
 7. **summary.md 末尾「## レビュー履歴」セクションに Phase 1 + Phase 2 の dispatch log を追記** (ADR-0007)
 8. user 承認 → commit (Conventional Commits 形式)
    - **`--gate-mode=aggregate` 時**: user 承認を取らずに commit して Phase 3 へ進む (承認は Step 6-A の一括提示にまとめる。ADR-0014 E3)
 
-### Step 4: Phase 3 — design + gwt + pr-description まとめ生成 (認識齟齬検出 ② ③ 統合、ADR-0011)
+### Step 4: Phase 3 — spec + gwt + pr-description まとめ生成 (認識齟齬検出 ② ③ 統合、ADR-0011)
 
 3 file を連続生成し、**3 file 揃ってから user 承認 1 回**。各 file 生成時の agent dispatch は個別に行う。差し戻し時は該当 file のみ再生成 → 3 file 揃えて再提示。
 
-**4-a. design.md 生成 + セキュリティレビュー + 機微情報チェック**
+**4-a. spec.md 生成 + セキュリティレビュー + 機微情報チェック**
 
 1. 合意済み summary.md を context として `superpowers:brainstorming` を invoke (Y 方式 / ADR-0006)
-2. superpowers:brainstorming に「以下が合意済み summary、design.md として詳細展開して」と委譲
-3. design.md が生成されたら、`shared:software-architect` を能動 dispatch — design 全体の SOLID / モジュール境界レビュー
-4. 続けて `shared:security-engineer` を **常時能動 dispatch** — design のセキュリティレビュー (認証 / 認可 / データ取扱 / 外部入力 / シークレット / 通信 / コード実行 等の観点)
+2. superpowers:brainstorming に「以下が合意済み summary、実装仕様として詳細展開して」と委譲 (**生成ファイル名は `{date}-{slug}-spec.md`** と明示する。superpowers:brainstorming 自身は `design.md` の名前で書こうとするため、渡さないと改名前の名前で出力される)
+3. spec.md が生成されたら、`shared:software-architect` を能動 dispatch — 実装仕様全体の SOLID / モジュール境界レビュー
+4. 続けて `shared:security-engineer` を **常時能動 dispatch** — 実装仕様のセキュリティレビュー (認証 / 認可 / データ取扱 / 外部入力 / シークレット / 通信 / コード実行 等の観点)
 5. **`shared:principal-engineer` を能動 dispatch** (2026-07-04 追加) — 技術設計の独立評価 (architecture 規約整合 / 真実源整合 / 機能識別子カバレッジ / 内部一貫性、差し戻し protocol を skill 側から use 宣言)
 6. **機微情報チェックリスト** (ADR-0008): 個人情報 / 決済データ / 医療データ / 認証情報を扱う設計か? 該当したら適用規制 (GDPR / 個人情報保護法 / PCI-DSS / HIPAA 等) を提示 → user に「適用規制を確認の上、本 PR スコープで対応 / 別 PR / Skip のいずれかを判断してください」と促す
-7. design.md 末尾「## レビュー履歴」セクションに Phase 3 (design 関連) の dispatch log を追記 (機微情報チェック結果含む、ADR-0007)
+7. spec.md 末尾「## レビュー履歴」セクションに Phase 3 (spec 関連) の dispatch log を追記 (機微情報チェック結果含む、ADR-0007)
 
 **4-b. gwt.md 生成**
 
 1. `enhance-superpowers/templates/gwt.md` を Read
-2. design.md + summary.md の内容から AC (Given-When-Then 形式) を生成
+2. `{実装仕様}` + summary.md の内容から AC (Given-When-Then 形式) を生成
 3. `shared:qa-engineer` を能動 dispatch — AC の網羅性 (異常系 / 境界値 / 空状態) レビュー
 4. gwt.md 末尾「## レビュー履歴」セクションに Phase 3 (gwt 関連) の dispatch log を追記 (ADR-0007)
 
 **4-c. pr-description.md 生成**
 
 1. `enhance-superpowers/templates/pr-description.md` を Read
-2. 「## やったこと」を **design.md のスコープ** で下書き (plan は未生成のため design.md ベース、実装完了後 finish-spec-pr で実装結果に合わせて整える)
+2. 「## やったこと」を **`{実装仕様}` のスコープ** で下書き (plan は未生成のため実装仕様ベース、実装完了後 finish-spec-pr で実装結果に合わせて整える)
 3. 「## 補足」を既知の判断理由で下書き (内容がなければセクションごと削除)
 4. 「## 動作確認方法」を gwt.md の AC を base に下書き
 5. **pr-description はレビュー履歴セクションを追加しない** (B 例外、ADR-0007、最小構造維持のため)
 
 **4-d. 3 file 一括 user 承認 (認識齟齬検出 ② + ③ 統合)**
 
-1. 3 file (design.md / gwt.md / pr-description.md) 揃ったら user に「AC (gwt) と動作確認方法 (pr-description) が design と整合しているか一括で確認してください」と提示
+1. 3 file (`{実装仕様}` / gwt.md / pr-description.md) 揃ったら user に「AC (gwt) と動作確認方法 (pr-description) が実装仕様と整合しているか一括で確認してください」と提示
 2. user 承認 → 3 file まとめて commit (Conventional Commits 形式)
 3. 差し戻しが発生した場合、該当 file のみ再生成 → 3 file 揃えて再提示 (承認単位は 3 file 一括を維持)
 
@@ -148,13 +154,13 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 
 ### Step 6: Phase 1 / 2 の任意セキュリティ dispatch
 
-Phase 1 / 2 でセキュリティ箇所が検出されたら `shared:security-engineer` を任意 dispatch (Phase 3 / 4 の常時 dispatch とは別)。dispatch log は該当 Phase の成果物 (summary.md) のレビュー履歴に追記。Phase 3 は既に security-engineer 常時 dispatch が design / gwt / pr-description を包含するため、追加の任意 dispatch は不要。
+Phase 1 / 2 でセキュリティ箇所が検出されたら `shared:security-engineer` を任意 dispatch (Phase 3 / 4 の常時 dispatch とは別)。dispatch log は該当 Phase の成果物 (summary.md) のレビュー履歴に追記。Phase 3 は既に security-engineer 常時 dispatch が spec / gwt / pr-description を包含するため、追加の任意 dispatch は不要。
 
 ### Step 6-A: 5 成果物の一括承認 (`--gate-mode=aggregate` 時のみ、ADR-0014 E3)
 
 `per-phase` (既定) では本 Step を実行しない (承認は各 Phase で取り済み)。
 
-1. 5 成果物 (summary / design / gwt / pr-description / plan) が `{出力先}` に揃っていることを確認
+1. 5 成果物 (summary / spec / gwt / pr-description / plan) が `{出力先}` に揃っていることを確認 (実装仕様は `{実装仕様}` の path で確認する。legacy 保持時は `*-design.md`)
 2. user に**一括提示**: 各 file の要点 + 各 Phase の agent dispatch 結果サマリ + 機微情報 / ライセンスチェックの結果を 1 回でレビューできる形にまとめる
 3. user 承認 → Step 7 へ
 4. 差し戻し時: 該当 file のみ再生成 (該当 Phase の agent dispatch も再実行) → 5 成果物を揃えて再提示 (承認単位は一括を維持)
@@ -177,7 +183,7 @@ Phase 1 / 2 でセキュリティ箇所が検出されたら `shared:security-en
 
 - **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:software-architect`)。bare name は解決されない。engineering 系 13 職種は `shared` plugin が提供する (root ADR-0010)
 - 5 成果物の命名: `{YYYY-MM-DD}-{slug}-{suffix}.md`、配置: `{出力先}`
-- **生成順**: plan-last (`summary → design → gwt → pr-description → plan`)、design / gwt / pr-description は Phase 3 で連続生成 + 承認 1 回 (ADR-0011)
+- **生成順**: plan-last (`summary → spec → gwt → pr-description → plan`)、spec / gwt / pr-description は Phase 3 で連続生成 + 承認 1 回 (ADR-0011)。suffix は `spec` (ADR-0015、旧 `design`)
 - 設計思想: Clean Architecture + Modular Monolith / YAGNI/DRY/KISS/SOLID / SOLID 最優先 / テスト DRY 一部許容
 - コードコメント方針: WHY のみ、JSDoc 抑制
 - pr-description Spec フェーズ先行作成の意義 (動作確認方法を Spec で確定 = 認識齟齬を実装後に検出する手戻りを防ぐ)
@@ -214,5 +220,6 @@ Phase 1 / 2 でセキュリティ箇所が検出されたら `shared:security-en
 - ADR-0011 (plan-last-order-and-design-gwt-prd-merged) — 本 skill が反映する生成順
 - ADR-0012 (implementation-phase-skill-and-state-detection) — Step 0 状態判定と Step 7 の enhance-executing-plans chain
 - ADR-0014 (output-dir-arg-chain-suppression-gate-aggregation) — 本 skill の 3 引数 (E1 出力先 / E2 chain 抑止 / E3 gate 集約)
+- ADR-0015 (spec-file-suffix-rename) — 実装仕様の suffix を `design` → `spec` に改名 + legacy 検出
 - CONTEXT.md (ユビキタス言語、indie-studio 禁止語彙)
 - enhance-executing-plans SKILL.md: Step 7 で chain invoke する後工程 skill

@@ -1,8 +1,10 @@
 # 0011. 5 成果物の順序を plan-last に変更 (design + gwt + pr-description まとめ生成)
 
+> ※ [ADR-0015](0015-spec-file-suffix-rename.md) で成果物名を改定。本文中の `design.md` / `design` は現在 `spec.md` / `spec` を指す。**順序・Phase 対応・承認単位は本 ADR のまま有効**。
+
 ## Status
 
-Accepted (2026-07-02).
+Accepted (2026-07-02)。Updated (2026-07-31): 成果物名のみ ADR-0015 で改定。
 
 Supersedes ADR-0002.
 
