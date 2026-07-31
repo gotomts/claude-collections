@@ -51,7 +51,7 @@ enhance-superpowers コレクションの実装フェーズ skill (ADR-0012 で�
 ### Step 0: 状態判定 (ADR-0012 D2)
 
 1. **`{出力先}` を確定**: `--output-dir` があればその値、無ければ `git rev-parse --abbrev-ref HEAD` → サニタイズ (`/` → `-`) → `docs/superpowers/{branch}/`
-2. `{出力先}` の既存 file を Glob で列挙、`summary/spec/gwt/pr-description/plan` の存在有無を確認 (**`*-design.md` は ADR-0015 以前の legacy 実装仕様**。見つかったら `*-spec.md` と同じ成果物として扱う)
+2. `{出力先}` の既存 file を Glob で列挙、`summary/spec/gwt/pr-description/plan` の存在有無を確認 (**`*-design.md` は ADR-0015 以前の legacy 実装仕様**。見つかったら `*-spec.md` と同じ成果物として扱い、**Step 3 で executor へ渡す参照 docs には実際に見つかった path を使う**。両方あれば `*-spec.md` を正とする)
 3. **明示引数を優先**: `plan-file-path` が渡されていればそれを対象 plan.md として採用し、glob 探索より優先する。
 4. **前提**: (明示引数が無い場合) `{出力先}` に `*-plan.md` が存在すること。無ければ error "plan.md がありません。enhance-brainstorming Phase 4 を完了させてください" + 中断
 5. plan.md 末尾の「## レビュー履歴」を Read し、以下を判定:

@@ -42,7 +42,14 @@ ADR-0011 が定めた生成順 (`summary → spec → gwt → pr-description →
 
 `enhance-brainstorming` / `enhance-executing-plans` の Step 0 は、`*-design.md` を見つけたら**改名前の実装仕様として `*-spec.md` と同じ成果物に扱う**。
 
-`enhance-brainstorming` では user に「`*-spec.md` に rename して続けるか / そのまま続けるか」を 1 問確認し、rename する場合は `git mv` してから続行する。両方存在する場合は `*-spec.md` を正とし、どちらを使うか 1 問確認する。
+`enhance-brainstorming` では user に「`*-spec.md` に rename して続けるか / そのまま続けるか」を 1 問確認し、**回答で実装仕様の実体 path (`{実装仕様}`) を確定する**。
+
+- **rename する** → `git mv` した上で、**既存 `summary.md` / `gwt.md` の frontmatter にある実装仕様への参照も新 path に更新する** (更新しないと参照が dangling する)
+- **そのまま続ける** → `{実装仕様}` は `*-design.md` のまま。**後続 Step (gwt 生成の Read / pr-description のスコープ参照 / 一括提示 / 5 成果物の存在確認) はすべてこの path を使う**
+
+「そのまま続ける」を選べるようにする以上、**後続 Step が `spec.md` を literal に参照してはならない**。参照は `{実装仕様}` の placeholder に寄せ、Step 0 の回答で解決する (SKILL.md 冒頭で `{出力先}` と同じ形の規約として定義する)。ここを揃えないと「Step 0 は実装仕様ありと判定するが後続 Step が読めない」状態になり、legacy branch の再開が停止する。
+
+両方存在する場合は `*-spec.md` を正とし、どちらを使うか 1 問確認する。
 
 これにより**本 ADR より前に着手した branch は改名なしで再開できる**。
 
