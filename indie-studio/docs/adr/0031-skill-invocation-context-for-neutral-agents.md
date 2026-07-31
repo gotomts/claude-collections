@@ -12,9 +12,9 @@ claude-collections root の ADR-0004（shared-agent-vendoring 中立語彙原則
 
 accepted（root ADR-0004 を extends する indie-studio 側の帰結。既存 SKILL の起動機構記述を強化するもので、フロー・ロスター・ゲート構造は変えない）
 
-> **更新 (2026-07-28)**：root ADR-0004 は **root ADR-0010**（shared を plugin 化し vendoring を廃止）に superseded された。ただし「`shared/agents/` は collection 非依存の中立語彙で書き、固有 context は呼び出し元 skill が invocation prompt で渡す」という原則は root ADR-0010 が継承しているため、**本 ADR の決定はそのまま有効**。本文中の「root ADR-0004（中立語彙原則）」は root ADR-0010 に継承されたものとして辿ること。agent の dispatch 名は `shared:<agent>` の修飾名を使う。
+> **更新 (2026-07-28)**：root ADR-0004 は root [ADR-0010](../../../docs/adr/0010-shared-as-plugin-agent-namespace.md)（shared を plugin 化し vendoring を廃止）に superseded された。ただし「`shared/agents/` は collection 非依存の中立語彙で書き、固有 context は呼び出し元 skill が invocation prompt で渡す」という原則は同 ADR の Decision 節が「`shared/agents/` を collection 非依存の中立語彙で書く原則 (ADR-0004) は維持する」として継承しており、**本 ADR の決定はそのまま有効**（同 ADR「関連」節が本 ADR を「本 ADR 後も有効」と名指ししている）。本文中の「root ADR-0004（中立語彙原則）」は root ADR-0010 に継承されたものとして辿ること。agent の dispatch 名は `shared:<agent>` の修飾名を使う（同 ADR Decision 節の決定）。
 >
-> 「## 検討した代替案」の却下理由は **vendoring 機構が存在した当時の前提**で書かれている（同機構は root ADR-0010 で廃止済み）。却下の結論は現在も有効で、当時の判断記録としてそのまま残す。現在の前提は root ADR-0010 を参照。
+> 「## 検討した代替案」の却下理由は **vendoring 機構が存在した当時の前提**で書かれている（同機構は root ADR-0010 で廃止済み）。ただし同 ADR Decision 節の中立語彙原則から、shared が単一実体の plugin となった現在は agent body への固有 context 混入がより強く排除されるため、**却下の結論は現在も有効**。当時の判断記録としてそのまま残す。現在の前提は root ADR-0010 を参照。
 
 ## 決定
 
