@@ -1,13 +1,13 @@
 ---
 title: {機能名} — 受け入れ条件（GWT）
 issue: {issue-url}
-design: ./{YYYY-MM-DD}-{slug}-design.md
+spec: ./{YYYY-MM-DD}-{slug}-spec.md
 summary: ./{YYYY-MM-DD}-{slug}-summary.md
 ---
 
 # {機能名} — 受け入れ条件
 
-> Given-When-Then 形式。各 AC は独立した検証単位。design の方式・summary の TL;DR を満たすことを確認する受け入れ基準とする。
+> Given-When-Then 形式。各 AC は独立した検証単位。spec の方式・summary の TL;DR を満たすことを確認する受け入れ基準とする。
 
 ## AC-1: {シナリオ名}
 

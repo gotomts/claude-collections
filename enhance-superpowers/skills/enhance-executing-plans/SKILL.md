@@ -51,7 +51,7 @@ enhance-superpowers コレクションの実装フェーズ skill (ADR-0012 で�
 ### Step 0: 状態判定 (ADR-0012 D2)
 
 1. **`{出力先}` を確定**: `--output-dir` があればその値、無ければ `git rev-parse --abbrev-ref HEAD` → サニタイズ (`/` → `-`) → `docs/superpowers/{branch}/`
-2. `{出力先}` の既存 file を Glob で列挙、`summary/design/gwt/pr-description/plan` の存在有無を確認
+2. `{出力先}` の既存 file を Glob で列挙、`summary/spec/gwt/pr-description/plan` の存在有無を確認 (**`*-design.md` は ADR-0015 以前の legacy 実装仕様**。見つかったら `*-spec.md` と同じ成果物として扱う)
 3. **明示引数を優先**: `plan-file-path` が渡されていればそれを対象 plan.md として採用し、glob 探索より優先する。
 4. **前提**: (明示引数が無い場合) `{出力先}` に `*-plan.md` が存在すること。無ければ error "plan.md がありません。enhance-brainstorming Phase 4 を完了させてください" + 中断
 5. plan.md 末尾の「## レビュー履歴」を Read し、以下を判定:
@@ -89,10 +89,10 @@ plan.md 内の各 slice について、以下を順次実行:
    - mixed (backend + frontend 等の垂直スライス) → 該当 executor 複数を順次 dispatch (依存順、例: backend → frontend)
 3. dispatch prompt に以下 context を含める (executor は中立語彙で書かれているので、context は skill 側から明示提供、ADR-0004 root):
    - **タスク定義**: 受入条件・スコープ範囲・該当 slice の詳細
-   - **参照 docs**: design.md / plan.md / gwt.md / ユビキタス言語 の path
+   - **参照 docs**: spec.md / plan.md / gwt.md / ユビキタス言語 の path (実装の詳細仕様は `*-spec.md`。ADR-0015 以前の branch では `*-design.md`)
    - **担当範囲**: 該当 slice の対象部分のみ
-   - **architecture 規約**: design.md / plan.md で指定される規約 (例: Clean Architecture + DDD 等)
-   - **テスト戦略**: plan.md 指定、または design.md セクション参照
+   - **architecture 規約**: spec.md / plan.md で指定される規約 (例: Clean Architecture + DDD 等)
+   - **テスト戦略**: plan.md 指定、または spec.md セクション参照
    - **進行 protocol**: 停止可否 / 仮定の記録方法 / 未決事項マーカー
 4. executor が担当実装 (該当担当範囲、テスト含む)
 5. dispatch log を plan.md 末尾「## レビュー履歴」セクションに追記 (ADR-0007)
@@ -139,7 +139,7 @@ plan.md 内の各 slice について、以下を順次実行:
 | 状況 | 挙動 |
 |---|---|
 | plan.md 未生成 | error 報告 + 中断 ("enhance-brainstorming Phase 4 を完了させてください") |
-| Step 0 で判定結果が不明瞭 | user に「summary/design/gwt/plan の状態が想定と異なります、どこから再開しますか?」と 1 問確認 |
+| Step 0 で判定結果が不明瞭 | user に「summary/spec/gwt/plan の状態が想定と異なります、どこから再開しますか?」と 1 問確認 |
 | shared:software-architect が実装方針の重大 issue を検出 | plan.md 修正が必要 → user 承認 → plan.md Edit → 再 dispatch |
 | executor dispatch が slice 境界で完了報告を返さない | 呼び出し元 skill (本 skill) が「担当 slice のみ実装、完了時に呼び出し元へ報告」を prompt に明示。なお不整合ある場合は user に相談 |
 | `code-review:code-review` skill / `shared:security-engineer` が blocker 検出 | 実装修正 → 再 review dispatch。判定に迷う場合のみ `shared:implementation-reviewer` を判定 aid として dispatch。修正できなければ user に相談 |
@@ -154,6 +154,7 @@ plan.md 内の各 slice について、以下を順次実行:
 - ADR-0010 (ai-utilization-policy-loading): Step 1 で Read
 - ADR-0012 (implementation-phase-skill-and-state-detection): 本 skill を規定する ADR
 - ADR-0014 (output-dir-arg-chain-suppression-gate-aggregation): 本 skill の 2 引数 (E1 出力先 / E3 gate 集約)
+- ADR-0015 (spec-file-suffix-rename): 実装仕様の suffix は `spec` (旧 `design`)。executor へ渡す参照 docs の名前
 - enhance-brainstorming SKILL.md: 前工程 skill、実装フェーズ chain 起動元
 - gwt-test SKILL.md: 後工程 skill、Step 5 で chain invoke
 - `superpowers:executing-plans` skill: 従来 Step 3 で invoke していたが D1 redesign で廃止 (2026-07-04)。参考として名前のみ残置

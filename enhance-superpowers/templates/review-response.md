@@ -1,7 +1,7 @@
 ---
 title: {機能名} — code-review 指摘への対応方針
 issue: {issue-url}
-spec: ./{YYYY-MM-DD}-{slug}-design.md
+spec: ./{YYYY-MM-DD}-{slug}-spec.md
 summary: ./{YYYY-MM-DD}-{slug}-summary.md
 gwt: ./{YYYY-MM-DD}-{slug}-gwt.md
 ---
