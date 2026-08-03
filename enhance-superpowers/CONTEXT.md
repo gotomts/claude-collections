@@ -15,12 +15,20 @@ skill 連鎖の中で agent 能動 dispatch を強制する境目。本コレク
 - **STOP POINT 1 (実装フェーズ)**: ADR-0012 で `enhance-executing-plans` skill 化。実装前 software-architect + slice ごと executor 能動 dispatch + review (code-review skill optional / security-engineer / performance-engineer) を強制 dispatch。
 - **STOP POINT 2 (セルフレビュー)**: ADR-0013 で `code-review` skill を **auto-invoke** (課金前 1 問確認、scope は code-review のみ)。security-engineer 能動 dispatch と write-review-response chain は独立 = 常時実行 (silent failure 回避)。
 
-**skill 一覧** (5 skill、ADR-0012 で `enhance-executing-plans` を追加):
+**skill 一覧** (6 skill、ADR-0012 で `enhance-executing-plans`、ADR-0016 で `pr-review` を追加):
+
+implementer 側 (1〜5) — 自分が書くコードの Spec を決めて実装し、PR を出すまで:
 1. `enhance-brainstorming` — 起点、Spec 5 成果物確定
 2. `enhance-executing-plans` — 実装フェーズ (2026-07-04 redesign: skill 側から executor agent を直接 dispatch、superpowers 委譲は廃止 = silent failure の言い換えだった)
 3. `gwt-test` — AC 検証 + qa-engineer 常時 dispatch (ADR-0013) + STOP POINT 2 実行 (code-review auto-invoke + security-engineer)
 4. `write-review-response` — CodeRabbit 指摘の採用/Skip 判定
 5. `finish-spec-pr` — PR 作成 (mechanical)
+
+レビュワー側 (6) — 他人の PR を受け取って理解し、検証し、レビューする:
+6. `pr-review` — PR 番号を起点に summary (把握) + gwt (動作確認の土台) を生成 → crit で人間レビュー → 子セッション 2 本で動作確認 ∥ コードレビューを並走 → join (ADR-0016)
+
+**レビュワー側**:
+向きが implementer 側と逆になる作業領域 (ADR-0016)。implementer 側は設計を決めてから書くので理解が先にあるが、レビュワーは完成した差分から設計意図を逆算する。この向きの違いが最も出るのが gwt.md の出所で、implementer 側 (`gwt-test`) は Spec フェーズで先に書かれた gwt.md を読むのに対し、レビュワー側 (`pr-review`) は差分から gwt.md を起こす。したがって同じ skill には収まらない。`write-review-response` はレビューを**受ける**側なので implementer 側に属する (名前が似ているが向きが逆)。
 
 **認識齟齬検出ポイント**:
 Spec フェーズで設計の認識ズレを早期検出する 3 重の関所 — ① summary 合意 (大枠ズレ、Phase 2) / ② gwt 合意 (AC ズレ、Phase 3) / ③ pr-description 合意 (動作確認方法ズレ、Phase 3)。② と ③ は Phase 3 の 3 file 一括レビューに集約される (ADR-0011)。
@@ -44,6 +52,9 @@ Spec フェーズで設計の認識ズレを早期検出する 3 重の関所 �
 | write-review-response Step 2 (判定迷い / セキュリティ / 大規模 refactor) | shared:implementation-reviewer (判定 aid) / shared:security-engineer / shared:reviewer | 判定補助 |
 | write-review-response Step 4 (再 push 前) | **code-review:code-review skill** (課金前 1 問確認) | 差し戻しレビューは code-review:code-review skill (ADR-0013 拡張) |
 | finish-spec-pr | (なし、mechanical) | — |
+| pr-review Step 2 (summary) | shared:software-architect | 差分から読み取った設計意図の妥当性 / 見落とした構造変更 (ADR-0016) |
+| pr-review Step 3 (gwt) | shared:qa-engineer | レビュワー視点 AC の網羅性 (異常系 / 境界値 / 既存機能への回帰) |
+| pr-review Step 5 (子 `pr{N}-review` 内) | shared:security-engineer | セキュリティ観点のコードレビュー (子セッションが dispatch) |
 
 `shared:implementation-reviewer` agent は判定 aid 専用 (false positive 判定補助 / 大規模 refactor 判定補助)。実際のコードレビュー activity は `code-review` skill (CodeRabbit) を使う (ADR-0013 2026-07-04 拡張)。
 
@@ -82,7 +93,7 @@ enhance-superpowers は superpowers (公式) の直線フロー (brainstorming �
 - **DRY はテストコードで一部許容** (Given/When は重複可、assertion helper / factory / fixture builder は共通化可)
 - **コードコメントは WHY のみ**、JSDoc 抑制
 - **agent 能動 dispatch**: 各 skill ステップで agent を必ず使う場面を織り込む (silent failure 回避)
-- **コミット前提**: 設計ドキュメントは worktree 同居・main 退避なし
+- **コミット前提**: 設計ドキュメントは worktree 同居・main 退避なし。**ただし implementer 側の成果物に限る** — `pr-review` が他人の PR に対して書くレビューメモは commit しない (ADR-0016 D4)
 
 ## 配置
 
@@ -91,6 +102,7 @@ enhance-superpowers は superpowers (公式) の直線フロー (brainstorming �
 | 5 成果物 (summary / spec / gwt / pr-description / plan) | `docs/superpowers/{branch}/` (**`--output-dir` 指定時はその値**、ADR-0014 E1) |
 | review-response.md | 同上 |
 | handoff.md (任意、状態判定の補助) | 同上 |
+| pr-review 成果物 (summary / gwt / review-report) | **発動元リポジトリ**の `docs/superpowers/pr-{N}/` (**`--output-dir` 指定時はその値**)。レビュー用 worktree には置かず、**commit しない** (ADR-0016 D4) |
 | コレクション固有 ADR | `enhance-superpowers/docs/adr/` |
 | skill / template | `enhance-superpowers/{skills,templates}/` (固有 agent は 0 体、engineering 系は `shared` plugin) |
 
@@ -99,5 +111,5 @@ enhance-superpowers は superpowers (公式) の直線フロー (brainstorming �
 - 設計 doc: `docs/superpowers/feat-enterprise-superpowers-customization/2026-06-25-enhance-superpowers-collection-design.md`
 - summary: 同 dir の `-summary.md`
 - plan: 同 dir の `-plan.md`
-- ADR 0001-0015 (コレクション固有): `enhance-superpowers/docs/adr/`
+- ADR 0001-0016 (コレクション固有): `enhance-superpowers/docs/adr/`
 - root ADR: `docs/adr/` (リポジトリ全体の決定)

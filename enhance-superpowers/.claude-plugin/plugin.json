@@ -1,11 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "enhance-superpowers",
-  "description": "superpowers 拡張: Spec フェーズで 5 成果物 (summary/design/gwt/pr-description/plan) を plan-last 順序で確定、実装フェーズは enhance-executing-plans (ADR-0012)、後工程 (gwt-test/write-review-response/finish-spec-pr) を連鎖駆動。全 skill に Step 0 状態判定 + agent 能動 dispatch (silent failure 回避) + 監査ログ + セキュリティレビュー + コンプライアンス trigger を内包。dispatch する engineering 系 13 職種は `shared` plugin から参照する (install 必須・ADR-0009)。",
+  "description": "superpowers 拡張: Spec フェーズで 5 成果物 (summary/design/gwt/pr-description/plan) を plan-last 順序で確定、実装フェーズは enhance-executing-plans (ADR-0012)、後工程 (gwt-test/write-review-response/finish-spec-pr) を連鎖駆動。レビュワー側は pr-review が PR 番号を起点に summary+gwt を起こし、crit 人間レビュー後に動作確認とコードレビューを子セッション 2 本で並走させる (ADR-0016)。全 skill に Step 0 状態判定 + agent 能動 dispatch (silent failure 回避) + 監査ログ + セキュリティレビュー + コンプライアンス trigger を内包。dispatch する engineering 系 13 職種は `shared` plugin から参照する (install 必須・ADR-0009)。",
   "author": {
     "name": "gotomts",
     "email": "mh.goto.web@gmail.com"
   },
   "repository": "https://github.com/gotomts/claude-collections",
-  "keywords": ["superpowers-extension", "spec-first", "5-deliverables", "agent-dispatch", "audit-trail", "development-workflow"]
+  "keywords": ["superpowers-extension", "spec-first", "5-deliverables", "agent-dispatch", "audit-trail", "development-workflow", "pr-review"]
 }
