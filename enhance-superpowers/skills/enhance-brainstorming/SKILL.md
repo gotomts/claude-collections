@@ -174,7 +174,7 @@ Phase 1 / 2 でセキュリティ箇所が検出されたら `shared:security-en
 3. 続行する場合、`Skill` tool で `enhance-superpowers:enhance-executing-plans` skill を **chain invoke** (ADR-0012 D1 redesign 2026-07-04)。`--output-dir` / `--gate-mode` を受け取っていれば**そのまま引き継いで渡す**:
    - 実装前 = `shared:software-architect` 能動 dispatch (実装方針 review)
    - 実装本体 = skill 側から **executor agent (backend/frontend/mobile/infrastructure-engineer) を直接 dispatch** (superpowers:executing-plans 委譲は D1 redesign で廃止 = silent failure の言い換えだった)
-   - slice 単位 = `code-review` skill (optional 1問確認、default skip) + `shared:security-engineer` (該当 slice で常時) + `shared:performance-engineer` (該当 slice で)
+   - slice 単位 = `shared:implementation-reviewer` (常時、ローカル diff のコードレビュー本体・ADR-0016 D1) + `shared:security-engineer` (該当 slice で常時) + `shared:performance-engineer` (該当 slice で)
    - dispatch log は plan.md 末尾レビュー履歴に追記 (ADR-0007)
    - 完了後 = `gwt-test` skill に自動連鎖
 4. 中断時の再開方法を案内: 「(a) `enhance-brainstorming` を再 invoke (Step 0 で状態判定して続きから)、(b) `enhance-superpowers:enhance-executing-plans` を直接 invoke、または (c) `enhance-superpowers:gwt-test` skill を直接 invoke」(**いずれも `--output-dir` / `--gate-mode` を同じ値で渡すこと**。渡さないと既定ディレクトリを走査して「未着手」と誤判定する)
