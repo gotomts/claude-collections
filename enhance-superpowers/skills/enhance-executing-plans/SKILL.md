@@ -4,7 +4,7 @@ description: |
   enhance-superpowers コレクションの実装フェーズ skill (ADR-0012 で新設)。
   STOP POINT 1 (実装フェーズ) を skill 化し、実装前後で agent 能動 dispatch を強制。
   実装本体は skill 側から executor agent (backend/frontend/mobile/infrastructure-engineer) を **直接 dispatch** (2026-07-04 D1 redesign、superpowers 委譲は silent failure 回避のため廃止)。
-  実装前 = software-architect (実装方針 review)、slice ごと = code-review skill (optional 1問確認) + security-engineer + performance-engineer 能動 dispatch。
+  実装前 = software-architect (実装方針 review)、slice ごと = implementation-reviewer (常時) + security-engineer + performance-engineer 能動 dispatch。
   dispatch log は plan.md のレビュー履歴に集約 (ADR-0007)。
   Step 0 で状態判定 (ADR-0012 D2)、Step 1 で .ai-restrictions.md を Read して AI 利用ポリシー案内 (ADR-0010)。
   引数 --output-dir / --gate-mode で出力先・gate 集約を制御 (省略時は従来挙動、ADR-0014)。
@@ -32,7 +32,7 @@ enhance-superpowers コレクションの実装フェーズ skill (ADR-0012 で�
 | 引数 | 既定 | 効果 |
 |---|---|---|
 | `--output-dir=<path>` | `docs/superpowers/{branch}/` | 成果物の所在。**Step 0 の状態判定と plan.md の自動検出先**になる |
-| `--gate-mode=aggregate` | `per-phase` | Step 4 の code-review 1 問確認を**実行に固定**し、Step 5 の chain 起動 1 問確認を**自動 yes** にする。attempt / final marker の idempotent 制御は維持 |
+| `--gate-mode=aggregate` | `per-phase` | Step 5 の chain 起動 1 問確認を**自動 yes** にする。attempt / final marker の idempotent 制御は維持。**Step 4 にあった code-review の課金前 1 問確認は ADR-0015 D1 で消滅**したため、本引数の効果は Step 5 のみ |
 
 以降、本 SKILL の `{出力先}` は「`--output-dir` 指定時はその値、省略時は `docs/superpowers/{branch}/`」を指す。
 
@@ -43,7 +43,7 @@ enhance-superpowers コレクションの実装フェーズ skill (ADR-0012 で�
 | 0 | `{出力先}/*-plan.md` 存在 | (判定) | 状態判定完了、Step 番号を確定 |
 | 1 | plan.md | 実装前 review 記録 | shared:software-architect dispatch 完了、plan.md レビュー履歴に追記 |
 | 2 | plan.md | 実装コード | enhance-executing-plans が対象 executor agent (`shared:{backend,frontend,mobile,infrastructure}-engineer`) を skill 側から **直接 dispatch** して slice 実装 (2026-07-04 OD1 fix、superpowers 委譲廃止) |
-| 3 | 実装スライスごと | slice review 記録 | code-review skill (optional) + shared:security-engineer + shared:performance-engineer dispatch 完了、plan.md レビュー履歴に追記 |
+| 3 | 実装スライスごと | slice review 記録 | shared:implementation-reviewer (常時) + shared:security-engineer + shared:performance-engineer dispatch 完了、plan.md レビュー履歴に追記 |
 | 4 | 実装済み全 slice | gwt-test skill chain 起動 | 全 slice review 完了 |
 
 ## 動作 (6 ステップ)
@@ -100,19 +100,19 @@ plan.md 内の各 slice について、以下を順次実行:
 
 **superpowers:executing-plans との関係**: 本 skill は superpowers:executing-plans に「丸投げ」しない (silent failure 回避)。enhance-superpowers 側で executor 能動 dispatch を保証。superpowers 直線フロー (brainstorming → writing-plans → executing-plans) の 3 段目相当を、enhance-superpowers 側で silent failure なく実装する形。
 
-### Step 4: slice ごとの review dispatch (ADR-0012 D1、code-review skill 方針 2026-07-04)
+### Step 4: slice ごとの review dispatch (ADR-0012 D1、宛先は ADR-0015 D1)
 
-各 slice の実装完了時に以下を実行。**コードレビュー activity は `code-review` skill (CodeRabbit) を使う** (`shared:implementation-reviewer` agent は判定 aid 専用に予約、ADR-0013 拡張)。code-review skill は billed のため per-slice 実行は optional (STOP POINT 2 に集約する運用が default):
+各 slice の実装完了時に以下を実行。**ローカル diff のコードレビュー activity は `shared:implementation-reviewer` が担う** (ADR-0015 D1)。ローカルで CodeRabbit / `code-review` 系 skill は呼ばない (CodeRabbit は GitHub 上の PR レビューだけで使う):
 
-1. **code-review skill の per-slice 実行は optional** (billed):
-   - user に「本 slice で `code-review` skill を実行しますか? (default: skip、STOP POINT 2 で全体まとめて実行)」1 問確認
-   - yes → `Skill` tool で `code-review:code-review` skill を invoke (CodeRabbit の機械的レビュー)
-   - no → skip (STOP POINT 2 に code-review を集約)
-   - **`--gate-mode=aggregate` 時**: 1 問確認をせず `code-review:code-review` を**実行に固定**する (呼び出し元が停止ゼロ運用のため。billed である点は呼び出し元が了解済みとみなす。ADR-0014 E3)
+1. **`shared:implementation-reviewer` を常時能動 dispatch** (評価 mode、課金なし)。invocation prompt に以下を渡す (中立 agent への起動 context、root ADR-0010 / indie-studio ADR-0031 と同じ形):
+   - **評価対象**: 本 slice の変更差分 / 対象 file 群 / 評価ラウンド番号
+   - **答え合わせ材料**: gwt.md の該当 AC / design.md (architecture 規約・モジュール境界・ドメインモデル) / リポジトリの `AGENTS.md` (無ければ `CLAUDE.md`)
+   - **評価観点**: agent 側デフォルト (受入条件充足 / テスト網羅 / 設計 docs 整合 / 可読性・規約・silent failure) を採用
+   - **進行 protocol**: **差し戻し protocol を use 宣言する** — round1 = fresh で完全な findings マニフェスト、round2-3 = 同一インスタンスの continuation で解消のみ検証 (スコープ凍結)、**各 slice 最大 3 ラウンド**、3R 未達は decide-record-proceed
 2. 実装対象 slice に auth / crypto / データ取扱 / 外部入力等の変更があれば、`shared:security-engineer` を **常時能動 dispatch** (評価 mode、security-focused な実装 review)
 3. 大規模 UI / 大量データ処理等で性能影響が想定される slice なら、`shared:performance-engineer` を能動 dispatch (評価 mode)
-4. dispatch log (code-review 実行 / skip、security-engineer / performance-engineer 実行結果) を plan.md 末尾「## レビュー履歴」セクションに追記 (ADR-0007)
-5. review 指摘がある場合、user に 1 問確認 → 該当 executor に修正 dispatch (再実装) → 再度 review → 収束
+4. dispatch log (implementation-reviewer の合否とラウンド数、security-engineer / performance-engineer 実行結果) を plan.md 末尾「## レビュー履歴」セクションに追記 (ADR-0007)
+5. review 指摘がある場合、user に 1 問確認 → 該当 executor に修正 dispatch (再実装) → **同一 implementation-reviewer インスタンスへ continuation** で再 review → 収束
 6. slice 収束 → 次 slice へ (Step 3 に戻る)
 
 ### Step 5: 全 slice 完了判定 + gwt-test skill chain (M2 fix 2026-07-04: attempt-then-confirm marker + idempotent + user gate)
@@ -129,6 +129,7 @@ plan.md 内の各 slice について、以下を順次実行:
 
 - **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:software-architect`)。bare name は解決されない。engineering 系 13 職種は `shared` plugin が提供する (root ADR-0010)
 - 実装前後の agent 能動 dispatch を必ず実行 (silent failure 回避、ADR-0001 コンセプト、ADR-0012)
+- **ローカル diff のコードレビューは `shared:implementation-reviewer`**。ローカルで CodeRabbit / `code-review` 系 skill を呼ばない (ADR-0015 D1)。課金を伴うレビューは GitHub 上の PR に一本化する
 - dispatch log は plan.md の「## レビュー履歴」セクションに集約 (ADR-0007)
 - 実装本体は skill 側から executor agent (backend/frontend/mobile/infrastructure-engineer) を直接 dispatch (2026-07-04 D1 redesign)。superpowers:executing-plans への委譲は silent failure の言い換えだったため廃止
 - Step 0 状態判定で再開可能な skill 設計 (ADR-0012 D2)、SKILL.md 冒頭の Phase 定義 table を再開判定の仕様源 (ADR-0012 D3) とする
@@ -142,7 +143,8 @@ plan.md 内の各 slice について、以下を順次実行:
 | Step 0 で判定結果が不明瞭 | user に「summary/design/gwt/plan の状態が想定と異なります、どこから再開しますか?」と 1 問確認 |
 | shared:software-architect が実装方針の重大 issue を検出 | plan.md 修正が必要 → user 承認 → plan.md Edit → 再 dispatch |
 | executor dispatch が slice 境界で完了報告を返さない | 呼び出し元 skill (本 skill) が「担当 slice のみ実装、完了時に呼び出し元へ報告」を prompt に明示。なお不整合ある場合は user に相談 |
-| `code-review:code-review` skill / `shared:security-engineer` が blocker 検出 | 実装修正 → 再 review dispatch。判定に迷う場合のみ `shared:implementation-reviewer` を判定 aid として dispatch。修正できなければ user に相談 |
+| `shared:implementation-reviewer` / `shared:security-engineer` が blocker 検出 | 実装修正 → 同一 implementation-reviewer インスタンスへ continuation で再 review (round2-3、スコープ凍結)。3 ラウンドで未達なら decide-record-proceed で理由を plan.md に記録。修正できなければ user に相談 |
+| 判定に迷う finding がある (false positive 疑い) | `shared:implementation-reviewer` を**別インスタンスで fresh dispatch** して判定 aid とする (ADR-0015 D1、レビュー本体と判定補助は同一 agent の別用途)。dispatch log を plan.md レビュー履歴に追記 |
 
 ## 関連
 
@@ -153,7 +155,8 @@ plan.md 内の各 slice について、以下を順次実行:
 - ADR-0007 (audit-trail-dispatch-log): dispatch log 集約先 = plan.md
 - ADR-0010 (ai-utilization-policy-loading): Step 1 で Read
 - ADR-0012 (implementation-phase-skill-and-state-detection): 本 skill を規定する ADR
-- ADR-0014 (output-dir-arg-chain-suppression-gate-aggregation): 本 skill の 2 引数 (E1 出力先 / E3 gate 集約)
+- ADR-0014 (output-dir-arg-chain-suppression-gate-aggregation): 本 skill の 2 引数 (E1 出力先 / E3 gate 集約)。`--gate-mode` の効果は ADR-0015 D6 で Step 5 のみに縮小
+- ADR-0015 (local-review-to-implementation-reviewer-and-builtin-review-after-pr): Step 4 の宛先を code-review skill から `shared:implementation-reviewer` に変更 (D1)
 - enhance-brainstorming SKILL.md: 前工程 skill、実装フェーズ chain 起動元
 - gwt-test SKILL.md: 後工程 skill、Step 5 で chain invoke
 - `superpowers:executing-plans` skill: 従来 Step 3 で invoke していたが D1 redesign で廃止 (2026-07-04)。参考として名前のみ残置

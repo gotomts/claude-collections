@@ -37,15 +37,21 @@ Spec フェーズで設計の認識ズレを早期検出する 3 重の関所 �
 | enhance-brainstorming Phase 4 (plan) | shared:qa-engineer + shared:security-engineer + shared:tech-lead + shared:engineering-manager + shared:principal-engineer + ライセンスチェック | テスト戦略 / セキュリティ / スタック判断 / slice 分解 / 分解評価 / ライセンス (ADR-0009) |
 | enhance-executing-plans Step 2 (実装前) | shared:software-architect | 実装方針 pre-flight review (ADR-0012) |
 | enhance-executing-plans Step 3 (実装本体) | shared:{backend,frontend,mobile,infrastructure}-engineer (slice 対応で選定) | executor 能動 dispatch (ADR-0012 D1 redesign) |
-| enhance-executing-plans Step 4 (slice review) | **code-review:code-review skill (optional 1問確認)** + shared:security-engineer + shared:performance-engineer | code review activity は code-review:code-review skill を default (ADR-0013 拡張) |
+| enhance-executing-plans Step 4 (slice review) | **shared:implementation-reviewer (常時)** + shared:security-engineer + shared:performance-engineer | ローカル diff の code review activity は implementation-reviewer が担う (ADR-0015 D1) |
 | gwt-test Step 5 (AC 未達時) | shared:qa-engineer | 差し戻し findings 言語化 |
 | gwt-test Step 6 (AC 完了時) | shared:qa-engineer 常時 | AC 網羅性 review (ADR-0013 D1) |
-| gwt-test Step 8 (STOP POINT 2) | **code-review:code-review skill auto-invoke** (課金前 1 問確認) + shared:security-engineer 能動 | CodeRabbit + security-focused review (ADR-0013 D2、M4 fix で scope 分離) |
+| gwt-test Step 8 (STOP POINT 2) | **shared:implementation-reviewer (常時)** + shared:security-engineer 能動 + **`/security-review` invoke** | ローカル diff の code review + security-focused review 2 層 (ADR-0013 D2、宛先は ADR-0015 D1・D5)。課金なしのため 1 問確認は廃止 |
 | write-review-response Step 2 (判定迷い / セキュリティ / 大規模 refactor) | shared:implementation-reviewer (判定 aid) / shared:security-engineer / shared:reviewer | 判定補助 |
-| write-review-response Step 4 (再 push 前) | **code-review:code-review skill** (課金前 1 問確認) | 差し戻しレビューは code-review:code-review skill (ADR-0013 拡張) |
-| finish-spec-pr | (なし、mechanical) | — |
+| write-review-response Step 4 (再 push 前) | **shared:implementation-reviewer (常時)** | 採用分の解消検証と回帰チェック (ADR-0015 D1) |
+| finish-spec-pr Step 6 (PR 作成後) | **builtin `/review` invoke** + GitHub 上の CodeRabbit 併読 | PR レビュー。指摘があれば user 1 問確認のうえ write-review-response へ折り返す (ADR-0015 D2) |
 
-`shared:implementation-reviewer` agent は判定 aid 専用 (false positive 判定補助 / 大規模 refactor 判定補助)。実際のコードレビュー activity は `code-review` skill (CodeRabbit) を使う (ADR-0013 2026-07-04 拡張)。
+**レビューの宛先はフェーズで分かれる** (ADR-0015)。ローカル diff と GitHub PR は別の道具でしか見られないため、1 つに寄せない:
+
+- **実装中〜push 前 (ローカル diff)**: `shared:implementation-reviewer` がコードレビュー本体。`shared:security-engineer` / `shared:performance-engineer` / `/security-review` が観点を足す。**ローカルで CodeRabbit / `code-review` 系 skill は呼ばない**
+- **PR 作成後**: builtin `/review` (PR 専用・Skill tool から invoke 可・read-only) + GitHub 上の CodeRabbit
+- `shared:implementation-reviewer` は**レビュー本体と判定 aid の 2 用途**を持つ。ADR-0013 が置いた「判定 aid 専用に予約」は ADR-0015 D1 が解除した
+- bundled `/code-review` は採らない — モデルから起動できず (v2.1.215 以降)、かつ同名 personal skill にシャドウされて consumer 環境依存になるため (ADR-0015 D3)
+- `/review` は AI の自己レビューであり、**根幹変更の人間レビュー / 人間 merge を代替しない** (ADR-0015 D4、indie-studio ADR-0008)
 
 dispatch log の追記先 mapping は ADR-0007 参照。
 
