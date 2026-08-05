@@ -2,9 +2,11 @@
 
 `implementation-spec` が生成する実装詳細仕様のファイル名 suffix を **`design` から `spec` に変える**。ADR-0032 D2 が `design` を採った根拠は事実誤認だったため、あわせて訂正する。
 
+> ※ 本 ADR の Consequences が受け入れた「同じ役割のファイルが 2 つの名前を持つ」状態は、**enhance-superpowers 側も `spec` に改名されたことで解消した**（enhance-superpowers ADR-0015）。本 ADR の決定（D1 suffix = `spec`）は不変で、そちらに揃った形。
+
 ## Status
 
-accepted（2026-07-28）。[ADR-0032](0032-s5-spec-in-harness-implementation-delegated.md) の **D2 を改定**する（extends）。D1 / D3 / D3-a / D4 / D5 と、D2 のうち suffix 以外の契約項目は**すべて有効なまま**。
+accepted（2026-07-28）。Updated（2026-07-31）: 上記のとおり名前不一致が解消（決定自体は不変）。[ADR-0032](0032-s5-spec-in-harness-implementation-delegated.md) の **D2 を改定**する（extends）。D1 / D3 / D3-a / D4 / D5 と、D2 のうち suffix 以外の契約項目は**すべて有効なまま**。
 
 ## Context
 

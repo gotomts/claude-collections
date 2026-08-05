@@ -60,7 +60,7 @@ docs/indie-studio/implementation/{S-nn}-{slug}/
 | 項目 | 契約 |
 |---|---|
 | ファイル名 | `{YYYY-MM-DD}-{slug}-{suffix}.md`。suffix は `summary` / **`spec`** / `gwt` / `pr-description` / `plan` |
-| **suffix は `spec`** | 実装の詳細設計は **`spec.md`**。`design` は UI デザイン仕様に明け渡す（`design-direction` / `DESIGN.md` と衝突するため）。**委譲先はこれを要求しない** — 検証したところ `gwt-test` / `write-review-response` / `finish-spec-pr` は `design` に一切言及せず、`enhance-executing-plans` のハード要件も `*-plan.md`（存在＋`## レビュー履歴`）のみ（ADR-0034） |
+| **suffix は `spec`** | 実装の詳細設計は **`spec.md`**。`design` は UI デザイン仕様に明け渡す（`design-direction` / `DESIGN.md` と衝突するため）。**委譲先も `spec` を使う**（enhance-superpowers ADR-0015 で同じ改名を実施済み）。なお委譲先はこの suffix を**要求しない** — `gwt-test` / `write-review-response` / `finish-spec-pr` は言及せず、`enhance-executing-plans` のハード要件も `*-plan.md`（存在＋`## レビュー履歴`）のみ（ADR-0034） |
 | `plan.md` | `## レビュー履歴` セクション必須（`enhance-executing-plans` の状態判定が読む） |
 | `gwt.md` | `- [ ] AC-N: ...` 形式の checklist、`## 変更履歴`（`{YYYY-MM-DD HH:MM}` 逆時系列）、`## レビュー履歴` 必須（`gwt-test` が読む） |
 | `pr-description.md` | `## やったこと` / `## 動作確認方法` は必須。**`## 補足` は内容が無ければセクションごと削除してよい**（`finish-spec-pr` 自身が「内容がなければセクションごと削除」と規定しているため、空で残すほうが契約違反） |
@@ -164,7 +164,7 @@ enhance-superpowers:enhance-executing-plans --output-dir=docs/indie-studio/imple
 以降 `gwt-test` → `write-review-response` → `finish-spec-pr` が自動連鎖して PR まで到達する。**本スキルは実装・検証・レビュー・PR のロジックを持たない**（ADR-0032 D4）。
 
 - `--gate-mode=aggregate` を渡すかは運用判断（enhance-superpowers ADR-0014 E3）。渡さなければ従来どおり各 Phase で承認を取る
-- **invocation 時に「実装の詳細仕様は `*-spec.md`」と明示する。** `enhance-executing-plans` は executor へ渡す「参照 docs」を `design.md` と名指ししているため（同 skill の Step 3）、伝えないと executor が spec.md を読み落とす。**これは prompt での context 提供であり、enhance-superpowers 側の変更ではない**
+- **invocation 時に「実装の詳細仕様は `*-spec.md`」と明示する**（ADR-0034 D2）。`enhance-executing-plans` は executor へ渡す「参照 docs」を **`spec.md` と名指しするようになった**ため（enhance-superpowers ADR-0015）本来は不要だが、委譲先を旧版で使っている環境でも executor が spec.md を読み落とさないよう明示は続ける。**これは prompt での context 提供であり、enhance-superpowers 側の変更ではない**
 - **`enhance-superpowers` 側には引数以外の要求をしない**（変更を加えない・ADR-0032 D5）
 - 連鎖が途切れたら該当 skill を直接 invoke して復帰させる（`--output-dir` を同じ値で渡すこと）
 

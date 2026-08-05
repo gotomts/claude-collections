@@ -1,14 +1,14 @@
 ---
 title: {機能名} — サマリー（TL;DR）
 issue: {issue-url}
-design: ./{YYYY-MM-DD}-{slug}-design.md
+spec: ./{YYYY-MM-DD}-{slug}-spec.md
 related:
   - {関連 PR/issue URL}  # 何を取り込む / 依存するかを 1 行で補足
 ---
 
 # {機能名} — サマリー
 
-> 本書は TL;DR。詳細は design、実装手順は plan を参照（plan は `writing-plans` skill で後続作成）。
+> 本書は TL;DR。詳細は spec、実装手順は plan を参照（plan は `writing-plans` skill で後続作成）。
 
 ## 一言で
 

@@ -3,7 +3,7 @@ name: write-review-response
 description: |
   ローカルの agent findings (implementation-reviewer / security-engineer / performance-engineer) と、
   GitHub PR 上の /review 指摘・CodeRabbit インラインコメントのうち unresolved 分を
-  採用/Skip の 2 値で判定し、review-response.md に上書き運用で記録する skill (ADR-0015 D1・D2)。
+  採用/Skip の 2 値で判定し、review-response.md に上書き運用で記録する skill (ADR-0016 D1・D2)。
   ID は CodeRabbit 分類に揃える (M1.../Mi1.../T1...)。CodeRabbit へのリプライは送らない
   (修正 push → 自動 resolve、残った unresolved のみ判定)。
   判定迷い時 / セキュリティ系指摘 / 採用後修正の 3 タイミングで implementation-reviewer /
@@ -26,7 +26,7 @@ maintainer: gotomts
 
 レビュー指摘への対応方針を md ファイルとして記録する skill。gwt-test からの連鎖 (ローカル agent findings)、`finish-spec-pr` からの折り返し (PR 上の `/review` + CodeRabbit 指摘)、または user が直接 invoke のいずれでも動作する。
 
-**指摘の出どころは 2 ラウンドある** (ADR-0015 D1・D2)。上書き運用のため、各ラウンドで review-response.md は最新の内容に置き換わる:
+**指摘の出どころは 2 ラウンドある** (ADR-0016 D1・D2)。上書き運用のため、各ラウンドで review-response.md は最新の内容に置き換わる:
 
 | ラウンド | 契機 | review-source |
 |---|---|---|
@@ -34,7 +34,7 @@ maintainer: gotomts
 | PR 後 (`/review`) | `finish-spec-pr` Step 6 から折り返し (user 1 問確認あり) | builtin `/review` の出力 |
 | PR 後 (CodeRabbit) | user が本 skill を直接 invoke (PR 作成から数分〜十数分後) | GitHub 上の CodeRabbit unresolved コメント |
 
-**CodeRabbit ラウンドを分けているのは、PR 作成直後に CodeRabbit のレビューがまだ存在しないため** (ADR-0015 D2)。`finish-spec-pr` Step 6 の折り返しでは `/review` の指摘しか揃わない。
+**CodeRabbit ラウンドを分けているのは、PR 作成直後に CodeRabbit のレビューがまだ存在しないため** (ADR-0016 D2)。`finish-spec-pr` Step 6 の折り返しでは `/review` の指摘しか揃わない。
 
 ## 引数 (ADR-0014)
 
@@ -43,7 +43,7 @@ maintainer: gotomts
 | 引数 | 既定 | 効果 |
 |---|---|---|
 | `--output-dir=<path>` | `docs/superpowers/{branch}/` | 成果物の所在。Step 0 の状態判定と対象 file の自動検出先になる |
-| `--gate-mode=aggregate` | `per-phase` | **本 skill では効果を持たない (受理のみ、下流の `finish-spec-pr` は受け取らない)**。唯一の効果だった code-review の課金前 1 問確認が ADR-0015 D1 で消滅したため。引数を落とさないのは indie-studio 側のアダプタ契約 (indie-studio ADR-0032) を壊さないため。削除条件は ADR-0015 D6 |
+| `--gate-mode=aggregate` | `per-phase` | **本 skill では効果を持たない (受理のみ、下流の `finish-spec-pr` は受け取らない)**。唯一の効果だった code-review の課金前 1 問確認が ADR-0016 D1 で消滅したため。引数を落とさないのは indie-studio 側のアダプタ契約 (indie-studio ADR-0032) を壊さないため。削除条件は ADR-0016 D6 |
 
 以降の `{出力先}` は「`--output-dir` 指定時はその値、省略時は `docs/superpowers/{branch}/`」を指す。
 
@@ -82,7 +82,7 @@ maintainer: gotomts
 1. `git rev-parse --show-toplevel` で git repo 確認
 2. `enhance-superpowers/templates/review-response.md` を Read
 3. プロジェクトルートの `.ai-restrictions.md` を Read (存在すれば user に案内)
-4. review-source の確定 (ADR-0015 D1・D2)。argument で明示されていればそれを使い、無ければ以下の順で解決する:
+4. review-source の確定 (ADR-0016 D1・D2)。argument で明示されていればそれを使い、無ければ以下の順で解決する:
    - **ローカルラウンド** (`gwt-test` から chain されたとき): chain 元が渡した `shared:implementation-reviewer` / `shared:security-engineer` / `/security-review` の findings
    - **PR 後ラウンド** (`finish-spec-pr` から折り返されたとき、または PR URL が渡されたとき): builtin `/review` の出力 + `gh` で取得した PR 上の CodeRabbit unresolved コメント
      - **CodeRabbit の到着を前提にしない。** PR 作成から数分〜十数分かかるため、`finish-spec-pr` からの折り返し直後は未到着のことが多い。その場合は `/review` の指摘だけで判定を進め、「CodeRabbit 未到着」を review-response.md のレビュー履歴に記録する。CodeRabbit ラウンドは後から本 skill を直接 invoke して扱う (上書き運用)
@@ -110,7 +110,7 @@ maintainer: gotomts
    - Step 2 の implementation-reviewer / security-engineer dispatch 結果
    - **gwt-test の STOP POINT 2 で実施した security-engineer のコードセキュリティレビュー結果もここに集約** (ADR-0007)
 
-### Step 4: 採用分を実装に反映 + 再 push 前レビュー (宛先は ADR-0015 D1)
+### Step 4: 採用分を実装に反映 + 再 push 前レビュー (宛先は ADR-0016 D1)
 
 1. user 確認 → 採用分を実装に反映 (← user 作業 or AI 作業)
 2. テストコード同期確認: 実装コード修正に伴うテストコード修正要否を確認、不要時も 1 行根拠を残す (review-response.md に記録)
@@ -135,7 +135,7 @@ maintainer: gotomts
 - 採用/Skip 2 値 (保留禁止、全件判定必須)
 - 採用後の実装修正でテストコード同期不要時は 1 行根拠を残す
 - 判定迷い・セキュリティ系・採用後修正の 3 タイミングで agent を能動 dispatch (silent failure 回避)
-- **ローカルで CodeRabbit / `code-review` 系 skill を呼ばない** (ADR-0015 D1)。CodeRabbit の指摘を扱うのは PR 後ラウンド (GitHub App の unresolved コメント) だけ
+- **ローカルで CodeRabbit / `code-review` 系 skill を呼ばない** (ADR-0016 D1)。CodeRabbit の指摘を扱うのは PR 後ラウンド (GitHub App の unresolved コメント) だけ
 - dispatch log を review-response.md のレビュー履歴セクションに追記 (ADR-0007、gwt-test の security-engineer コードレビュー結果もここに集約)
 - 上書き運用 (最新ラウンドのみ保持、過去ラウンドは git log で追跡)
 - Step 1 で AI 利用ポリシー (.ai-restrictions.md) を Read して案内 (ADR-0010)
@@ -155,6 +155,6 @@ maintainer: gotomts
 - ADR-0010 (ai-utilization-policy-loading)
 - ADR-0012 (implementation-phase-skill-and-state-detection) — Step 0 状態判定
 - ADR-0013 (gwt-test-qa-engineer-always-dispatch-and-code-review-auto-invoke) — gwt-test Step 8 のセルフレビュー結果を本 skill が引き継ぐ
-- ADR-0015 (local-review-to-implementation-reviewer-and-builtin-review-after-pr) — review-source が 2 ラウンド化 (D1・D2)、Step 4 の宛先変更 (D1)、`--gate-mode` の効果消滅 (D6)
+- ADR-0016 (local-review-to-implementation-reviewer-and-builtin-review-after-pr) — review-source が 2 ラウンド化 (D1・D2)、Step 4 の宛先変更 (D1)、`--gate-mode` の効果消滅 (D6)
 - gwt-test SKILL.md (前工程 sub-skill、STOP POINT 2 で implementation-reviewer + security-engineer + /security-review を実施)
 - finish-spec-pr SKILL.md (次工程 sub-skill。Step 6 で `/review` を回し、指摘があれば user 1 問確認のうえ本 skill に折り返す)

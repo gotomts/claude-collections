@@ -44,7 +44,7 @@ indie-studio コレクションが S5（実装ステージ）を本コレクシ�
 
 両 skill が `gate-mode` 引数を受け取る（`per-phase` / `aggregate`、既定は `per-phase`）。
 
-> ※ ADR-0015 D6 で更新。`gwt-test` と `write-review-response` では本引数の**効果が消滅した**（唯一の効果だった code-review の課金前 1 問確認が ADR-0015 D1 で無くなったため）。引数の受理と伝播は indie-studio 側のアダプタ契約を保つために維持しており、削除条件は ADR-0015 D6 に定める。`enhance-brainstorming`（Phase 承認の集約）では従来どおり有効。`enhance-executing-plans` は**下記 2 つ目の bullet が挙げる 2 効果のうち、slice ごとの code-review 1 問確認が消滅し、Step 5 の chain 起動確認の自動 yes だけが残る**。
+> ※ ADR-0016 D6 で更新。`gwt-test` と `write-review-response` では本引数の**効果が消滅した**（唯一の効果だった code-review の課金前 1 問確認が ADR-0016 D1 で無くなったため）。引数の受理と伝播は indie-studio 側のアダプタ契約を保つために維持しており、削除条件は ADR-0016 D6 に定める。`enhance-brainstorming`（Phase 承認の集約）では従来どおり有効。`enhance-executing-plans` は**下記 2 つ目の bullet が挙げる 2 効果のうち、slice ごとの code-review 1 問確認が消滅し、Step 5 の chain 起動確認の自動 yes だけが残る**。
 
 - `aggregate` 指定時（`enhance-brainstorming`）：Phase 2 / Phase 3 / Phase 4 の user 承認を自動通過させ、5 成果物が揃った時点で**一括提示して 1 回だけ承認を取る**。差し戻しがあれば該当 file を再生成し、再び一括提示する。agent の能動 dispatch・機微情報チェック・ライセンスチェックは**従来どおり全て実行する**（gate を減らすだけで、検証は減らさない）。
 - `aggregate` 指定時（`enhance-executing-plans`）：slice ごとの code-review 1 問確認を **実行に固定**し、Step 5 の chain 起動 1 問確認を**自動 yes** にする。attempt marker / final marker の idempotent 制御は維持する。

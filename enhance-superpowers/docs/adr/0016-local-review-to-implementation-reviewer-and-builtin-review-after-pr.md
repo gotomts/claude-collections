@@ -1,4 +1,4 @@
-# 0015. ローカルのコードレビューを shared:implementation-reviewer に一本化し、PR 作成後に builtin /review を置く
+# 0016. ローカルのコードレビューを shared:implementation-reviewer に一本化し、PR 作成後に builtin /review を置く
 
 ## Status
 
