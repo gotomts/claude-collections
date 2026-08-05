@@ -50,10 +50,20 @@ Claude Code の公式 docs（skills.md）は「Before v2.1.215, Claude could als
 
 - Step 5 の出力である PR URL / 番号を引数に、`Skill` tool で `/review` を invoke する
 - `/review` は read-only。**PR へのコメント post はしない**（`--comment` 相当の副作用を持たせない）
-- GitHub 上の CodeRabbit（PR に対する App レビュー）の指摘は、このタイミングで併せて読む
+- **`/review` は cwd のリポジトリで PR 番号を解決する。** 別リポジトリの checkout から invoke すると同じ番号の別 PR を読む。`finish-spec-pr` は PR を作った worktree で走るため条件を満たすが、`gh repo view --json nameWithOwner` と PR URL の `owner/repo` を突き合わせて**明示的に検証**し、不一致なら skip する
+- **CodeRabbit はこの Step では扱わない。** CodeRabbit の PR レビューは作成から数分〜十数分かかり、Step 5 の直後に走る Step 6 では**ほぼ常に未到着**である。「付いていれば読む」は事実上ほぼ常に偽になり、併読の設計が機能しない。CodeRabbit ラウンドは時間が経ってから `write-review-response` を直接 invoke して扱う（同 skill が 3 ラウンドを持つ形にする）
 - 指摘があれば user に提示し **1 問確認**する。yes なら `write-review-response` に chain して採用 / Skip 判定へ回す。**自動 chain しない**
   - 自動 chain しない理由は 2 つ。(a) `write-review-response` → `finish-spec-pr` → `write-review-response` の循環になるため、人間ゲートをループ上限として置く。(b) PR 後の対応要否は D4 のとおり人間の判断領域である
-- これに伴い `finish-spec-pr` の「agent dispatch しない（mechanical な操作のみ）」という規律は、「**agent は dispatch しないが `/review` は invoke する**」に改める。dispatch log の追記先は `review-response.md` のレビュー履歴（ADR-0007 の `write-review-response 内の全 dispatch` 行に収まる）
+- これに伴い `finish-spec-pr` の「agent dispatch しない（mechanical な操作のみ）」という規律は、「**agent は dispatch しないが `/review` は invoke する**」に改める
+
+**`/review` の実行記録は `finish-spec-pr` 自身が `review-response.md` に書く**（ADR-0007 の mapping に 1 行足す形で extends する）。
+
+| dispatch タイミング | 追記先 |
+|---|---|
+| finish-spec-pr Step 6（`/review`） | review-response.md（**file が無ければ「## レビュー履歴」のみを持つ file を新規作成**） |
+
+- **指摘 0 件のときも、user が折り返さないと決めたときも、skip したときも省略しない。** ADR-0007 の目的は監査証跡であり、「回していない」と「回して 0 件だった」が区別できないことの方が問題になる。この 2 経路では `write-review-response` が起動しないため、そちらに集約させると記録が落ちる
+- **`pr-description.md` には書かない。** ADR-0007 は pr-description を明示的に除外しており（`B 例外`、Alternatives Considered でも「pr-description にもレビュー履歴を追記」を却下している）、理由は GitHub PR description text としてそのまま投稿されるため肥大化すること。この例外は本 ADR でも維持する
 
 ### D3: bundled `/code-review` は採用しない
 
@@ -89,7 +99,8 @@ Claude Code の公式 docs（skills.md）は「Before v2.1.215, Claude could als
 ## Consequences
 
 - **ローカルの課金がゼロになる。** 3 サイトの「課金前 1 問確認」がすべて消える。停止点が 3 つ減り、`--gate-mode=aggregate` を渡す動機も 2 skill 分減る
-- **`write-review-response` の入力契約が変わる。** 従来の「ローカル code-review 出力 or PR unresolved コメント」が、「ローカル agent findings（implementation-reviewer / security-engineer / performance-engineer）or PR 上の `/review`・CodeRabbit 指摘」になる。skill の `description` と Phase 定義表の前提 file 記述を更新する。ID 体系（`M`/`Mi`/`T`）と 2 値判定（保留禁止）は不変
+- **`write-review-response` の入力契約が変わる。** 従来の「ローカル code-review 出力 or PR unresolved コメント」が、**3 ラウンド**（ローカル agent findings / PR 後の `/review` / PR 後の CodeRabbit）になる。skill の `description` と Phase 定義表の前提 file 記述を更新する。ID 体系（`M`/`Mi`/`T`）と 2 値判定（保留禁止）、上書き運用は不変
+- **CodeRabbit の「指摘 0 件」と「レート制限」を区別する必要がある。** レート制限中の CodeRabbit は commit status が `state: success` / `description: "Review rate limited"` になり、**checks 上は成功に見える**。`description` まで見ないと弾かれたのか指摘が無いのか判別できない。`write-review-response` の PR 後ラウンドでこれを判定し、レート制限時は**自動で再 invoke せず** user に判断を返す（繰り返すと制限を悪化させるため）
 - **CodeRabbit のチャネルが 1 本に減る。** CLI と GitHub App で異なる findings が返る二重チャネルが解消し、GitHub App のみになる
 - **`shared/` は無変更。** 変更は `enhance-superpowers/` の 5 SKILL.md と本 ADR に閉じる。indie-studio は `implementation-spec` Step 5 で委譲するだけでコードレビューの起動点を 1 つも持たないため、**影響を受けない**
 - **PR #31 の宛先ずれは修正不要になる。** 3 サイトとも呼び出しごと消えるため、`code-review:code-review` の参照が repo から無くなる

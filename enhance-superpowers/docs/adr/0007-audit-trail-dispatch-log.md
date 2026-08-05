@@ -12,7 +12,7 @@ Accepted (2026-06-25). Updated (2026-07-02): ADR-0011 で 5 成果物の生成�
 
 ## Decision
 
-> ※ ADR-0015 でレビューの宛先が変わった（ローカルは `shared:implementation-reviewer`、PR 後は builtin `/review`）。**下記 mapping の追記先 file は不変**で、`STOP POINT 2` 行は新しい宛先の dispatch log をそのまま受ける。ADR-0015 D2 で新設された `finish-spec-pr` Step 6 の `/review` も、折り返し先の `write-review-response` 経由で `review-response.md` 行に収まる。
+> ※ ADR-0015 でレビューの宛先が変わった（ローカルは `shared:implementation-reviewer`、PR 後は builtin `/review`）。**下記 mapping の追記先 file は不変**で、`STOP POINT 2` 行は新しい宛先の dispatch log をそのまま受ける。加えて ADR-0015 D2 が **`finish-spec-pr` Step 6（`/review`）→ `review-response.md` という行を mapping に足している**（指摘 0 件・折り返さない・skip の各経路では `write-review-response` が起動せず記録が落ちるため、`finish-spec-pr` 自身が書く）。**本 ADR の `pr-description` 除外（B 例外）はそのまま維持される。**
 
 agent dispatch log を **5 成果物の末尾「## レビュー履歴」セクション**に追記する。集約先は dispatch のタイミングと密接な成果物:
 

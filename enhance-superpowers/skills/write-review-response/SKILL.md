@@ -31,7 +31,10 @@ maintainer: gotomts
 | ラウンド | 契機 | review-source |
 |---|---|---|
 | ローカル (PR 前) | `gwt-test` Step 8 から chain | `shared:implementation-reviewer` / `shared:security-engineer` / `/security-review` の findings |
-| PR 後 | `finish-spec-pr` Step 6 から折り返し (user 1 問確認あり) | builtin `/review` の出力 + GitHub 上の CodeRabbit unresolved コメント |
+| PR 後 (`/review`) | `finish-spec-pr` Step 6 から折り返し (user 1 問確認あり) | builtin `/review` の出力 |
+| PR 後 (CodeRabbit) | user が本 skill を直接 invoke (PR 作成から数分〜十数分後) | GitHub 上の CodeRabbit unresolved コメント |
+
+**CodeRabbit ラウンドを分けているのは、PR 作成直後に CodeRabbit のレビューがまだ存在しないため** (ADR-0015 D2)。`finish-spec-pr` Step 6 の折り返しでは `/review` の指摘しか揃わない。
 
 ## 引数 (ADR-0014)
 
@@ -82,6 +85,9 @@ maintainer: gotomts
 4. review-source の確定 (ADR-0015 D1・D2)。argument で明示されていればそれを使い、無ければ以下の順で解決する:
    - **ローカルラウンド** (`gwt-test` から chain されたとき): chain 元が渡した `shared:implementation-reviewer` / `shared:security-engineer` / `/security-review` の findings
    - **PR 後ラウンド** (`finish-spec-pr` から折り返されたとき、または PR URL が渡されたとき): builtin `/review` の出力 + `gh` で取得した PR 上の CodeRabbit unresolved コメント
+     - **CodeRabbit の到着を前提にしない。** PR 作成から数分〜十数分かかるため、`finish-spec-pr` からの折り返し直後は未到着のことが多い。その場合は `/review` の指摘だけで判定を進め、「CodeRabbit 未到着」を review-response.md のレビュー履歴に記録する。CodeRabbit ラウンドは後から本 skill を直接 invoke して扱う (上書き運用)
+     - **「指摘 0 件」と「レート制限で弾かれた」を必ず区別する。** CodeRabbit がレート制限中のとき commit status は `state: success` / `description: "Review rate limited"` になり、**checks 上は成功に見える**。`gh api repos/{owner}/{repo}/commits/{sha}/status --jq '.statuses[]|select(.context|test("coderabbit";"i"))|"\(.state)\t\(.description)"'` で `description` まで見て判定し、レート制限なら review-response.md に「CodeRabbit レート制限中 (指摘 0 件ではない)」と記録する。**再 invoke を自動で繰り返さない** (制限を悪化させるため。user に判断を返す)
+     - unresolved の抽出は `isOutdated` で除外しない。outdated でも unresolved な thread は対応対象なので `isResolved == false` のみで filter する
    - どちらも取れなければ error 報告 + 中断 (「review-source を特定できません。gwt-test を完了させるか、PR URL を引数で渡してください」)
 
 ### Step 2: 指摘の採用/Skip 判定 (2 値、保留禁止、全件判定必須)
@@ -141,6 +147,7 @@ maintainer: gotomts
 | 判定迷う指摘 | user に提示 → shared:implementation-reviewer dispatch → 判定 1 問確認 (保留禁止、必ず 2 値) |
 | セキュリティ系指摘の採用判定 | shared:security-engineer dispatch → 採用判定にセキュリティ観点追加 |
 | 採用後の実装修正でテストコード同期不要 | 「不要根拠 1 行」を user に要請 → review-response.md に記録 |
+| PR 後ラウンドで CodeRabbit のレビューが見つからない | commit status の `description` を確認。`"Review rate limited"` なら「レート制限中 (指摘 0 件ではない)」、status 自体が無ければ「未到着」と区別して review-response.md に記録。**自動で再 invoke しない**、user に判断を返す |
 
 ## 関連
 
