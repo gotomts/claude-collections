@@ -12,15 +12,23 @@ enhance-superpowers の起点 skill。`superpowers:brainstorming` の責任を�
 
 **STOP POINT**:
 skill 連鎖の中で agent 能動 dispatch を強制する境目。本コレクションは 2 つ持つ:
-- **STOP POINT 1 (実装フェーズ)**: ADR-0012 で `enhance-executing-plans` skill 化。実装前 software-architect + slice ごと executor 能動 dispatch + review (code-review skill optional / security-engineer / performance-engineer) を強制 dispatch。
-- **STOP POINT 2 (セルフレビュー)**: ADR-0013 で `code-review` skill を **auto-invoke** (課金前 1 問確認、scope は code-review のみ)。security-engineer 能動 dispatch と write-review-response chain は独立 = 常時実行 (silent failure 回避)。
+- **STOP POINT 1 (実装フェーズ)**: ADR-0012 で `enhance-executing-plans` skill 化。実装前 software-architect + slice ごと executor 能動 dispatch + review (implementation-reviewer 常時 / security-engineer / performance-engineer) を強制 dispatch。ローカル diff のコードレビュー本体は `shared:implementation-reviewer` (ADR-0016 D1)。
+- **STOP POINT 2 (セルフレビュー)**: ADR-0013 D2 で**停止せず能動 dispatch** し user 手動依存を廃止。宛先は `shared:implementation-reviewer` + `shared:security-engineer` + `/security-review` (ADR-0016 D1・D5)。いずれも課金を伴わないため課金前 1 問確認は廃止。write-review-response chain は独立 = 常時実行 (silent failure 回避)。**ローカルで CodeRabbit / `code-review` 系 skill は呼ばない**。
 
-**skill 一覧** (5 skill、ADR-0012 で `enhance-executing-plans` を追加):
+**skill 一覧** (6 skill、ADR-0012 で `enhance-executing-plans`、ADR-0017 で `pr-review` を追加):
+
+implementer 側 (1〜5) — 自分が書くコードの Spec を決めて実装し、PR を出すまで:
 1. `enhance-brainstorming` — 起点、Spec 5 成果物確定
 2. `enhance-executing-plans` — 実装フェーズ (2026-07-04 redesign: skill 側から executor agent を直接 dispatch、superpowers 委譲は廃止 = silent failure の言い換えだった)
-3. `gwt-test` — AC 検証 + qa-engineer 常時 dispatch (ADR-0013) + STOP POINT 2 実行 (code-review auto-invoke + security-engineer)
+3. `gwt-test` — AC 検証 + qa-engineer 常時 dispatch (ADR-0013) + STOP POINT 2 実行 (implementation-reviewer 常時 + security-engineer + `/security-review`、ADR-0016 D1・D5)
 4. `write-review-response` — CodeRabbit 指摘の採用/Skip 判定
 5. `finish-spec-pr` — PR 作成 (mechanical)
+
+レビュワー側 (6) — 他人の PR を受け取って理解し、検証し、レビューする:
+6. `pr-review` — PR 番号を起点に summary (把握) + gwt (動作確認の土台) を生成 → crit で人間レビュー → 子セッション 2 本で動作確認 ∥ コードレビューを並走 → join (ADR-0017)
+
+**レビュワー側**:
+向きが implementer 側と逆になる作業領域 (ADR-0017)。implementer 側は設計を決めてから書くので理解が先にあるが、レビュワーは完成した差分から設計意図を逆算する。この向きの違いが最も出るのが gwt.md の出所で、implementer 側 (`gwt-test`) は Spec フェーズで先に書かれた gwt.md を読むのに対し、レビュワー側 (`pr-review`) は差分から gwt.md を起こす。したがって同じ skill には収まらない。`write-review-response` はレビューを**受ける**側なので implementer 側に属する (名前が似ているが向きが逆)。
 
 **認識齟齬検出ポイント**:
 Spec フェーズで設計の認識ズレを早期検出する 3 重の関所 — ① summary 合意 (大枠ズレ、Phase 2) / ② gwt 合意 (AC ズレ、Phase 3) / ③ pr-description 合意 (動作確認方法ズレ、Phase 3)。② と ③ は Phase 3 の 3 file 一括レビューに集約される (ADR-0011)。
@@ -45,6 +53,9 @@ Spec フェーズで設計の認識ズレを早期検出する 3 重の関所 �
 | write-review-response Step 4 (再 push 前) | **shared:implementation-reviewer (常時)** | 採用分の解消検証と回帰チェック (ADR-0016 D1) |
 | finish-spec-pr Step 6 (PR 作成後) | **builtin `/review` invoke** (CodeRabbit は扱わない) | PR レビュー。指摘があれば user 1 問確認のうえ write-review-response へ折り返す。**実行記録は 0 件・折り返し無し・skip でも review-response.md に残す** (ADR-0016 D2) |
 | write-review-response 直接 invoke (PR 作成の数分〜十数分後) | GitHub 上の CodeRabbit unresolved | CodeRabbit ラウンド。PR 作成直後は未到着のため Step 6 から分離 (ADR-0016 D2) |
+| pr-review Step 2 (summary) | shared:software-architect | 差分から読み取った設計意図の妥当性 / 見落とした構造変更 (ADR-0017) |
+| pr-review Step 3 (gwt) | shared:qa-engineer | レビュワー視点 AC の網羅性 (異常系 / 境界値 / 既存機能への回帰) |
+| pr-review Step 5 (子 `pr{N}-review` 内) | shared:implementation-reviewer + shared:security-engineer | 子セッションが dispatch。ローカル diff のコードレビュー本体 + セキュリティ観点 (ADR-0016 D1 の宛先に揃える) |
 
 **レビューの宛先はフェーズで分かれる** (ADR-0016)。ローカル diff と GitHub PR は別の道具でしか見られないため、1 つに寄せない:
 
@@ -90,7 +101,7 @@ enhance-superpowers は superpowers (公式) の直線フロー (brainstorming �
 - **DRY はテストコードで一部許容** (Given/When は重複可、assertion helper / factory / fixture builder は共通化可)
 - **コードコメントは WHY のみ**、JSDoc 抑制
 - **agent 能動 dispatch**: 各 skill ステップで agent を必ず使う場面を織り込む (silent failure 回避)
-- **コミット前提**: 設計ドキュメントは worktree 同居・main 退避なし
+- **コミット前提**: 設計ドキュメントは worktree 同居・main 退避なし。**ただし implementer 側の成果物に限る** — `pr-review` が他人の PR に対して書くレビューメモは commit しない (ADR-0017 D4)
 
 ## 配置
 
@@ -99,13 +110,16 @@ enhance-superpowers は superpowers (公式) の直線フロー (brainstorming �
 | 5 成果物 (summary / spec / gwt / pr-description / plan) | `docs/superpowers/{branch}/` (**`--output-dir` 指定時はその値**、ADR-0014 E1) |
 | review-response.md | 同上 |
 | handoff.md (任意、状態判定の補助) | 同上 |
+| pr-review 成果物 (summary / gwt / review-report) | **発動元リポジトリ**の `docs/superpowers/pr-{N}/` (**`--output-dir` 指定時はその値**)。レビュー用 worktree には置かず、**commit しない** (ADR-0017 D4) |
 | コレクション固有 ADR | `enhance-superpowers/docs/adr/` |
 | skill / template | `enhance-superpowers/{skills,templates}/` (固有 agent は 0 体、engineering 系は `shared` plugin) |
+
+**SKILL.md から template を参照するときは `${CLAUDE_PLUGIN_ROOT}/templates/<name>.md` と書く。** repo 相対の `enhance-superpowers/templates/...` は cwd 基準で解決されるため、skill が実際に走るサービス repo では解決できない。上の table にある `enhance-superpowers/templates/` は**本リポジトリ内での物理配置**であって、実行時の解決先ではない。
 
 ## 関連
 
 - 設計 doc: `docs/superpowers/feat-enterprise-superpowers-customization/2026-06-25-enhance-superpowers-collection-design.md`
 - summary: 同 dir の `-summary.md`
 - plan: 同 dir の `-plan.md`
-- ADR 0001-0015 (コレクション固有): `enhance-superpowers/docs/adr/`
+- ADR 0001-0017 (コレクション固有): `enhance-superpowers/docs/adr/`
 - root ADR: `docs/adr/` (リポジトリ全体の決定)
