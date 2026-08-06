@@ -72,6 +72,8 @@ Claude Code の公式 docs（skills.md）は「Before v2.1.215, Claude could als
 1. **モデルから起動できない**（実測 1）。採用すれば ADR-0013 D2 がわざわざ廃止した「user 手動 invoke 依存」に逆戻りし、D2 が解消した silent failure が復活する
 2. **consumer 環境の skill 構成に依存する**。personal skill `code-review` を持つ環境ではシャドウされて到達不能になる。本リポジトリは plugin として配布される以上、consumer に特定の skill 名を空けておくことを要求するのは筋が悪い。root [ADR-0011](../../../docs/adr/0011-external-plugin-agent-name-collision.md) が「`feature-dev` plugin を無効化する」案を、回避が環境側の設定に依存するという**同型の理由**で却下している
 
+   > ※ **理由 2 は root [ADR-0012](../../../docs/adr/0012-author-only-distribution-premise.md) により無効**（利用者は作者のみで、要求される consumer が存在しない）。ただし **D3 の結論は維持される** — 本節冒頭のとおり理由は「どちらか一方でも採用を否定する」ため、理由 1（モデルから起動できない）が残る。
+
 ### D4: `/review` は人間レビューの代替にしない
 
 `/review` は AI による自己レビューである。indie-studio [ADR-0008](../../../indie-studio/docs/adr/0008-adaptive-pr-review-gate.md) は「PR 時点で実装エージェントが critical / 非 critical を自己認定する」案を**利益相反**として却下しており、`/review` を人間レビューの代替に据えることはこれと同型になる。
