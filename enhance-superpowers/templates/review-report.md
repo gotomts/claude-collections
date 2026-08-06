@@ -8,8 +8,8 @@ gwt: ./{YYYY-MM-DD}-pr{N}-gwt.md
 
 # PR #{N} — レビュー報告
 
-> `pr-review` skill (ADR-0016) の成果物。コードレビュー所見は子セッション `pr{N}-review` が記載し、動作確認結果は親が Step 6 で子セッション `pr{N}-verify` の gwt.md から統合する。
-> **この file は commit しない** (レビュワーのローカル成果物、ADR-0016 D4)。
+> `pr-review` skill (ADR-0017) の成果物。コードレビュー所見は子セッション `pr{N}-review` が記載し、動作確認結果は親が Step 6 で子セッション `pr{N}-verify` の gwt.md から統合する。
+> **この file は commit しない** (レビュワーのローカル成果物、ADR-0017 D4)。
 
 ## 総括
 

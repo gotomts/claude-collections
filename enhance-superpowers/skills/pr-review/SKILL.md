@@ -1,7 +1,7 @@
 ---
 name: pr-review
 description: |
-  **レビュワー側**の起点 skill (ADR-0016)。他人の PR を受け取る側の作業を扱う
+  **レビュワー側**の起点 skill (ADR-0017)。他人の PR を受け取る側の作業を扱う
   (既存 5 skill は全て implementer 側 = 自分が書いたコードの Spec を起こす方向で、向きが逆)。
   PR 番号を引数に取り、差分を読んで summary.md (レビュー対象の把握) と
   gwt.md (レビュワー自身の理解で動作確認する土台) を生成する。
@@ -9,7 +9,7 @@ description: |
   同一 worktree・タブ 2 枚で並走起動する — 3-1 gwt.md による agent-browser 動作確認 /
   3-2 AI コードレビュー。親は両者を巡回して join し review-report.md に統合する。
   成果物は**発動元リポジトリ**に置き、レビュー対象 worktree にはコミットしない
-  (他人の PR ブランチを汚さないため、ADR-0016 D4)。
+  (他人の PR ブランチを汚さないため、ADR-0017 D4)。
   Step 0 で状態判定 (ADR-0012)、Step 1 で .ai-restrictions.md を Read (ADR-0010)。
 argument-hint: "<pr-number> [--output-dir=<path>]  # PR 番号は必須 (例: 123 / PR URL)。--output-dir は成果物の配置先 (省略時は発動元リポジトリの docs/superpowers/pr-{N}/)"
 allowed-tools:
@@ -38,7 +38,7 @@ maintainer: gotomts
 
 以降 `{出力先}` は「`--output-dir` 指定時はその値、省略時は発動元リポジトリの `docs/superpowers/pr-{N}/`」を指す。命名規約は `{YYYY-MM-DD}-pr{N}-{suffix}.md`。
 
-**`{出力先}` はレビュー対象 worktree ではなく発動元リポジトリに置く** (ADR-0016 D4)。理由は 2 つ — レビュー用 worktree は使い捨てなので成果物を置くと片付けと同時に消える、他人の PR ブランチにレビューメモをコミットする事故を構造的に防ぐ。**生成物は commit しない** (untracked のまま残す)。
+**`{出力先}` はレビュー対象 worktree ではなく発動元リポジトリに置く** (ADR-0017 D4)。理由は 2 つ — レビュー用 worktree は使い捨てなので成果物を置くと片付けと同時に消える、他人の PR ブランチにレビューメモをコミットする事故を構造的に防ぐ。**生成物は commit しない** (untracked のまま残す)。
 
 ## Phase 定義 (ADR-0012 D3)
 
@@ -130,7 +130,7 @@ maintainer: gotomts
 
 ### Step 5: 子セッション 2 本を並走起動
 
-Step 1 で作った workspace に**タブ 2 枚**を追加し、それぞれに Claude を立てる (ADR-0016 D3: 同一 worktree 共有)。
+Step 1 で作った workspace に**タブ 2 枚**を追加し、それぞれに Claude を立てる (ADR-0017 D3: 同一 worktree 共有)。
 
 **5-1. タブを 2 枚作る**
 
@@ -226,8 +226,8 @@ git のコミット・push もしないこと (同じ worktree をもう 1 セ�
 - **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:qa-engineer`)。bare name は解決されない (root ADR-0010)
 - Step 0 状態判定で再開可能な skill 設計 (ADR-0012 D2)、Phase 定義 table を再開判定の仕様源 (ADR-0012 D3)
 - **子セッション起動前に必ず `herdr agent list` で重複確認**。二重起動すると同じ worktree で dev server が競合する
-- **成果物は発動元リポジトリに置き commit しない** (他人の PR ブランチを汚さない、ADR-0016 D4)
-- **子 2 本は同一 worktree を共有する** (ADR-0016 D3)。成立条件は「両者ともコードを書かない」こと — verify は gwt.md のみ、review は review-report.md のみを書く。この分離が崩れると index.lock 競合が起きるので、子プロンプトで明示的に禁じている
+- **成果物は発動元リポジトリに置き commit しない** (他人の PR ブランチを汚さない、ADR-0017 D4)
+- **子 2 本は同一 worktree を共有する** (ADR-0017 D3)。成立条件は「両者ともコードを書かない」こと — verify は gwt.md のみ、review は review-report.md のみを書く。この分離が崩れると index.lock 競合が起きるので、子プロンプトで明示的に禁じている
 - crit の人間レビューは**唯一の承認ゲート**。ここを飛ばして子を起動しない (2 本分の作業が無駄になる)
 - 子への初回プロンプトは自己完結にする。理解責任を子へ再委譲しない
 - `--wait` を使わない。完了は Step 6 の巡回で拾う
@@ -252,7 +252,7 @@ git のコミット・push もしないこと (同じ worktree をもう 1 セ�
 
 ## 関連
 
-- ADR-0016 (reviewer-side-skill-and-parallel-sessions) — 本 skill の決定
+- ADR-0017 (reviewer-side-skill-and-parallel-sessions) — 本 skill の決定
 - ADR-0007 (audit-trail-dispatch-log) — レビュー履歴セクション
 - ADR-0010 (ai-utilization-policy-loading) — Step 1 の `.ai-restrictions.md`
 - ADR-0012 (implementation-phase-skill-and-state-detection) — Step 0 状態判定 / Phase 定義 table

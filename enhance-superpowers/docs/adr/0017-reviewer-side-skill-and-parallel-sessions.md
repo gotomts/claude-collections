@@ -1,8 +1,8 @@
-# 0016. レビュワー側 skill `pr-review` の新設 + 子セッション 2 本の並走
+# 0017. レビュワー側 skill `pr-review` の新設 + 子セッション 2 本の並走
 
 ## Status
 
-Accepted (2026-08-03).
+Accepted (2026-08-03)。番号は 2026-08-06 に 0016 から 0017 へ繰り上げた ([ADR-0016](0016-local-review-to-implementation-reviewer-and-builtin-review-after-pr.md) が先に main へ入り 0016 を取ったため。`AGENTS.md`「既に存在する ADR の renumber は行わない」の対象は**公開済みの番号**であり、本 ADR は未 merge のため参照が repo 内に閉じている)。
 
 ## Context
 
