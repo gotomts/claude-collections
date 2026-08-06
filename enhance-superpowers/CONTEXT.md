@@ -123,5 +123,5 @@ enhance-superpowers は superpowers (公式) の直線フロー (brainstorming �
 - 設計 doc: `docs/superpowers/feat-enterprise-superpowers-customization/2026-06-25-enhance-superpowers-collection-design.md`
 - summary: 同 dir の `-summary.md`
 - plan: 同 dir の `-plan.md`
-- ADR 0001-0018 (コレクション固有): `enhance-superpowers/docs/adr/`
+- コレクション固有 ADR: `enhance-superpowers/docs/adr/`
 - root ADR: `docs/adr/` (リポジトリ全体の決定)
