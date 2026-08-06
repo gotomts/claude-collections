@@ -1,6 +1,6 @@
 # enhance-superpowers
 
-> この README は**リポジトリを参考として人に見せる**ための紹介文書であり、配布・利用者サポートを目的としない（root [ADR-0012](../docs/adr/0012-author-only-distribution-premise.md)）。
+> 配布・利用者サポートを目的としない紹介文書
 
 公式 superpowers plugin の直線フロー（brainstorming → writing-plans → executing-plans）に、**Spec フェーズでの 5 成果物確定**（summary / spec / gwt / pr-description / plan）・**specialist agent の能動 dispatch**・**監査ログ**・**コンプライアンス trigger**（機微情報チェック / ライセンスチェック / AI 利用ポリシー読み込み）を被せた強化版。
 
@@ -28,35 +28,38 @@
 
 **本コレクションは固有のエージェントを持たない。** dispatch 先は `shared` plugin が提供するエンジニアリング系エージェントで、`shared:<agent>`（例: `shared:software-architect`）の修飾名で起動する。bare name は解決されない（root [ADR-0010](../docs/adr/0010-shared-as-plugin-agent-namespace.md)）。どのスキルのどのステップで誰を dispatch するかは [`CONTEXT.md`](CONTEXT.md) の dispatch matrix が正本。
 
-## フロー
+## フロー（implementer 側）
 
 ```mermaid
 flowchart TD
-    subgraph impl["implementer 側 — 自分が書くコード"]
-        A["enhance-superpowers:enhance-brainstorming<br/>Spec 5 成果物を確定"]
-        B["enhance-superpowers:enhance-executing-plans<br/>実装フェーズ"]
-        C["enhance-superpowers:gwt-test<br/>受け入れ条件の検証とセルフレビュー"]
-        D["enhance-superpowers:write-review-response<br/>指摘を採用・Skip で判定"]
-        E["enhance-superpowers:finish-spec-pr<br/>push と PR 作成"]
-        A --> B
-        B --> C
-        C --> D
-        D --> E
-        E -->|PR 後のレビュー指摘を折り返す| D
-    end
+    A["enhance-superpowers:enhance-brainstorming<br/>Spec 5 成果物を確定"]
+    B["enhance-superpowers:enhance-executing-plans<br/>実装フェーズ"]
+    C["enhance-superpowers:gwt-test<br/>受け入れ条件の検証とセルフレビュー"]
+    D["enhance-superpowers:write-review-response<br/>指摘を採用・Skip で判定"]
+    E["enhance-superpowers:finish-spec-pr<br/>push と PR 作成"]
 
-    subgraph rev["レビュワー側 — 他人の PR"]
-        R["enhance-superpowers:pr-review<br/>差分から summary と gwt を起こす"]
-        R0["人間による行単位レビュー"]
-        R1["子セッション: 動作確認"]
-        R2["子セッション: AI コードレビュー"]
-        R3["review-report.md へ統合"]
-        R --> R0
-        R0 --> R1
-        R0 --> R2
-        R1 --> R3
-        R2 --> R3
-    end
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E -->|PR 後のレビュー指摘を折り返す| D
+```
+
+## フロー（レビュワー側）
+
+```mermaid
+flowchart TD
+    R["enhance-superpowers:pr-review<br/>差分から summary と gwt を起こす"]
+    R0["人間による行単位レビュー"]
+    R1["子セッション: 動作確認"]
+    R2["子セッション: AI コードレビュー"]
+    R3["review-report.md へ統合"]
+
+    R --> R0
+    R0 --> R1
+    R0 --> R2
+    R1 --> R3
+    R2 --> R3
 ```
 
 ## 前提
