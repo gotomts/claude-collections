@@ -189,7 +189,7 @@ Claude Code はセッション名未設定だと直近の作業を要約した�
 子は PR の文脈を一切持っていないので、**プロンプトだけで作業を始められる自己完結な形にする**。`based on your findings` のような理解責任の再委譲は書かない。
 
 `pr{N}-verify` へ:
-```
+```text
 PR #{N} ({title}) の動作確認を担当してください。
 
 レビュー対象: {review-worktree} (branch review/pr-{N}、base は {baseRefName})
@@ -210,7 +210,7 @@ PR #{N} ({title}) の動作確認を担当してください。
 ```
 
 `pr{N}-review` へ:
-```
+```text
 PR #{N} ({title}) のコードレビューを担当してください。
 
 レビュー対象: {review-worktree} (branch review/pr-{N})
