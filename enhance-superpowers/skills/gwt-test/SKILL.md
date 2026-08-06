@@ -137,6 +137,7 @@ maintainer: gotomts
 - 実装修正 → テストコード同期確認 (不要時も 1 行根拠を残す)
 - AC 未達発覚時 + AC 完了時、両方で qa-engineer を能動 dispatch (silent failure 回避、ADR-0013)
 - STOP POINT 2 は**停止せず能動 dispatch**、user 手動依存を廃止 (ADR-0013 D2)。宛先は `shared:implementation-reviewer` + `shared:security-engineer` + `/security-review` で、いずれも課金を伴わないため課金前 1 問確認は廃止 (ADR-0016 D1)
+- **Step 3〜7 (AC 検証) と Step 8 (セルフレビュー) を並走させない** (ADR-0018)。Step 8 に到達するのは全 AC 達成 (Step 4) かつ網羅性 OK (Step 6) のときだけで、未達なら Step 5-4 で実装フェーズへ差し戻す。並走させるとこれから変わるコードをレビューすることになる
 - **ローカルで CodeRabbit / `code-review` 系 skill を呼ばない** (ADR-0016 D1)。CodeRabbit は GitHub 上の PR レビューだけで使う
 - security-engineer は STOP POINT 2 で必ず能動 dispatch (`/security-review` の機械的検査を、設計文脈を持つ評価で補完。両者は代替関係にない・ADR-0016 D5)
 - dispatch log を gwt.md / review-response.md のレビュー履歴セクションに追記 (ADR-0007)
@@ -166,6 +167,7 @@ maintainer: gotomts
 - ADR-0012 (implementation-phase-skill-and-state-detection) — Step 0 状態判定
 - ADR-0013 (gwt-test-qa-engineer-always-dispatch-and-code-review-auto-invoke) — Step 6 と Step 8 の agent 強制
 - ADR-0016 (local-review-to-implementation-reviewer-and-builtin-review-after-pr) — Step 8 の宛先を implementation-reviewer + /security-review に変更 (D1・D5)、`--gate-mode` の効果消滅 (D6)
+- ADR-0018 (no-parallel-verify-and-review-in-implementer-flow) — Step 3〜7 と Step 8 を並走させない判断。ADR-0017 D3 (レビュワー側の並走) を implementer 側へ拡張しない理由
 - enhance-brainstorming SKILL.md (起点 skill)
 - enhance-executing-plans SKILL.md (前工程 skill、実装完了で本 skill に chain)
 - write-review-response SKILL.md (次工程 sub-skill)

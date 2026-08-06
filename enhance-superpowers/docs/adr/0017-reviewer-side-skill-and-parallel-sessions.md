@@ -38,6 +38,8 @@ PR 作者のブランチ名をそのまま checkout せず `review/pr-<N>` を�
 
 ### D3: 子セッション 2 本を同一 worktree・タブ 2 枚で並走させる
 
+> ※ 本 D3 を implementer 側 (`gwt-test` / `enhance-executing-plans`) へ拡張するかは [ADR-0018](0018-no-parallel-verify-and-review-in-implementer-flow.md) で検討され、**拡張しない**と決まった。本 D3 の適用範囲 (レビュワー側 `pr-review`) は初版から変わらない。
+
 Step 1 で作った workspace に `herdr tab create` でタブを 2 枚足し、それぞれに `herdr agent start --kind claude` で子を立てる。
 
 - `pr<N>-verify` — gwt.md を元に agent-browser で動作確認。書き込みは **gwt.md のみ**
@@ -113,3 +115,4 @@ Step 2（summary 生成）で GitHub 上の既存レビューコメント（Code
 - [ADR-0012](0012-implementation-phase-skill-and-state-detection.md) (implementation-phase-skill-and-state-detection) — Step 0 状態判定と Phase 定義 table
 - [ADR-0014](0014-output-dir-arg-chain-suppression-gate-aggregation.md) (output-dir-arg-chain-suppression-gate-aggregation) — `--output-dir` の語彙
 - root [ADR-0012](../../../docs/adr/0012-author-only-distribution-premise.md) (author-only-distribution-premise) — herdr 依存を正当化する前提
+- [ADR-0018](0018-no-parallel-verify-and-review-in-implementer-flow.md) (no-parallel-verify-and-review-in-implementer-flow) — 本 ADR を extends する。D3 を implementer 側へ拡張しない判断
