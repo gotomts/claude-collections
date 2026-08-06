@@ -51,7 +51,7 @@ maintainer: gotomts
 | 1 | 正規化済み `{N}` + PR メタ情報 | レビュー worktree + workspace | base / head を fetch し `herdr worktree create` 成功 |
 | 2 | PR 差分 | `{date}-pr{N}-summary.md` | shared:software-architect dispatch 完了 |
 | 3 | summary.md | `{date}-pr{N}-gwt.md` | shared:qa-engineer dispatch 完了 |
-| 4 | summary + gwt | 2 file の human 反映版 | crit の unresolved コメントが 0 + user 承認 |
+| 4 | summary + gwt | 2 file の human 反映版 | crit の unresolved コメントが 0 (これが承認成立。別途の承認確認は取らない) |
 | 5 | 承認済み gwt + worktree | 子セッション 2 本 (verify / review) | 両 agent の `agent start` 成功 |
 | 6 | 子 2 本の結果 | `{date}-pr{N}-review-report.md` | 両者 join 完了 |
 
@@ -150,7 +150,8 @@ maintainer: gotomts
    ```
 4. 各コメントを summary.md / gwt.md に反映する。**採用/Skip の 2 値で判定し、Skip は理由を 1 行残す** (`write-review-response` の判定様式に揃える)
 5. 反映後に再度 `crit comments --json` で unresolved が 0 になったことを確認
-6. user に最終承認を 1 問確認 → yes で Step 5、no なら 3 に戻る
+6. **unresolved 0 をもって承認成立** (ADR-0017 D5)。**ここで承認を問い直さない** — 承認は crit 上のコメント解消で表明されており、別途 yes/no を取ると承認ゲートが 2 つになる。反映内容を要約して報告し、**子セッションを起動してよいかの実行確認だけ** 1 問出して Step 5 へ (no なら 3 に戻る)
+   - 例外: crit にコメントが 0 件だったときは「指摘なしで承認」とみなしてよいかを 1 問確認する (ADR-0017 D5)。crit を開かずに閉じた事故と区別が付かないため。**これは承認確認であって、上の実行確認とは別**
 
 ### Step 5: 子セッション 2 本を並走起動
 
@@ -262,7 +263,7 @@ git のコミット・push もしないこと (同じ worktree をもう 1 セ�
 - **子セッション起動前に必ず `herdr agent list` で重複確認**。二重起動すると同じ worktree で dev server が競合する
 - **成果物は発動元リポジトリに置き commit しない** (他人の PR ブランチを汚さない、ADR-0017 D4)
 - **子 2 本は同一 worktree を共有する** (ADR-0017 D3)。成立条件は「両者ともコードを書かない」こと — verify は gwt.md のみ、review は review-report.md のみを書く。この分離が崩れると index.lock 競合が起きるので、子プロンプトで明示的に禁じている
-- crit の人間レビューは**唯一の承認ゲート**。ここを飛ばして子を起動しない (2 本分の作業が無駄になる)
+- crit の人間レビューは**唯一の承認ゲート**。ここを飛ばして子を起動しない (2 本分の作業が無駄になる)。**承認は crit 上の unresolved 0 で成立する** — Step 4 で別途 yes/no を取らない (ゲートが 2 つになる)。Step 0 の再開確認と Step 5 直前の起動確認は**実行確認**であって承認ゲートではない
 - 子への初回プロンプトは自己完結にする。理解責任を子へ再委譲しない
 - `--wait` を使わない。完了は Step 6 の巡回で拾う
 - dev server / docker の起動・停止責任は `pr{N}-verify` 側に閉じる (親も review 側も触らない)
