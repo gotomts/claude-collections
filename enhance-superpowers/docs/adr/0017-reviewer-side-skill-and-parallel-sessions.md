@@ -68,10 +68,30 @@ user 承認 1 問 (既存 skill の様式) を採らなかった: summary はレ
 
 crit にコメントが 0 件だった場合は「指摘なしで承認」とみなしてよいか 1 問確認する。crit を開かずに閉じた事故と区別が付かないため。
 
+### D6: 子 `pr<N>-review` のコードレビュー宛先は [ADR-0016](0016-local-review-to-implementation-reviewer-and-builtin-review-after-pr.md) の phase routing に従う
+
+ADR-0016 は「レビューの宛先はフェーズで分かれる」と定め、**ローカル diff のコードレビュー本体を `shared:implementation-reviewer` に置いた**（D1）。子 `pr<N>-review` が見るのは `{review-worktree}` にチェックアウトしたローカル diff なので、この phase に入る。
+
+- 子は差分を自分で読むだけでなく、`shared:implementation-reviewer` を能動 dispatch する。この agent は `Bash` を持ち、テスト / 型 / lint の再実行と grep による前例確認を伴う読み取り検証ができる（root [ADR-0011](../../../docs/adr/0011-external-plugin-agent-name-collision.md) が `shared:reviewer` を却下した理由と同じ根拠）
+- `shared:security-engineer`（評価 mode）の dispatch は D3 のまま維持する
+- **ローカルで CodeRabbit / `code-review` 系 skill は呼ばない**（ADR-0016 D1）。本 skill は初版から呼んでいないので変更は無く、宛先の明文化に留まる
+
 ## Consequences
 
 - **レビュワー側の作業がコレクションに入る**: これまで implementer 側に閉じていた本コレクションが、PR を受け取る側の作業も扱えるようになる
 - **skill 数が 5 → 6 になる**: CONTEXT.md の skill 一覧 / agent dispatch matrix / 配置 table の更新が必要
 - **herdr が実行前提になる**: 本 skill は `HERDR_ENV=1` を前提とし、herdr 外では起動時に中断する。既存 5 skill には無かった前提であり、コレクションとして「herdr 依存の skill と非依存の skill が混在する」状態になる
+  - この前提は root [ADR-0012](../../../docs/adr/0012-author-only-distribution-premise.md) により正当化される — 配布は作者が自分の環境へインストールするための手段であり、**consumer 環境依存はそれ単独では却下理由にならない**。herdr を入れていない利用者は存在しない
+  - ADR-0012 が有効なまま残す却下理由（「作者自身が他マシン・将来の再 install で同じ問題を踏む」）も成立しない。herdr は作者の常用ハーネスであり、かつ前提が崩れた場合は Step 1 の `HERDR_ENV` チェックが**error で中断する**（silent failure にならない）
+  - 判断が変わる条件は ADR-0012 と同じ — 作者以外の利用者が実在すると確認された時点で、herdr 非依存の fallback（子セッションを親の subagent に置き換える等）を新 ADR で検討する
 - **`gh` が実行前提になる**: PR メタ情報の取得に `gh pr view` を使う。未導入環境では成立しない
 - **子セッションの後片付けが user 判断に残る**: 子 2 本と worktree の片付けは Step 6 で 1 問確認する。親が自動で消すと、未確認の観測結果が失われうるため
+
+## 関連
+
+- [ADR-0016](0016-local-review-to-implementation-reviewer-and-builtin-review-after-pr.md) (local-review-to-implementation-reviewer-and-builtin-review-after-pr) — レビューの宛先の phase routing。D6 で子 `pr<N>-review` をこれに合わせる
+- [ADR-0007](0007-audit-trail-dispatch-log.md) (audit-trail-dispatch-log) — dispatch log の追記先。本 skill は summary / gwt / review-report のレビュー履歴セクションに追記する
+- [ADR-0010](0010-ai-utilization-policy-loading.md) (ai-utilization-policy-loading) — Step 1 の `.ai-restrictions.md` 案内
+- [ADR-0012](0012-implementation-phase-skill-and-state-detection.md) (implementation-phase-skill-and-state-detection) — Step 0 状態判定と Phase 定義 table
+- [ADR-0014](0014-output-dir-arg-chain-suppression-gate-aggregation.md) (output-dir-arg-chain-suppression-gate-aggregation) — `--output-dir` の語彙
+- root [ADR-0012](../../../docs/adr/0012-author-only-distribution-premise.md) (author-only-distribution-premise) — herdr 依存を正当化する前提

@@ -194,9 +194,13 @@ PR #<N> (<title>) のコードレビューを担当してください。
 
 1. summary.md を読んで PR の狙いを掴む
 2. 差分をレビューする。観点は 受入条件充足 / テスト網羅 / 可読性 / 既存規約との整合 / 設計の一貫性
-3. shared:security-engineer を能動 dispatch してセキュリティ観点のレビューを 1 回受ける
-4. 所見を {出力先}/{date}-pr{N}-review-report.md に書く
+3. shared:implementation-reviewer を能動 dispatch してコードレビュー本体を受ける
+   (ローカル diff のレビュー宛先。この agent は Bash を持つのでテスト / 型 / lint を再実行できる)
+4. shared:security-engineer を能動 dispatch してセキュリティ観点のレビューを 1 回受ける
+5. 所見を {出力先}/{date}-pr{N}-review-report.md に書く
    各所見は 重要度 (must / should / nit) / 該当 file:line / 何が問題か / なぜ問題か の 4 点を揃える
+
+CodeRabbit / code-review 系 skill はローカルでは呼ばないこと。
 
 ファイルは一切修正しないこと (このセッションはレビュー専任です)。
 git のコミット・push もしないこと (同じ worktree をもう 1 セッションが使っています)。
@@ -234,6 +238,7 @@ git のコミット・push もしないこと (同じ worktree をもう 1 セ�
 - dev server / docker の起動・停止責任は `pr<N>-verify` 側に閉じる (親も review 側も触らない)
 - Step 1 で AI 利用ポリシー (`.ai-restrictions.md`) を Read して案内 (ADR-0010)
 - dispatch log を summary.md / gwt.md / review-report.md のレビュー履歴セクションに追記 (ADR-0007)
+- **ローカル diff のコードレビュー宛先は `shared:implementation-reviewer`** (ADR-0016 D1 / ADR-0017 D6)。**ローカルで CodeRabbit / `code-review` 系 skill は呼ばない**
 
 ## 失敗時の挙動
 
@@ -253,6 +258,7 @@ git のコミット・push もしないこと (同じ worktree をもう 1 セ�
 ## 関連
 
 - ADR-0017 (reviewer-side-skill-and-parallel-sessions) — 本 skill の決定
+- ADR-0016 (local-review-to-implementation-reviewer-and-builtin-review-after-pr) — レビュー宛先の phase routing。子 `pr<N>-review` の dispatch 先はこれに従う
 - ADR-0007 (audit-trail-dispatch-log) — レビュー履歴セクション
 - ADR-0010 (ai-utilization-policy-loading) — Step 1 の `.ai-restrictions.md`
 - ADR-0012 (implementation-phase-skill-and-state-detection) — Step 0 状態判定 / Phase 定義 table
