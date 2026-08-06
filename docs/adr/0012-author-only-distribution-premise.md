@@ -31,7 +31,7 @@ ADR-0009 は既に近いことを書いている — 「外部利用者向けの
 
 本 ADR は上表の 2 ADR の**却下理由の一部を無効化する**が、**どちらの結論も変わらない**。
 
-- **[ADR-0011](0011-external-plugin-agent-name-collision.md)** — 「`feature-dev` plugin を無効化する」案の却下理由から consumer 環境依存が消えても、**agent 名の衝突そのもの**という別理由が残る。同名 agent を持つ 2 plugin が共存すると、負けた側の agent セットが registry から丸ごと落ち、衝突していない agent まで巻き添えになる（ADR-0010 で実測済みの失敗モード）。`shared:code-reviewer` → `shared:implementation-reviewer` の改名は有効なまま。
+- **[ADR-0011](0011-external-plugin-agent-name-collision.md)** — 「`feature-dev` plugin を無効化する」案の却下理由は 1 つで、2 節に分かれている。**(a) 回避が環境側の設定に依存するため、他マシン・将来の再 install で再発する**／**(b) consumer の環境にその設定を要求するのは筋が悪い**。本 ADR が無効化するのは **(b) だけで、(a) は残る** — 上記 Decision のとおり「作者自身が他マシン・将来の再 install で同じ問題を踏む」は依然として有効な却下理由である。加えて ADR-0011 の Consequences が記録するとおり、無効化は現に衝突している 1 件を塞ぐだけで、shared の他 12 体が将来 install する plugin と衝突した場合は相手ごとに環境設定を足していくことになる。改名は同 Consequences が定めた運用（ありふれた役割名を避ける／install 済み plugin と突き合わせる）に乗るため、残りの agent にも同じ手が使える。`shared:code-reviewer` → `shared:implementation-reviewer` の改名は有効なまま。
 - **enhance-superpowers [ADR-0016](../../enhance-superpowers/docs/adr/0016-local-review-to-implementation-reviewer-and-builtin-review-after-pr.md) D3** — 本文が「理由は 2 つあり、**どちらか一方でも採用を否定する**」と明記している。無効になるのは理由 2 だけで、**理由 1（bundled `/code-review` はモデルから起動できない。v2.1.215 以降、user が明示的に打ったときだけ動く）が残る**。bundled `/code-review` は引き続き採用しない。
 
 両 ADR には本 ADR を指す inline 注記のみを置き、Decision / Considered Options / 却下理由の本文は書き換えない（`AGENTS.md`「ADR は原則 immutable」・ナビゲーション注記の例外）。
@@ -58,5 +58,5 @@ ADR-0009 は既に近いことを書いている — 「外部利用者向けの
 
 - [ADR-0009](0009-repository-visibility-public.md) (repository-visibility-public): 本 ADR が extends する親。「外部利用者向けのサポートは約束しない」の内部規則版が本 ADR
 - [ADR-0003](0003-plugin-marketplace-distribution.md) (plugin-marketplace-distribution): 配布構造の決定。構造そのものは不変で、本 ADR はその**目的**（作者のインストール利便）を明文化する
-- [ADR-0011](0011-external-plugin-agent-name-collision.md) (external-plugin-agent-name-collision): 却下理由の 1 つが本 ADR で無効になる。結論（`implementation-reviewer` への改名）は agent 名衝突を理由に維持
+- [ADR-0011](0011-external-plugin-agent-name-collision.md) (external-plugin-agent-name-collision): 却下理由の一節（consumer への要求）が本 ADR で無効になる。結論（`implementation-reviewer` への改名）は、もう一節（環境設定への依存が作者自身の他マシン・再 install で再発する）を理由に維持
 - enhance-superpowers [ADR-0016](../../enhance-superpowers/docs/adr/0016-local-review-to-implementation-reviewer-and-builtin-review-after-pr.md) (local-review-to-implementation-reviewer-and-builtin-review-after-pr): D3 理由 2 が本 ADR で無効になる。結論（bundled `/code-review` を採用しない）は理由 1 で維持
