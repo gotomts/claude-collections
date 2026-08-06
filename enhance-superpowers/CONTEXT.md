@@ -30,6 +30,8 @@ implementer 側 (1〜5) — 自分が書くコードの Spec を決めて実装�
 **レビュワー側**:
 向きが implementer 側と逆になる作業領域 (ADR-0017)。implementer 側は設計を決めてから書くので理解が先にあるが、レビュワーは完成した差分から設計意図を逆算する。この向きの違いが最も出るのが gwt.md の出所で、implementer 側 (`gwt-test`) は Spec フェーズで先に書かれた gwt.md を読むのに対し、レビュワー側 (`pr-review`) は差分から gwt.md を起こす。したがって同じ skill には収まらない。`write-review-response` はレビューを**受ける**側なので implementer 側に属する (名前が似ているが向きが逆)。
 
+**動作確認とコードレビューの並走はレビュワー側だけ** (ADR-0018)。implementer 側 (`gwt-test`) では並走させない — 検証結果が実装を書き換える経路 (AC 未達 → 実装フェーズへ差し戻し) が設計の中核にあり、レビュワー側で並走が成立する前提「両者ともコードを書かない」(ADR-0017 D3) が崩れるため。結果としてコレクション内に herdr 子セッションを使う skill (`pr-review` のみ) と使わない skill が併存する。
+
 **認識齟齬検出ポイント**:
 Spec フェーズで設計の認識ズレを早期検出する 3 重の関所 — ① summary 合意 (大枠ズレ、Phase 2) / ② gwt 合意 (AC ズレ、Phase 3) / ③ pr-description 合意 (動作確認方法ズレ、Phase 3)。② と ③ は Phase 3 の 3 file 一括レビューに集約される (ADR-0011)。
 
@@ -121,5 +123,5 @@ enhance-superpowers は superpowers (公式) の直線フロー (brainstorming �
 - 設計 doc: `docs/superpowers/feat-enterprise-superpowers-customization/2026-06-25-enhance-superpowers-collection-design.md`
 - summary: 同 dir の `-summary.md`
 - plan: 同 dir の `-plan.md`
-- ADR 0001-0017 (コレクション固有): `enhance-superpowers/docs/adr/`
+- コレクション固有 ADR: `enhance-superpowers/docs/adr/`
 - root ADR: `docs/adr/` (リポジトリ全体の決定)
