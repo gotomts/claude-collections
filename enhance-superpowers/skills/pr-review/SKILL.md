@@ -101,8 +101,15 @@ maintainer: gotomts
    差分が大きい場合は `--stat` で全体像を掴んでからファイル単位で読む
 2. `enhance-superpowers/templates/summary.md` を下敷きに `{出力先}/{date}-pr{N}-summary.md` を生成。**レビュワー視点で埋める** — 「この PR が何を実現しようとしているか」「どの方式を採ったか」「効いている設計判断」「レビューで確認すべき点」
    - **frontmatter を差し替える**: テンプレの `spec: ./...-spec.md` はレビュワー側に存在しないので**削除**し、代わりに `pr: {pr-url}` / `author: {PR 作者}` を置く。`issue:` は PR 本文が参照する issue があればその URL、無ければ削除する (dangling 参照を残さない)
-3. **`shared:software-architect` を能動 dispatch** — 差分から読み取った設計意図が妥当か、見落とした構造変更が無いかを review
-4. dispatch log を summary.md の「## レビュー履歴」に追記 (ADR-0007)
+3. **GitHub 上の既存レビューコメントを読む** (CodeRabbit / 他レビュワー、ADR-0017 D7):
+   ```sh
+   gh api graphql -f query='{ repository(owner:"<owner>", name:"<repo>") { pullRequest(number:<N>) { reviewThreads(first:50) { nodes { isResolved isOutdated path line comments(first:10){nodes{author{login} body}} } } } } }'
+   ```
+   `isResolved == false` のみを残す。**`isOutdated == true` は除外しない** (outdated でも unresolved な指摘は有効)
+   - summary.md の「レビューで確認すべき点」に反映するとき、**出所を明示する** — 既存指摘は `[既出: {author}]` を頭に付け、レビュワー自前の観点と区別できる形にする
+   - **builtin `/review` は invoke しない** (ADR-0017 D7)
+4. **`shared:software-architect` を能動 dispatch** — 差分から読み取った設計意図が妥当か、見落とした構造変更が無いかを review
+5. dispatch log を summary.md の「## レビュー履歴」に追記 (ADR-0007)
 
 ### Step 3: gwt.md 生成 (動作確認の土台)
 
@@ -192,7 +199,8 @@ PR #<N> (<title>) のコードレビューを担当してください。
 差分:         git -C {review-worktree} diff origin/<baseRefName>...HEAD
 背景の把握:   {出力先}/{date}-pr{N}-summary.md (絶対パス、レビュワーが書いた理解メモ)
 
-1. summary.md を読んで PR の狙いを掴む
+1. summary.md を読んで PR の狙いを掴む。ただし **`[既出: ...]` が付いた行は読み飛ばす** —
+   既存レビュワーの指摘であり、あなたの findings の入力にはしない (独立した観測を残すため)
 2. 差分をレビューする。観点は 受入条件充足 / テスト網羅 / 可読性 / 既存規約との整合 / 設計の一貫性
 3. shared:implementation-reviewer を能動 dispatch してコードレビュー本体を受ける
    (ローカル diff のレビュー宛先。この agent は Bash を持つのでテスト / 型 / lint を再実行できる)
@@ -200,6 +208,7 @@ PR #<N> (<title>) のコードレビューを担当してください。
 5. 所見を {出力先}/{date}-pr{N}-review-report.md に書く
    各所見は 重要度 (must / should / nit) / 該当 file:line / 何が問題か / なぜ問題か の 4 点を揃える
 
+既存指摘との突き合わせ (重複除去 / 既出マーク) は私が join 時に行います。あなたは自分の所見だけを出してください。
 CodeRabbit / code-review 系 skill はローカルでは呼ばないこと。
 
 ファイルは一切修正しないこと (このセッションはレビュー専任です)。
@@ -222,6 +231,7 @@ git のコミット・push もしないこと (同じ worktree をもう 1 セ�
 4. 両方 `done` になったら join:
    - `{出力先}/{date}-pr{N}-review-report.md` に、コードレビュー所見 (子 3-2 が記載済み) と**動作確認結果 (子 3-1 の gwt.md checklist)** を統合
    - 動作確認で未達だった AC は「コードレビュー所見と突き合わせて原因が説明できるか」を親が判断し、説明できない未達は `must` 所見として追記する
+   - **既存レビューコメント (Step 2 で取得) との突き合わせはここで行う** (ADR-0017 D7)。子の所見と同じ箇所を指すものは重複を除き、残す側に `[既出: {author}]` を付ける。**子には突き合わせをさせない** (既存指摘を先に見た子は独立した観測を失い、先行レビュワーの見落としをそのまま引き継ぐ)
 5. user に統合報告を提示 (重要度別の所見件数 / AC 達成率 / 未達の内訳)
 6. 子セッションと worktree の片付けは **user に 1 問確認してから** 行う (`herdr workspace close` / `herdr worktree remove`)。未コミット変更の有無を数えてから聞くこと
 
@@ -239,6 +249,8 @@ git のコミット・push もしないこと (同じ worktree をもう 1 セ�
 - Step 1 で AI 利用ポリシー (`.ai-restrictions.md`) を Read して案内 (ADR-0010)
 - dispatch log を summary.md / gwt.md / review-report.md のレビュー履歴セクションに追記 (ADR-0007)
 - **ローカル diff のコードレビュー宛先は `shared:implementation-reviewer`** (ADR-0016 D1 / ADR-0017 D6)。**ローカルで CodeRabbit / `code-review` 系 skill は呼ばない**
+- **builtin `/review` は invoke しない** (ADR-0017 D7)。ADR-0016 の phase 表は implementer が自分の PR を出すライフサイクル上の位置であり、他人の PR を受け取る本 skill は適用外
+- **既存レビューコメントは子の findings の入力にしない** (ADR-0017 D7)。Step 2 で読んで summary に `[既出: {author}]` 付きで置き、突き合わせは Step 6 の join で親が行う。理由は、既存指摘を先に読んだ子が独立した観測を失い、先行レビュワーの見落としを引き継ぐため
 
 ## 失敗時の挙動
 
@@ -247,6 +259,7 @@ git のコミット・push もしないこと (同じ worktree をもう 1 セ�
 | `HERDR_ENV` が 1 でない | error 報告 + 中断 ("herdr の外では子セッションを起動できません") |
 | PR 番号が未指定 | error 報告 + 中断 (引数必須) |
 | `gh pr view` が失敗 (auth 切れ / PR 不在) | error 報告 + 中断。推測した PR 内容で進めない |
+| 既存レビューコメントの取得 (`gh api graphql`) が失敗 | **中断しない**。「既存指摘なしとして進める」と報告して Step 2-4 へ。PR 側チャネルは補助であり、無くても子 2 本のレビューは成立する |
 | `review/pr-<N>` が既存 | 既にレビュー中の可能性。`herdr worktree list` / `herdr agent list` で既存セッションを探し、合流するか作り直すかを 1 問確認 |
 | `herdr agent start` が `invalid_agent_name` | 大文字 / 記号混入。小文字化して再実行 |
 | `herdr agent start` がタイムアウト | pane はできている。`herdr agent explain` で検出状態を提示し、手動で claude 起動する選択肢を出す |

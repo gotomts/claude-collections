@@ -76,6 +76,24 @@ ADR-0016 は「レビューの宛先はフェーズで分かれる」と定め�
 - `shared:security-engineer`（評価 mode）の dispatch は D3 のまま維持する
 - **ローカルで CodeRabbit / `code-review` 系 skill は呼ばない**（ADR-0016 D1）。本 skill は初版から呼んでいないので変更は無く、宛先の明文化に留まる
 
+### D7: PR 側チャネルは既存レビューコメントの読み込みとし、builtin `/review` は採らない
+
+Step 2（summary 生成）で GitHub 上の既存レビューコメント（CodeRabbit / 他レビュワー）を読み、summary の「レビューで確認すべき点」に反映する。builtin `/review <N>` は invoke しない。
+
+**`/review` を採らない理由：[ADR-0016](0016-local-review-to-implementation-reviewer-and-builtin-review-after-pr.md) の phase 表は本 skill の適用外である。** 同表が並べる「push 前 / PR 作成後 / その後」は、**implementer が自分の PR を出していく 1 本のライフサイクル上の位置**であり、`/review` は D2 のとおり `finish-spec-pr` が自分で作った PR を見るために置かれた。本 skill は他人の PR を受け取る側で、このライフサイクルに乗っていない。したがって「PR 作成後だから `/review` を使うべき」という当てはめは成立せず、**「使わないと phase 表に対して非対称になる」という問題設定自体が立たない**。
+
+補強として、`/review` が埋めるべき穴も本 skill には無い。`finish-spec-pr` は D2 以前レビュー層を 1 つも持たなかったが、本 skill は crit の人間ゲート（D5）+ `shared:implementation-reviewer`（D6）+ `shared:security-engineer`（D3）の 3 層を持つ。
+
+既存コメントを読む方は採る。他人の PR には先行するレビューが付いていることが多く、人間レビュワーが重複指摘を出すのを避けられる。ただし**アンカリングを防ぐ規律を伴う**：
+
+- 子 `pr<N>-review` は**自分の findings を先に出す**。既存コメントを findings 生成の入力にしない
+- 既存コメントとの突き合わせ（重複の除去・「既出」マークの付与）は**親が join する段階（Step 6）で行う**
+- Step 2 で読んだ既存コメントは summary の「レビューで確認すべき点」に置くが、**出所を明示する**（どれが既存指摘でどれがレビュワー自前かを子が区別できる形にする）
+
+この規律を置く理由は、既存コメントを先に読んだ子は独立した観測を失い、先行レビュワーの見落としをそのまま引き継ぐため（D3 で子を 2 本に分けて独立性を確保したのと同じ動機）。
+
+**判断が変わる条件**: レビュー対象 repo に CodeRabbit も他レビュワーも付いていない場合、PR 側チャネルは空になる。その状態が常態化したら `/review` の追加を新 ADR で検討する。
+
 ## Consequences
 
 - **レビュワー側の作業がコレクションに入る**: これまで implementer 側に閉じていた本コレクションが、PR を受け取る側の作業も扱えるようになる
