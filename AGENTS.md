@@ -9,6 +9,7 @@
 - root には repo 横断の `AGENTS.md`（本ファイル）・`CLAUDE.md`（ポインタ）・`CONTEXT-MAP.md`（コレクション索引）・`docs/adr/`（横断決定）・`.claude-plugin/marketplace.json`（plugin marketplace 宣言）。
 - コレクション一覧と所在は `CONTEXT-MAP.md`。
 - 配布構造（marketplace + 各 plugin）の決定は [`docs/adr/0003`](docs/adr/0003-plugin-marketplace-distribution.md)。
+- **配布は作者が自分の環境へインストールするための手段**であり、他の利用者は想定しない（[`docs/adr/0012`](docs/adr/0012-author-only-distribution-premise.md)）。したがって設計判断で **「consumer 環境に依存するから」を単独の却下理由に使わない**。既にこの理由で却下された案が root ADR-0011 / enhance-superpowers ADR-0016 D3 にあるが、いずれも**別理由で結論は維持される**（詳細は ADR-0012）。
 
 ## スキル/エージェントを足す・直すとき
 

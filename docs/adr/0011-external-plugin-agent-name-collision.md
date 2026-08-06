@@ -33,6 +33,8 @@ ADR-0010 は agent 名の重複禁止を「**コレクション間で** agent �
 ## Alternatives Considered
 
 - **`feature-dev` plugin を無効化する**：`enabledPlugins` から 1 行削除するだけで済み、コレクション側の変更はゼロ。しかし回避が**環境側の設定に依存する**ため、他マシン・他ユーザー・将来の再 install で再発する。本リポジトリは plugin として配布される以上、consumer の環境に「特定の公式 plugin を無効にしていること」を要求するのは筋が悪い。却下。
+
+  > ※ この却下理由のうち **consumer 環境依存の部分は [ADR-0012](0012-author-only-distribution-premise.md) により無効**（利用者は作者のみで、要求される consumer が存在しない）。ただし**本 ADR の結論は維持される** — 同名 agent を持つ 2 plugin が共存すると負けた側の agent セットが registry から丸ごと落ちるという衝突そのものが却下理由として残るため。
 - **`shared:code-reviewer` を廃止し、`code-review` skill と `shared:reviewer` に一本化する**：ADR-0013 が既にこの agent を判定 aid 専用に格下げしている流れには沿う。しかし `shared:reviewer` は `Bash` を持たず「要件・設計 doc の評価」担当であり、実装スライスの評価（テスト / 型 / lint の再実行を伴う）を引き受けられない。穴が残るため却下。
 - **`staff-engineer` / `maintainer` へ改名する**：どちらも実在する職種・ロール名だが、前者は等級名のため「レビュー 4 体」の分類に入れると役割がぼやけ `principal-engineer` との使い分けが不明瞭になり、後者は統括寄りのニュアンスで実装 5 / レビュー 4 / 設計・統括 4 の分類軸を崩す。却下。
 
