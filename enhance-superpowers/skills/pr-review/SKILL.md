@@ -115,7 +115,7 @@ maintainer: gotomts
    git -C {review-worktree} diff origin/{baseRefName}...HEAD
    ```
    差分が大きい場合は `--stat` で全体像を掴んでからファイル単位で読む
-2. `enhance-superpowers/templates/summary.md` を下敷きに `{出力先}/{date}-pr{N}-summary.md` を生成。**レビュワー視点で埋める** — 「この PR が何を実現しようとしているか」「どの方式を採ったか」「効いている設計判断」「レビューで確認すべき点」
+2. `${CLAUDE_PLUGIN_ROOT}/templates/summary.md` を下敷きに `{出力先}/{date}-pr{N}-summary.md` を生成。**レビュワー視点で埋める** — 「この PR が何を実現しようとしているか」「どの方式を採ったか」「効いている設計判断」「レビューで確認すべき点」
    - **frontmatter を差し替える**: テンプレの `spec: ./...-spec.md` はレビュワー側に存在しないので**削除**し、代わりに `pr: {pr-url}` / `author: {PR 作者}` / **`head: {headRefOid}`** を置く。`issue:` は PR 本文が参照する issue があればその URL、無ければ削除する (dangling 参照を残さない)
    - `head:` は **Step 0-4 の revision 照合に使う**。gwt.md / review-report.md にも同じ値を書く
 3. **GitHub 上の既存レビューコメントを読む** (CodeRabbit / 他レビュワー、ADR-0017 D7):
@@ -130,7 +130,7 @@ maintainer: gotomts
 
 ### Step 3: gwt.md 生成 (動作確認の土台)
 
-1. summary.md を元に、**レビュワー自身が実物で確かめたいこと**を AC (Given-When-Then) に落とす。`enhance-superpowers/templates/gwt.md` が下敷き。frontmatter は summary.md と同じ要領で `spec:` を削り `pr:` / `head:` に差し替える
+1. summary.md を元に、**レビュワー自身が実物で確かめたいこと**を AC (Given-When-Then) に落とす。`${CLAUDE_PLUGIN_ROOT}/templates/gwt.md` が下敷き。frontmatter は summary.md と同じ要領で `spec:` を削り `pr:` / `head:` に差し替える
 2. AC は PR の受入条件のコピーではなく、**レビュワーの理解が正しいかを反証する形**で書く (「作者の主張どおり動くか」でなく「自分の理解どおり動くか」)
 3. **`shared:qa-engineer` を能動 dispatch** — AC 網羅性 (異常系 / 境界値 / 空状態 / 既存機能への回帰) の review
 4. dispatch log を gwt.md の「## レビュー履歴」に追記 (ADR-0007)

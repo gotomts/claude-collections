@@ -114,6 +114,8 @@ enhance-superpowers は superpowers (公式) の直線フロー (brainstorming �
 | コレクション固有 ADR | `enhance-superpowers/docs/adr/` |
 | skill / template | `enhance-superpowers/{skills,templates}/` (固有 agent は 0 体、engineering 系は `shared` plugin) |
 
+**SKILL.md から template を参照するときは `${CLAUDE_PLUGIN_ROOT}/templates/<name>.md` と書く。** repo 相対の `enhance-superpowers/templates/...` は cwd 基準で解決されるため、skill が実際に走るサービス repo では解決できない。上の table にある `enhance-superpowers/templates/` は**本リポジトリ内での物理配置**であって、実行時の解決先ではない。
+
 ## 関連
 
 - 設計 doc: `docs/superpowers/feat-enterprise-superpowers-customization/2026-06-25-enhance-superpowers-collection-design.md`

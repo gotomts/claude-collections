@@ -80,7 +80,7 @@ maintainer: gotomts
 ### Step 1: 前提確認 + テンプレ読み込み + AI 利用ポリシー案内 (ADR-0010)
 
 1. `git rev-parse --show-toplevel` で git repo 確認
-2. `enhance-superpowers/templates/review-response.md` を Read
+2. `${CLAUDE_PLUGIN_ROOT}/templates/review-response.md` を Read
 3. プロジェクトルートの `.ai-restrictions.md` を Read (存在すれば user に案内)
 4. review-source の確定 (ADR-0016 D1・D2)。argument で明示されていればそれを使い、無ければ以下の順で解決する:
    - **ローカルラウンド** (`gwt-test` から chain されたとき): chain 元が渡した `shared:implementation-reviewer` / `shared:security-engineer` / `/security-review` の findings

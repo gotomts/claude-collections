@@ -92,7 +92,7 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 
 ### Step 3: Phase 2 — summary.md 生成 (認識齟齬検出 ①)
 
-1. user 合意済みアプローチを base に、`enhance-superpowers/templates/summary.md` を Read
+1. user 合意済みアプローチを base に、`${CLAUDE_PLUGIN_ROOT}/templates/summary.md` を Read
 2. テンプレのプレースホルダー (`{機能名}` / `{slug}` / `{方式 1}` 等) を埋めて summary.md を生成
 3. ファイル名: `{YYYY-MM-DD}-{slug}-summary.md`、配置: `{出力先}`
 4. frontmatter の `spec: ./{date}-{slug}-spec.md` を先行記載 (実 spec.md は Phase 3 で生成)
@@ -118,14 +118,14 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 
 **4-b. gwt.md 生成**
 
-1. `enhance-superpowers/templates/gwt.md` を Read
+1. `${CLAUDE_PLUGIN_ROOT}/templates/gwt.md` を Read
 2. `{実装仕様}` + summary.md の内容から AC (Given-When-Then 形式) を生成
 3. `shared:qa-engineer` を能動 dispatch — AC の網羅性 (異常系 / 境界値 / 空状態) レビュー
 4. gwt.md 末尾「## レビュー履歴」セクションに Phase 3 (gwt 関連) の dispatch log を追記 (ADR-0007)
 
 **4-c. pr-description.md 生成**
 
-1. `enhance-superpowers/templates/pr-description.md` を Read
+1. `${CLAUDE_PLUGIN_ROOT}/templates/pr-description.md` を Read
 2. 「## やったこと」を **`{実装仕様}` のスコープ** で下書き (plan は未生成のため実装仕様ベース、実装完了後 finish-spec-pr で実装結果に合わせて整える)
 3. 「## 補足」を既知の判断理由で下書き (内容がなければセクションごと削除)
 4. 「## 動作確認方法」を gwt.md の AC を base に下書き
