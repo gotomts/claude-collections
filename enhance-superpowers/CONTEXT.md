@@ -12,15 +12,15 @@ enhance-superpowers の起点 skill。`superpowers:brainstorming` の責任を�
 
 **STOP POINT**:
 skill 連鎖の中で agent 能動 dispatch を強制する境目。本コレクションは 2 つ持つ:
-- **STOP POINT 1 (実装フェーズ)**: ADR-0012 で `enhance-executing-plans` skill 化。実装前 software-architect + slice ごと executor 能動 dispatch + review (code-review skill optional / security-engineer / performance-engineer) を強制 dispatch。
-- **STOP POINT 2 (セルフレビュー)**: ADR-0013 で `code-review` skill を **auto-invoke** (課金前 1 問確認、scope は code-review のみ)。security-engineer 能動 dispatch と write-review-response chain は独立 = 常時実行 (silent failure 回避)。
+- **STOP POINT 1 (実装フェーズ)**: ADR-0012 で `enhance-executing-plans` skill 化。実装前 software-architect + slice ごと executor 能動 dispatch + review (implementation-reviewer 常時 / security-engineer / performance-engineer) を強制 dispatch。ローカル diff のコードレビュー本体は `shared:implementation-reviewer` (ADR-0016 D1)。
+- **STOP POINT 2 (セルフレビュー)**: ADR-0013 D2 で**停止せず能動 dispatch** し user 手動依存を廃止。宛先は `shared:implementation-reviewer` + `shared:security-engineer` + `/security-review` (ADR-0016 D1・D5)。いずれも課金を伴わないため課金前 1 問確認は廃止。write-review-response chain は独立 = 常時実行 (silent failure 回避)。**ローカルで CodeRabbit / `code-review` 系 skill は呼ばない**。
 
 **skill 一覧** (6 skill、ADR-0012 で `enhance-executing-plans`、ADR-0017 で `pr-review` を追加):
 
 implementer 側 (1〜5) — 自分が書くコードの Spec を決めて実装し、PR を出すまで:
 1. `enhance-brainstorming` — 起点、Spec 5 成果物確定
 2. `enhance-executing-plans` — 実装フェーズ (2026-07-04 redesign: skill 側から executor agent を直接 dispatch、superpowers 委譲は廃止 = silent failure の言い換えだった)
-3. `gwt-test` — AC 検証 + qa-engineer 常時 dispatch (ADR-0013) + STOP POINT 2 実行 (code-review auto-invoke + security-engineer)
+3. `gwt-test` — AC 検証 + qa-engineer 常時 dispatch (ADR-0013) + STOP POINT 2 実行 (implementation-reviewer 常時 + security-engineer + `/security-review`、ADR-0016 D1・D5)
 4. `write-review-response` — CodeRabbit 指摘の採用/Skip 判定
 5. `finish-spec-pr` — PR 作成 (mechanical)
 
