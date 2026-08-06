@@ -2,6 +2,7 @@
 title: PR #{N} {PR タイトル} — レビュー報告
 pr: {pr-url}
 author: {PR 作者}
+head: {headRefOid}
 summary: ./{YYYY-MM-DD}-pr{N}-summary.md
 gwt: ./{YYYY-MM-DD}-pr{N}-gwt.md
 ---

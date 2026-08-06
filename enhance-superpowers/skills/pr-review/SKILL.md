@@ -10,7 +10,8 @@ description: |
   3-2 AI コードレビュー。親は両者を巡回して join し review-report.md に統合する。
   成果物は**発動元リポジトリ**に置き、レビュー対象 worktree にはコミットしない
   (他人の PR ブランチを汚さないため、ADR-0017 D4)。
-  Step 0 で状態判定 (ADR-0012)、Step 1 で .ai-restrictions.md を Read (ADR-0010)。
+  Step 0 で入力正規化 (番号 / URL → 数値 ID) + 状態判定 + revision 照合 (ADR-0012)、
+  Step 1 で .ai-restrictions.md を Read (ADR-0010)。
 argument-hint: "<pr-number> [--output-dir=<path>]  # PR 番号は必須 (例: 123 / PR URL)。--output-dir は成果物の配置先 (省略時は発動元リポジトリの docs/superpowers/pr-{N}/)"
 allowed-tools:
   - Read
@@ -33,10 +34,12 @@ maintainer: gotomts
 
 | 引数 | 必須 | 既定 | 効果 |
 |---|---|---|---|
-| `<pr-number>` | **必須** | — | レビュー対象 PR。番号 (`123`) または PR URL。省略時は error 中断 |
-| `--output-dir=<path>` | 任意 | 発動元リポジトリの `docs/superpowers/pr-{N}/` | 成果物 (summary / gwt / review-report) の配置先。**Step 0 の状態判定もこのディレクトリを走査する** |
+| `<pr-number>` | **必須** | — | レビュー対象 PR。番号 (`123`) または PR URL。**Step 0-1 で数値 ID + owner/repo に正規化し、以降は数値だけを使う**。省略時は error 中断 |
+| `--output-dir=<path>` | 任意 | 発動元リポジトリの `docs/superpowers/pr-{N}/` | 成果物 (summary / gwt / review-report) の配置先。**相対パスは `{repo-root}` 基準で 1 度だけ絶対化する**。**Step 0 の状態判定もこのディレクトリを走査する** |
 
 以降 `{出力先}` は「`--output-dir` 指定時はその値、省略時は発動元リポジトリの `docs/superpowers/pr-{N}/`」を指す。命名規約は `{YYYY-MM-DD}-pr{N}-{suffix}.md`。
+
+**`{出力先}` は必ず絶対パスで扱う。** 子セッションの cwd は review worktree であり、初回プロンプトは成果物パスを絶対パスとして渡す。相対パスのまま持ち回ると親と子が別のディレクトリを指す。
 
 **`{出力先}` はレビュー対象 worktree ではなく発動元リポジトリに置く** (ADR-0017 D4)。理由は 2 つ — レビュー用 worktree は使い捨てなので成果物を置くと片付けと同時に消える、他人の PR ブランチにレビューメモをコミットする事故を構造的に防ぐ。**生成物は commit しない** (untracked のまま残す)。
 
@@ -44,8 +47,8 @@ maintainer: gotomts
 
 | Phase | 前提 | 出力 | 出力条件 |
 |---|---|---|---|
-| 0 | `{出力先}` (作成 or 既存) | (判定) | 状態判定完了、Step 番号を確定 |
-| 1 | PR 番号 | レビュー worktree + workspace | `herdr worktree create` 成功 |
+| 0 | PR 番号 or PR URL | (判定) | `{N}` / `{出力先}` (絶対パス) 確定 + revision 照合 + Step 番号を確定 |
+| 1 | 正規化済み `{N}` + PR メタ情報 | レビュー worktree + workspace | base / head を fetch し `herdr worktree create` 成功 |
 | 2 | PR 差分 | `{date}-pr{N}-summary.md` | shared:software-architect dispatch 完了 |
 | 3 | summary.md | `{date}-pr{N}-gwt.md` | shared:qa-engineer dispatch 完了 |
 | 4 | summary + gwt | 2 file の human 反映版 | crit の unresolved コメントが 0 + user 承認 |
@@ -54,56 +57,70 @@ maintainer: gotomts
 
 ## 動作 (7 ステップ)
 
-### Step 0: 状態判定 (ADR-0012 D2)
+### Step 0: 入力の正規化 + 状態判定 (ADR-0012 D2)
 
-1. **`{出力先}` を確定**: `--output-dir` があればその値、無ければ発動元リポジトリの `git rev-parse --show-toplevel` + `docs/superpowers/pr-{N}/`
-2. `{出力先}` を Glob で列挙し、存在する file から Phase を判定:
+1. **引数を正規化する。** 入力は番号でも PR URL でも受けるが、**以降は数値 ID しか使わない**:
+   ```sh
+   gh pr view "{入力}" --json number,title,author,url,headRefName,headRefOid,baseRefName,baseRefOid,files
+   ```
+   - `.number` を `{N}` とする。branch 名 (`review/pr-{N}`) / agent 名 (`pr{N}-verify`) / パスには**この数値だけ**を埋める。**入力文字列をそのまま埋めない** — URL は ref 名・branch 名として不正であり、未引用のまま shell へ渡すと metacharacter injection になる
+   - `.url` の `owner/repo` が `gh repo view --json nameWithOwner` (cwd) と一致することを検証。**不一致なら中断** (別リポジトリの PR head をこの repo にレビュー用ブランチとして生やす事故を防ぐ。ADR-0016 D2 が `/review` に置いた cwd 検証と同型)
+   - `{N}` が数値でなければ中断
+   - 失敗 (auth 切れ / PR 不在) なら **そこで中断**。推測した PR 内容で worktree を作ると後から全部やり直しになる
+   - **この JSON は Step 1 / Step 2 でも使う** (再取得しない)
+2. **`{出力先}` を確定して絶対化**: `--output-dir` があればその値、無ければ `{repo-root}` (`git rev-parse --show-toplevel`) + `docs/superpowers/pr-{N}/`。相対パスなら `{repo-root}` 基準で絶対化し、**以降は絶対パスだけを持ち回る**
+3. `{出力先}` を Glob で列挙し、存在する file から Phase を判定:
    - 何も無い → Step 1 (worktree 作成) から
    - `*-summary.md` のみ → Step 3 (gwt 生成) から
    - `*-summary.md` + `*-gwt.md` あり、crit 未実施 → Step 4 (crit) から
    - 上記 + gwt.md の checklist に `- [x]` が 1 つ以上 → 子セッション起動済みの可能性。Step 5 の重複起動チェックへ
    - `*-review-report.md` あり → Step 6 (join / 再 join) から
-3. **子セッションの生存確認**: `herdr agent list` で `pr{N}-verify` / `pr{N}-review` の有無を確認。存在すれば Step 6 (巡回 join) に直行し、**重複起動しない**
-4. 判定結果を user に「現在 Phase = X、Step Y から再開します」と明示、user 1 問確認
+4. **既存成果物が現 revision のものか照合する。** 各成果物の frontmatter `head:` (生成時の `headRefOid`) を Step 0-1 の `.headRefOid` と比較する:
+   - 一致 → そのまま再開
+   - 不一致 → **stale**。作者が追加 push / force push した後なので、summary と gwt はもう別のコードを説明している。「新しい revision で作り直す / 既存を引き継いで差分だけ見る」を **user に 1 問確認**する
+   - `head:` が無い (旧版の成果物) → 判定できない旨を伝えて同じ 1 問を出す
+5. **子セッションの生存確認**: `herdr agent list` で `pr{N}-verify` / `pr{N}-review` の有無を確認。存在すれば Step 6 (巡回 join) に直行し、**重複起動しない**
+6. 判定結果を user に「現在 Phase = X、Step Y から再開します」と明示、user 1 問確認
 
 ### Step 1: 前提確認 + レビュー worktree 作成
 
 1. **herdr 前提チェック**: `test "${HERDR_ENV:-}" = 1`。false なら error 中断 ("herdr の外では子セッションを起動できません")
-2. `git rev-parse --show-toplevel` で発動元リポジトリを確定 (以降 `{repo-root}`)
-3. 発動元リポジトリの `.ai-restrictions.md` を Read (存在すれば user に案内、ADR-0010)
-4. PR メタ情報を取得:
+2. 発動元リポジトリの `.ai-restrictions.md` を Read (存在すれば user に案内、ADR-0010)
+3. **base ref を先に fetch する。** Step 2 の diff は base との merge-base を起点にするので、`origin/{baseRefName}` が stale だと**別の差分をレビューしてしまう**:
    ```sh
-   gh pr view <N> --json number,title,body,author,headRefName,baseRefName,files,url
+   git -C {repo-root} fetch origin {baseRefName}
    ```
-   失敗 (auth 切れ / PR 不在) なら **そこで中断**。推測した PR 内容で worktree を作ると後から全部やり直しになる
-5. PR head を fetch してレビュー用ブランチを起こす (**fork PR でも動く形にする**):
+4. PR head を fetch してレビュー用ブランチを起こす (**fork PR でも動く形にする**。base より後に実行して `FETCH_HEAD` を head に確定させる):
    ```sh
-   git -C {repo-root} fetch origin pull/<N>/head
+   git -C {repo-root} fetch origin pull/{N}/head
+   git -C {repo-root} rev-parse FETCH_HEAD    # Step 0-1 の .headRefOid と一致することを確認
    ```
-6. herdr で worktree + workspace を作る (**PR 作者のブランチ名は使わず `review/pr-<N>` を切る** — 作者側ブランチを直接 checkout すると、レビュー中の実験的コミットが混ざる事故が起きる):
+   不一致なら fetch 中に head が動いた (作者が push した)。Step 0-1 から取り直す
+5. herdr で worktree + workspace を作る (**PR 作者のブランチ名は使わず `review/pr-{N}` を切る** — 作者側ブランチを直接 checkout すると、レビュー中の実験的コミットが混ざる事故が起きる):
    ```sh
    herdr worktree create \
      --cwd {repo-root} \
-     --branch review/pr-<N> \
+     --branch review/pr-{N} \
      --base FETCH_HEAD \
-     --label pr<N> \
+     --label pr{N} \
      --no-focus --json
    ```
-7. JSON から `.result.workspace.workspace_id` と `.result.root_pane.pane_id` を取得し控える。**ID は不透明文字列なので必ず JSON から読む** (自分で組み立てない)
-8. 以降 worktree の checkout path を `{review-worktree}` とする
+6. JSON から `.result.workspace.workspace_id` と `.result.root_pane.pane_id` を取得し控える。**ID は不透明文字列なので必ず JSON から読む** (自分で組み立てない)
+7. 以降 worktree の checkout path を `{review-worktree}` とする
 
 ### Step 2: summary.md 生成 (レビュー対象の把握)
 
-1. PR 差分を読む:
+1. PR 差分を読む (**Step 1-3 で fetch した base を使う**。`...` は merge-base 起点を意味するので、base が最新なら GitHub の Files changed と一致する):
    ```sh
    git -C {review-worktree} diff origin/{baseRefName}...HEAD
    ```
    差分が大きい場合は `--stat` で全体像を掴んでからファイル単位で読む
 2. `enhance-superpowers/templates/summary.md` を下敷きに `{出力先}/{date}-pr{N}-summary.md` を生成。**レビュワー視点で埋める** — 「この PR が何を実現しようとしているか」「どの方式を採ったか」「効いている設計判断」「レビューで確認すべき点」
-   - **frontmatter を差し替える**: テンプレの `spec: ./...-spec.md` はレビュワー側に存在しないので**削除**し、代わりに `pr: {pr-url}` / `author: {PR 作者}` を置く。`issue:` は PR 本文が参照する issue があればその URL、無ければ削除する (dangling 参照を残さない)
+   - **frontmatter を差し替える**: テンプレの `spec: ./...-spec.md` はレビュワー側に存在しないので**削除**し、代わりに `pr: {pr-url}` / `author: {PR 作者}` / **`head: {headRefOid}`** を置く。`issue:` は PR 本文が参照する issue があればその URL、無ければ削除する (dangling 参照を残さない)
+   - `head:` は **Step 0-4 の revision 照合に使う**。gwt.md / review-report.md にも同じ値を書く
 3. **GitHub 上の既存レビューコメントを読む** (CodeRabbit / 他レビュワー、ADR-0017 D7):
    ```sh
-   gh api graphql -f query='{ repository(owner:"<owner>", name:"<repo>") { pullRequest(number:<N>) { reviewThreads(first:50) { nodes { isResolved isOutdated path line comments(first:10){nodes{author{login} body}} } } } } }'
+   gh api graphql -f query='{ repository(owner:"{owner}", name:"{repo}") { pullRequest(number:{N}) { reviewThreads(first:50) { nodes { isResolved isOutdated path line comments(first:10){nodes{author{login} body}} } } } } }'
    ```
    `isResolved == false` のみを残す。**`isOutdated == true` は除外しない** (outdated でも unresolved な指摘は有効)
    - summary.md の「レビューで確認すべき点」に反映するとき、**出所を明示する** — 既存指摘は `[既出: {author}]` を頭に付け、レビュワー自前の観点と区別できる形にする
@@ -113,7 +130,7 @@ maintainer: gotomts
 
 ### Step 3: gwt.md 生成 (動作確認の土台)
 
-1. summary.md を元に、**レビュワー自身が実物で確かめたいこと**を AC (Given-When-Then) に落とす。`enhance-superpowers/templates/gwt.md` が下敷き。frontmatter は summary.md と同じ要領で `spec:` を削り `pr:` に差し替える
+1. summary.md を元に、**レビュワー自身が実物で確かめたいこと**を AC (Given-When-Then) に落とす。`enhance-superpowers/templates/gwt.md` が下敷き。frontmatter は summary.md と同じ要領で `spec:` を削り `pr:` / `head:` に差し替える
 2. AC は PR の受入条件のコピーではなく、**レビュワーの理解が正しいかを反証する形**で書く (「作者の主張どおり動くか」でなく「自分の理解どおり動くか」)
 3. **`shared:qa-engineer` を能動 dispatch** — AC 網羅性 (異常系 / 境界値 / 空状態 / 既存機能への回帰) の review
 4. dispatch log を gwt.md の「## レビュー履歴」に追記 (ADR-0007)
@@ -142,8 +159,8 @@ Step 1 で作った workspace に**タブ 2 枚**を追加し、それぞれに 
 **5-1. タブを 2 枚作る**
 
 ```sh
-herdr tab create --workspace <workspace_id> --cwd {review-worktree} --label "pr<N>-verify" --no-focus --json
-herdr tab create --workspace <workspace_id> --cwd {review-worktree} --label "pr<N>-review" --no-focus --json
+herdr tab create --workspace <workspace_id> --cwd {review-worktree} --label "pr{N}-verify" --no-focus --json
+herdr tab create --workspace <workspace_id> --cwd {review-worktree} --label "pr{N}-review" --no-focus --json
 ```
 
 各 JSON から `pane_id` を取得する。
@@ -151,8 +168,8 @@ herdr tab create --workspace <workspace_id> --cwd {review-worktree} --label "pr<
 **5-2. agent を起動する**
 
 ```sh
-herdr agent start pr<N>-verify --kind claude --pane <verify_pane_id>
-herdr agent start pr<N>-review --kind claude --pane <review_pane_id>
+herdr agent start pr{N}-verify --kind claude --pane <verify_pane_id>
+herdr agent start pr{N}-review --kind claude --pane <review_pane_id>
 ```
 
 agent 名は **小文字始まり・`[a-z0-9_-]` のみ・1〜32 文字**。`invalid_agent_name` で落ちたら大文字か記号が混じっている。
@@ -160,8 +177,8 @@ agent 名は **小文字始まり・`[a-z0-9_-]` のみ・1〜32 文字**。`inv
 **5-3. セッション名を固定する** (本命プロンプトより先に送る)
 
 ```sh
-herdr agent prompt pr<N>-verify "/rename pr<N>-verify"
-herdr agent prompt pr<N>-review "/rename pr<N>-review"
+herdr agent prompt pr{N}-verify "/rename pr{N}-verify"
+herdr agent prompt pr{N}-review "/rename pr{N}-review"
 ```
 
 Claude Code はセッション名未設定だと直近の作業を要約したタイトルを出し続け、サイドバー上で 2 本の区別が付かなくなる。
@@ -170,11 +187,11 @@ Claude Code はセッション名未設定だと直近の作業を要約した�
 
 子は PR の文脈を一切持っていないので、**プロンプトだけで作業を始められる自己完結な形にする**。`based on your findings` のような理解責任の再委譲は書かない。
 
-`pr<N>-verify` へ:
+`pr{N}-verify` へ:
 ```
-PR #<N> (<title>) の動作確認を担当してください。
+PR #{N} ({title}) の動作確認を担当してください。
 
-レビュー対象: {review-worktree} (branch review/pr-<N>、base は <baseRefName>)
+レビュー対象: {review-worktree} (branch review/pr-{N}、base は {baseRefName})
 検証手順書:   {出力先}/{date}-pr{N}-gwt.md (絶対パス)
 
 1. gwt.md の AC を読む
@@ -191,12 +208,12 @@ PR #<N> (<title>) の動作確認を担当してください。
 全 AC の検証が終わったら、達成/未達の件数と未達の内訳を 5 行以内で報告して停止してください。
 ```
 
-`pr<N>-review` へ:
+`pr{N}-review` へ:
 ```
-PR #<N> (<title>) のコードレビューを担当してください。
+PR #{N} ({title}) のコードレビューを担当してください。
 
-レビュー対象: {review-worktree} (branch review/pr-<N>)
-差分:         git -C {review-worktree} diff origin/<baseRefName>...HEAD
+レビュー対象: {review-worktree} (branch review/pr-{N})
+差分:         git -C {review-worktree} diff origin/{baseRefName}...HEAD
 背景の把握:   {出力先}/{date}-pr{N}-summary.md (絶対パス、レビュワーが書いた理解メモ)
 
 1. summary.md を読んで PR の狙いを掴む。ただし **`[既出: ...]` が付いた行は読み飛ばす** —
@@ -222,7 +239,7 @@ git のコミット・push もしないこと (同じ worktree をもう 1 セ�
 
 ### Step 6: 巡回して join
 
-1. `herdr agent list` で `pr<N>-verify` / `pr<N>-review` の `agent_status` を確認。**発動元リポジトリの workspace に絞る** (`herdr worktree list --cwd {repo-root} --json` の `open_workspace_id` 集合)
+1. `herdr agent list` で `pr{N}-verify` / `pr{N}-review` の `agent_status` を確認。**発動元リポジトリの workspace に絞る** (`herdr worktree list --cwd {repo-root} --json` の `open_workspace_id` 集合)
 2. `blocked` / `done` のものだけ `herdr agent read <name> --source recent-unwrapped --lines 120` で読む。`working` は読まない (途中出力は意味を成さずトークンだけ食う)
 3. `blocked` への回答:
    - リポジトリの規約や既存コードを見れば決まること → 親が調べて `herdr agent prompt` で回答
@@ -239,13 +256,16 @@ git のコミット・push もしないこと (同じ worktree をもう 1 セ�
 
 - **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:qa-engineer`)。bare name は解決されない (root ADR-0010)
 - Step 0 状態判定で再開可能な skill 設計 (ADR-0012 D2)、Phase 定義 table を再開判定の仕様源 (ADR-0012 D3)
+- **PR 入力は Step 0-1 で数値 ID + owner/repo に正規化する。** 以降 ref 名 / branch 名 / agent 名 / パスに埋めるのは数値だけ。入力文字列 (URL を含む) を未引用で shell に渡さない
+- **`{出力先}` は絶対パスで持ち回る。** 子セッションの cwd は review worktree なので、相対パスだと親子で別ディレクトリを指す
+- **再開時は成果物 frontmatter の `head:` を現 `headRefOid` と照合する。** 不一致なら stale として user に 1 問確認する (作者の追加 push で summary / gwt が別のコードを説明している状態になる)
 - **子セッション起動前に必ず `herdr agent list` で重複確認**。二重起動すると同じ worktree で dev server が競合する
 - **成果物は発動元リポジトリに置き commit しない** (他人の PR ブランチを汚さない、ADR-0017 D4)
 - **子 2 本は同一 worktree を共有する** (ADR-0017 D3)。成立条件は「両者ともコードを書かない」こと — verify は gwt.md のみ、review は review-report.md のみを書く。この分離が崩れると index.lock 競合が起きるので、子プロンプトで明示的に禁じている
 - crit の人間レビューは**唯一の承認ゲート**。ここを飛ばして子を起動しない (2 本分の作業が無駄になる)
 - 子への初回プロンプトは自己完結にする。理解責任を子へ再委譲しない
 - `--wait` を使わない。完了は Step 6 の巡回で拾う
-- dev server / docker の起動・停止責任は `pr<N>-verify` 側に閉じる (親も review 側も触らない)
+- dev server / docker の起動・停止責任は `pr{N}-verify` 側に閉じる (親も review 側も触らない)
 - Step 1 で AI 利用ポリシー (`.ai-restrictions.md`) を Read して案内 (ADR-0010)
 - dispatch log を summary.md / gwt.md / review-report.md のレビュー履歴セクションに追記 (ADR-0007)
 - **ローカル diff のコードレビュー宛先は `shared:implementation-reviewer`** (ADR-0016 D1 / ADR-0017 D6)。**ローカルで CodeRabbit / `code-review` 系 skill は呼ばない**
@@ -259,8 +279,12 @@ git のコミット・push もしないこと (同じ worktree をもう 1 セ�
 | `HERDR_ENV` が 1 でない | error 報告 + 中断 ("herdr の外では子セッションを起動できません") |
 | PR 番号が未指定 | error 報告 + 中断 (引数必須) |
 | `gh pr view` が失敗 (auth 切れ / PR 不在) | error 報告 + 中断。推測した PR 内容で進めない |
+| PR URL の `owner/repo` が cwd のリポジトリと不一致 | error 報告 + 中断。別リポジトリの PR head をこの repo に生やさない |
+| `.number` が数値にならない | error 報告 + 中断 (正規化失敗。以降の ref 名が壊れる) |
+| 既存成果物の `head:` が現 `headRefOid` と不一致 (または `head:` 不在) | **stale**。「作り直す / 引き継いで差分だけ見る」を user に 1 問確認 |
+| `fetch` 後の `FETCH_HEAD` が `.headRefOid` と不一致 | fetch 中に head が動いた。Step 0-1 からメタ情報を取り直す |
 | 既存レビューコメントの取得 (`gh api graphql`) が失敗 | **中断しない**。「既存指摘なしとして進める」と報告して Step 2-4 へ。PR 側チャネルは補助であり、無くても子 2 本のレビューは成立する |
-| `review/pr-<N>` が既存 | 既にレビュー中の可能性。`herdr worktree list` / `herdr agent list` で既存セッションを探し、合流するか作り直すかを 1 問確認 |
+| `review/pr-{N}` が既存 | 既にレビュー中の可能性。`herdr worktree list` / `herdr agent list` で既存セッションを探し、合流するか作り直すかを 1 問確認 |
 | `herdr agent start` が `invalid_agent_name` | 大文字 / 記号混入。小文字化して再実行 |
 | `herdr agent start` がタイムアウト | pane はできている。`herdr agent explain` で検出状態を提示し、手動で claude 起動する選択肢を出す |
 | crit にコメントが 0 件 | 「指摘なしで承認」とみなしてよいか 1 問確認 (crit を開かずに閉じた事故と区別できないため) |
@@ -271,7 +295,7 @@ git のコミット・push もしないこと (同じ worktree をもう 1 セ�
 ## 関連
 
 - ADR-0017 (reviewer-side-skill-and-parallel-sessions) — 本 skill の決定
-- ADR-0016 (local-review-to-implementation-reviewer-and-builtin-review-after-pr) — レビュー宛先の phase routing。子 `pr<N>-review` の dispatch 先はこれに従う
+- ADR-0016 (local-review-to-implementation-reviewer-and-builtin-review-after-pr) — レビュー宛先の phase routing。子 `pr{N}-review` の dispatch 先はこれに従う
 - ADR-0007 (audit-trail-dispatch-log) — レビュー履歴セクション
 - ADR-0010 (ai-utilization-policy-loading) — Step 1 の `.ai-restrictions.md`
 - ADR-0012 (implementation-phase-skill-and-state-detection) — Step 0 状態判定 / Phase 定義 table
