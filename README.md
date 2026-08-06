@@ -61,6 +61,55 @@ GitHub 経由で marketplace を登録する。public リポジトリなので�
 
 `GITHUB_TOKEN`（または `GH_TOKEN`）の設定は必須ではない。GitHub API の未認証レート制限を避けたい場合の任意設定。
 
+### install 済みを最新に更新する
+
+**marketplace の更新と plugin の更新は別操作**。marketplace だけ更新しても install 済み plugin は古い commit の cache を指したままで、新しく追加した skill / agent は現れない。両方を順に実行する。
+
+```sh
+# 1. marketplace（= repo の clone）を最新 main に追従させる
+claude plugin marketplace update claude-collections
+
+# 2. install 済み plugin を 1 つずつ最新 commit へ更新する
+for p in shared enhance-superpowers indie-studio; do
+  claude plugin update "$p@claude-collections"
+done
+```
+
+**更新後は Claude Code の再起動が必要**（`update` の出力にも `Restart to apply changes.` が出る）。再起動するまで、新しい skill は cache に置かれていてもセッションからは見えない。
+
+Claude Code セッション内から対話的にやる場合は `/plugin` を使う（同じ 2 段階を UI で行う）。
+
+#### 「skill が見つからない」ときの確認手順
+
+repo に存在するはずの skill が `<plugin>:<skill>` で解決されない場合、原因はほぼ cache の古さ。次の順で切り分ける。
+
+1. **install 済み commit を見る** — repo の main とズレていれば更新すれば済む。
+
+   ```sh
+   python3 -c "
+   import json
+   d = json.load(open('$HOME/.claude/plugins/installed_plugins.json'))['plugins']
+   for k, v in d.items():
+       if 'claude-collections' in k:
+           print(k, v[0]['version'])
+   "
+   ```
+
+2. **cache に実体があるか見る** — 更新後もここに無ければ、更新自体が失敗している。
+
+   ```sh
+   ls ~/.claude/plugins/cache/claude-collections/<collection>/<commit-sha>/skills/
+   ```
+
+3. **plugin が enable されているか見る** — install されていても `enabledPlugins` に無ければ skills も agents もロードされない（`claude plugin enable <name>@claude-collections` で有効化）。
+
+   ```sh
+   python3 -c "
+   import json
+   print(json.load(open('$HOME/.claude/settings.json'))['enabledPlugins'])
+   "
+   ```
+
 ### バージョニング方針
 
 - **現状（テスト期）**：`plugin.json` の `version` を省略し、git commit SHA を暗黙の pin として扱う。main にコミットすると `/plugin marketplace update` で即反映される
