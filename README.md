@@ -75,40 +75,33 @@ for p in shared enhance-superpowers indie-studio; do
 done
 ```
 
-**更新後は Claude Code の再起動が必要**（`update` の出力にも `Restart to apply changes.` が出る）。再起動するまで、新しい skill は cache に置かれていてもセッションからは見えない。
+`claude plugin update` の `--scope` は既定が `user`。project / local scope で install した場合は、install 時と同じ scope を明示する（例：`--scope project`）。
+
+**更新はセッションへの反映が別に要る。** `claude plugin update` は実行中のセッションには効かないため、`/reload-plugins` を実行するか Claude Code を再起動する（reload が prompt cache を無効化する場合は警告が出て適用が保留されるので、`/reload-plugins --force` で適用する）。反映するまで、新しい skill は cache に置かれていてもセッションからは見えない。
 
 Claude Code セッション内から対話的にやる場合は `/plugin` を使う（同じ 2 段階を UI で行う）。
 
 #### 「skill が見つからない」ときの確認手順
 
-repo に存在するはずの skill が `<plugin>:<skill>` で解決されない場合、原因はほぼ cache の古さ。次の順で切り分ける。
+repo に存在するはずの skill が `<plugin>:<skill>` で解決されない場合、原因はほぼ cache の古さ。まず install 状態を 1 コマンドで見る。
 
-1. **install 済み commit を見る** — repo の main とズレていれば更新すれば済む。
+```sh
+claude plugin list --json | python3 -c "
+import json, sys
+for p in json.load(sys.stdin):
+    if 'claude-collections' in p['id']:
+        print(p['id'], p['version'], p['scope'], 'enabled=%s' % p['enabled'])
+"
+```
 
-   ```sh
-   python3 -c "
-   import json
-   d = json.load(open('$HOME/.claude/plugins/installed_plugins.json'))['plugins']
-   for k, v in d.items():
-       if 'claude-collections' in k:
-           print(k, v[0]['version'])
-   "
-   ```
+- **`version` が repo の main とズレている** → 上の更新手順を実行する。
+- **`enabled` が `false`** → `claude plugin enable <name>@claude-collections` で有効化する（`enable` の `--scope` は既定で install 済み scope を自動検出する）。install されていても enable されていなければ skills も agents もロードされない。
+- **どちらも正常なのに見えない** → その commit の cache に skill の実体があるか確認する。無ければ更新自体が失敗している。`sha` には上で得た `version` を入れる。
 
-2. **cache に実体があるか見る** — 更新後もここに無ければ、更新自体が失敗している。
-
-   ```sh
-   ls ~/.claude/plugins/cache/claude-collections/<collection>/<commit-sha>/skills/
-   ```
-
-3. **plugin が enable されているか見る** — install されていても `enabledPlugins` に無ければ skills も agents もロードされない（`claude plugin enable <name>@claude-collections` で有効化）。
-
-   ```sh
-   python3 -c "
-   import json
-   print(json.load(open('$HOME/.claude/settings.json'))['enabledPlugins'])
-   "
-   ```
+  ```sh
+  sha=97159496d7e0   # ← 上の出力の version に置き換える
+  ls ~/.claude/plugins/cache/claude-collections/*/"$sha"/skills/
+  ```
 
 ### バージョニング方針
 
