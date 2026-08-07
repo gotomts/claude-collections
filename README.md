@@ -61,6 +61,48 @@ GitHub 経由で marketplace を登録する。public リポジトリなので�
 
 `GITHUB_TOKEN`（または `GH_TOKEN`）の設定は必須ではない。GitHub API の未認証レート制限を避けたい場合の任意設定。
 
+### install 済みを最新に更新する
+
+**marketplace の更新と plugin の更新は別操作**。marketplace だけ更新しても install 済み plugin は古い commit の cache を指したままで、新しく追加した skill / agent は現れない。両方を順に実行する。
+
+```sh
+# 1. marketplace（= repo の clone）を最新 main に追従させる
+claude plugin marketplace update claude-collections
+
+# 2. install 済み plugin を 1 つずつ最新 commit へ更新する
+for p in shared enhance-superpowers indie-studio; do
+  claude plugin update "$p@claude-collections"
+done
+```
+
+`claude plugin update` の `--scope` は既定が `user`。project / local scope で install した場合は、install 時と同じ scope を明示する（例：`--scope project`）。
+
+**更新はセッションへの反映が別に要る。** `claude plugin update` は実行中のセッションには効かないため、`/reload-plugins` を実行するか Claude Code を再起動する（reload が prompt cache を無効化する場合は警告が出て適用が保留されるので、`/reload-plugins --force` で適用する）。反映するまで、新しい skill は cache に置かれていてもセッションからは見えない。
+
+Claude Code セッション内から対話的にやる場合は `/plugin` を使う（同じ 2 段階を UI で行う）。
+
+#### 「skill が見つからない」ときの確認手順
+
+repo に存在するはずの skill が `<plugin>:<skill>` で解決されない場合、原因はほぼ cache の古さ。まず install 状態を 1 コマンドで見る。
+
+```sh
+claude plugin list --json | python3 -c "
+import json, sys
+for p in json.load(sys.stdin):
+    if 'claude-collections' in p['id']:
+        print(p['id'], p['version'], p['scope'], 'enabled=%s' % p['enabled'])
+"
+```
+
+- **`version` が repo の main とズレている** → 上の更新手順を実行する。
+- **`enabled` が `false`** → `claude plugin enable <name>@claude-collections` で有効化する（`enable` の `--scope` は既定で install 済み scope を自動検出する）。install されていても enable されていなければ skills も agents もロードされない。
+- **どちらも正常なのに見えない** → その commit の cache に skill の実体があるか確認する。無ければ更新自体が失敗している。`sha` には上で得た `version` を入れる。
+
+  ```sh
+  sha=97159496d7e0   # ← 上の出力の version に置き換える
+  ls ~/.claude/plugins/cache/claude-collections/*/"$sha"/skills/
+  ```
+
 ### バージョニング方針
 
 - **現状（テスト期）**：`plugin.json` の `version` を省略し、git commit SHA を暗黙の pin として扱う。main にコミットすると `/plugin marketplace update` で即反映される
