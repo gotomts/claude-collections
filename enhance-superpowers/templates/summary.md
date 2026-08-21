@@ -2,6 +2,7 @@
 title: {機能名} — サマリー（TL;DR）
 issue: {issue-url}
 spec: ./{YYYY-MM-DD}-{slug}-spec.md
+risk-tier: {chore|local|standard|high-impact}  # ADR-0019。後続 skill の agent dispatch budget を決める起点 (欠落時は standard にフォールバック)
 related:
   - {関連 PR/issue URL}  # 何を取り込む / 依存するかを 1 行で補足
 ---
@@ -41,6 +42,7 @@ flowchart TD
 
 ## レビュー履歴
 
-> 各 Phase で agent を dispatch した記録 (時刻 / agent / 目的 / 回答要約)。enhance-brainstorming Phase 2 で初期化、後続 Phase の dispatch log も追記される。形式は ADR-0007 参照。
+> 各 Phase で agent を dispatch した記録 (時刻 / agent / 目的 / 回答要約)。enhance-brainstorming Phase 2 で初期化、後続 Phase の dispatch log も追記される。形式は ADR-0007、risk-tier 行の形式は ADR-0019 D7 参照。
 
+- {YYYY-MM-DD HH:MM} - risk-tier={tier} (根拠: {1行}) → dispatch: {実施した agent 一覧 or "skip"}
 - {YYYY-MM-DD HH:MM} - `{agent-name}` を Phase {N} で dispatch (目的: {目的}) → 「{回答要約}」

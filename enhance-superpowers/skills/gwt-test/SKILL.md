@@ -3,9 +3,9 @@ name: gwt-test
 description: |
   enhance-brainstorming で生成された gwt.md の AC (受け入れ条件) を agent-browser で検証し、
   チェックリスト更新 + 変更履歴追記する skill。dev server / docker は AI が起動・停止する。
-  Step 0 で状態判定 (ADR-0012)、AC 検証完了時は qa-engineer を常時能動 dispatch (網羅性 review、ADR-0013)。
+  Step 0 で状態判定 (ADR-0012)、AC 検証完了時は risk-tier local 以上で qa-engineer を能動 dispatch (網羅性 review、ADR-0013、tier 条件は ADR-0019)。
   AC 未達発覚時も qa-engineer を能動 dispatch して差し戻し findings を言語化。
-  STOP POINT 2 は implementation-reviewer + security-engineer を能動 dispatch + /security-review を invoke (ADR-0013 D2 / ADR-0016 D1・D5)。
+  STOP POINT 2 は implementation-reviewer (tier chore は診断的 1 回) + security-engineer (security trigger 条件) を能動 dispatch + /security-review を invoke (ADR-0013 D2 / ADR-0016 D1・D5、tier・trigger 条件は ADR-0019)。
   Step 1 で .ai-restrictions.md を Read (ADR-0010)。完了後は write-review-response skill に chain。
   引数 --output-dir / --gate-mode で出力先・gate 集約を制御 (省略時は従来挙動、ADR-0014)。
 argument-hint: "[gwt-file-path] [--output-dir=<path>] [--gate-mode=per-phase|aggregate]  # 検証対象 gwt.md のパス (省略時は出力先から自動検出)。引数は外部 collection 利用向け、省略時は従来挙動 (ADR-0014)"
@@ -41,8 +41,8 @@ maintainer: gotomts
 |---|---|---|---|
 | 0 | `{出力先}/*-gwt.md` 存在 | (判定) | 状態判定完了、Step 番号を確定 |
 | 検証 | gwt.md + 実装済コード | gwt.md checklist 更新 (`- [ ]` → `- [x]`) | 各 AC を agent-browser で検証 |
-| 網羅性 review | gwt.md checklist 全 [x] | gwt.md レビュー履歴に shared:qa-engineer log 追記 | shared:qa-engineer が網羅性 OK と判定 (ADR-0013) |
-| セルフレビュー | 実装済コード | review-response.md への dispatch log 引継ぎ | shared:implementation-reviewer dispatch 完了 + shared:security-engineer dispatch 完了 + `/security-review` invoke 完了 |
+| 網羅性 review | gwt.md checklist 全 [x] | gwt.md レビュー履歴に shared:qa-engineer log 追記 (risk-tier local 以上、tier chore は skip・ADR-0019) | shared:qa-engineer が網羅性 OK と判定、または tier chore で skip (ADR-0013・ADR-0019) |
+| セルフレビュー | 実装済コード | review-response.md への dispatch log 引継ぎ | shared:implementation-reviewer dispatch 完了 (tier chore は診断的 1 回) + shared:security-engineer dispatch (security trigger 条件) + `/security-review` invoke (同条件) |
 
 ## 動作 (9 ステップ)
 
@@ -65,12 +65,13 @@ maintainer: gotomts
 6. `handoff.md` が同ディレクトリにあれば Read (補助情報)
 7. 判定結果を user に「現在 Phase = X、Step Y から再開します」と明示、user 1 問確認
 
-### Step 1: 前提確認 + AI 利用ポリシー案内 (ADR-0010)
+### Step 1: 前提確認 + AI 利用ポリシー案内 (ADR-0010) + risk-tier 解決 (ADR-0019)
 
 1. `git rev-parse --show-toplevel` で git repo 確認、失敗なら error 中断
 2. プロジェクトルートの README.md を Read (テストアカウント / 起動コマンド / 前提サービス把握)
 3. プロジェクトルートの `.ai-restrictions.md` を Read (存在すれば user に案内)
 4. argument 経由 or `{出力先}/*-gwt.md` から検証対象 gwt.md を確定
+5. **risk-tier を解決する** (ADR-0019 D5): 同ディレクトリの summary.md / plan.md の risk-tier (frontmatter または plan.md 内の判定行) があればそれを起点にする。無ければ実際の diff (対象 slice のファイル一覧) と security trigger の有無から自己判定する。判定不能なら standard にフォールバックする。判定根拠 1 行を保持し、Step 6 / Step 8 の dispatch log に添える
 
 ### Step 2: dev server / docker 起動
 
@@ -89,7 +90,7 @@ maintainer: gotomts
 ### Step 4: AC 達成判定 + チェックリスト更新
 
 1. 各 AC が満たされたら gwt.md のチェックリスト `- [ ] AC-N: ...` → `- [x] AC-N: ...` に書き換え
-2. 全 AC 達成 → Step 6 (AC 完了時 qa-engineer 常時 dispatch) へ
+2. 全 AC 達成 → Step 6 (AC 完了時 qa-engineer dispatch、risk-tier 条件は ADR-0019) へ
 3. AC 未達あり → Step 5 (AC 未達時 qa-engineer) へ
 
 ### Step 5: AC 未達時 qa-engineer 能動 dispatch
@@ -99,14 +100,14 @@ maintainer: gotomts
 3. gwt.md 末尾「## レビュー履歴」セクションに dispatch log を追記 (ADR-0007)
 4. user に「AC 未達につき実装に差し戻します」と提示 → user 1 問確認 → 実装フェーズに戻る (`enhance-superpowers:enhance-executing-plans` skill に chain、または直接 STOP POINT 1 に戻す)。**`--output-dir` / `--gate-mode` を受け取っていればそのまま引き継いで渡す** (引き継がないと既定ディレクトリを走査して「plan.md がありません」で error 中断する)
 
-### Step 6: AC 検証完了時 qa-engineer 常時能動 dispatch (ADR-0013 D1)
+### Step 6: AC 検証完了時 qa-engineer 能動 dispatch (ADR-0013 D1、risk-tier 条件は ADR-0019 D3)
 
 全 AC 達成後、silent failure 回避のため以下を実行:
 
-1. `shared:qa-engineer` を **常時能動 dispatch** — AC 網羅性 (異常系 / 境界値 / 空状態 / seasonality 等) の review、抜けたシナリオの検出
-2. dispatch log を gwt.md 末尾「## レビュー履歴」セクションに追記 (ADR-0007)
+1. **risk-tier local 以上で** `shared:qa-engineer` を能動 dispatch — AC 網羅性 (異常系 / 境界値 / 空状態 / seasonality 等) の review、抜けたシナリオの検出。**tier chore は skip**
+2. dispatch log (risk-tier 判定行を含む) を gwt.md 末尾「## レビュー履歴」セクションに追記 (ADR-0007・ADR-0019 D7)
 3. qa-engineer が「抜けたシナリオあり」と判定した場合、user に 1 問確認 → gwt.md の AC 追加 → Step 3 (再検証) へ戻る
-4. 網羅性 OK → Step 7 (dev/docker 停止) へ
+4. 網羅性 OK (または tier chore で skip) → Step 7 (dev/docker 停止) へ
 
 ### Step 7: dev server / docker 停止
 
@@ -114,20 +115,20 @@ maintainer: gotomts
 2. `lsof -i :<port>` / `docker ps` で残存していないことを確認
 3. 失敗時は user に PID + コマンドを通知 (cleanup を促す)
 
-### Step 8: STOP POINT 2 = implementation-reviewer + security-engineer 能動 dispatch + /security-review (ADR-0013 D2、宛先は ADR-0016 D1・D5)
+### Step 8: STOP POINT 2 = implementation-reviewer + security-engineer 能動 dispatch + /security-review (ADR-0013 D2、宛先は ADR-0016 D1・D5、tier・trigger 条件は ADR-0019 D3・D4)
 
-**全て課金を伴わない**ため、ADR-0013 D2 が置いていた課金前 1 問確認は廃止した (ADR-0016 D1)。停止せず 1〜5 を実行する。
+**全て課金を伴わない**ため、ADR-0013 D2 が置いていた課金前 1 問確認は廃止した (ADR-0016 D1)。停止せず 1〜6 を実行する。
 
 1. user に「テストフェーズが完了しました。次はセルフレビューです」と明示
-2. **`shared:implementation-reviewer` を能動 dispatch** (評価 mode、常時)。実装済コード全体を対象にした、ローカル diff のコードレビュー本体。invocation prompt に以下を渡す:
+2. **`shared:implementation-reviewer` を dispatch** (評価 mode)。実装済コード全体を対象にした、ローカル diff のコードレビュー本体。**risk-tier local 以上は常時**。**tier chore は診断的 1 回**にする — base branch からの全変更差分が Phase 1 で分類した chore/docs/catalog スコープを超えるファイル (ロジックファイル・挙動に影響しうる設定ファイル) を含むかを機械的に確認し、超えていなければ軽量 1 round、超えていれば **risk-tier を standard に自己エスカレーション**して通常密度で dispatch する (ADR-0019 D4)。invocation prompt に以下を渡す:
    - **評価対象**: base branch からの全変更差分 / 評価ラウンド番号
    - **答え合わせ材料**: gwt.md の全 AC / 実装仕様 `*-spec.md` (architecture 規約・モジュール境界・ドメインモデル。ADR-0015 以前の branch では `*-design.md`) / リポジトリの `AGENTS.md` (無ければ `CLAUDE.md`)
    - **評価観点**: agent 側デフォルト (受入条件充足 / テスト網羅 / 設計 docs 整合 / 可読性・規約・silent failure)
-   - **進行 protocol**: **差し戻し protocol を use 宣言する** — round1 = fresh で完全な findings マニフェスト。findings は Step 6 の chain 先 (`write-review-response`) が採用 / Skip 判定するため、**本 skill 内では修正しない**
-3. **`shared:security-engineer` を能動 dispatch** (評価 mode、必ず実行) — security-focused なコードレビューを 1 回実施 (silent failure 回避、ADR-0013 D2 scope)
-4. **`Skill` tool で `/security-review` を invoke** (ADR-0016 D5)。未コミット変更のセキュリティ検査。3 の security-engineer を**置き換えない** — 機械的検査と設計文脈を持つ評価は代替関係にないため両方実行する
-5. dispatch log は write-review-response 内で review-response.md のレビュー履歴に集約されるが、gwt-test 内でも「STOP POINT 2 実行完了 (implementation-reviewer / security-engineer / security-review = 実行)」を gwt.md レビュー履歴に追記 (再開判定 hint)
-6. `Skill` tool で `enhance-superpowers:write-review-response` skill を chain invoke (常に実行、silent failure 回避。**2〜4 の findings を review-source として渡す**。`--output-dir` / `--gate-mode` を受け取っていれば**そのまま引き継いで渡す**)
+   - **進行 protocol**: **差し戻し protocol を use 宣言する** — round1 = fresh で完全な findings マニフェスト。findings は Step 6 の chain 先 (`write-review-response`) が採用 / Skip 判定するため、**本 skill 内では修正しない** (tier chore の診断的 1 回はこの限りではない)
+3. **risk-tier high-impact は `shared:security-engineer` を常時能動 dispatch**。**tier chore・local・standard は security trigger (認証・認可 / 秘密情報 / 外部入出力 / 決済 / 破壊的操作) 該当時のみ dispatch** (評価 mode、security-focused なコードレビューを 1 回実施。ADR-0013 D2 scope、tier 条件は ADR-0019 D3)
+4. **3 で security-engineer を dispatch した場合のみ `Skill` tool で `/security-review` を invoke** (ADR-0016 D5)。未コミット変更のセキュリティ検査。security-engineer を**置き換えない** — 機械的検査と設計文脈を持つ評価は代替関係にないため両方実行する。**risk-tier high-impact は常時**
+5. dispatch log は write-review-response 内で review-response.md のレビュー履歴に集約されるが、gwt-test 内でも risk-tier 判定行 + 「STOP POINT 2 実行完了 (implementation-reviewer / security-engineer / security-review = 実行 or tier 条件不成立で skip)」を gwt.md レビュー履歴に追記 (再開判定 hint、ADR-0019 D7)
+6. `Skill` tool で `enhance-superpowers:write-review-response` skill を chain invoke (常に実行、silent failure 回避。**2〜4 の findings (dispatch していなければ「該当 dispatch なし」) を review-source として渡す**。`--output-dir` / `--gate-mode` を受け取っていれば**そのまま引き継いで渡す**)
 
 ## 規律明示
 
@@ -135,8 +136,9 @@ maintainer: gotomts
 - Step 0 状態判定で再開可能な skill 設計 (ADR-0012 D2)、SKILL.md 冒頭の Phase 定義 table を再開判定の仕様源 (ADR-0012 D3)
 - agent-browser → chrome-devtools-mcp → 相談 の優先順序
 - 実装修正 → テストコード同期確認 (不要時も 1 行根拠を残す)
-- AC 未達発覚時 + AC 完了時、両方で qa-engineer を能動 dispatch (silent failure 回避、ADR-0013)
-- STOP POINT 2 は**停止せず能動 dispatch**、user 手動依存を廃止 (ADR-0013 D2)。宛先は `shared:implementation-reviewer` + `shared:security-engineer` + `/security-review` で、いずれも課金を伴わないため課金前 1 問確認は廃止 (ADR-0016 D1)
+- AC 未達発覚時 + AC 完了時 (risk-tier local 以上)、qa-engineer を能動 dispatch (silent failure 回避、ADR-0013、tier 条件は ADR-0019)
+- STOP POINT 2 は**停止せず能動 dispatch**、user 手動依存を廃止 (ADR-0013 D2)。宛先は `shared:implementation-reviewer` + `shared:security-engineer` + `/security-review` で、いずれも課金を伴わないため課金前 1 問確認は廃止 (ADR-0016 D1)。dispatch の有無・密度は risk-tier + security trigger で決まる (ADR-0019 D3・D4)
+- risk-tier は Step 1 で summary.md / plan.md から解決、無ければ実際の diff から自己判定 (ADR-0019 D5)
 - **Step 3〜7 (AC 検証) と Step 8 (セルフレビュー) を並走させない** (ADR-0018)。Step 8 に到達するのは全 AC 達成 (Step 4) かつ網羅性 OK (Step 6) のときだけで、未達なら Step 5-4 で実装フェーズへ差し戻す。並走させるとこれから変わるコードをレビューすることになる
 - **ローカルで CodeRabbit / `code-review` 系 skill を呼ばない** (ADR-0016 D1)。CodeRabbit は GitHub 上の PR レビューだけで使う
 - security-engineer は STOP POINT 2 で必ず能動 dispatch (`/security-review` の機械的検査を、設計文脈を持つ評価で補完。両者は代替関係にない・ADR-0016 D5)
@@ -168,6 +170,7 @@ maintainer: gotomts
 - ADR-0013 (gwt-test-qa-engineer-always-dispatch-and-code-review-auto-invoke) — Step 6 と Step 8 の agent 強制
 - ADR-0016 (local-review-to-implementation-reviewer-and-builtin-review-after-pr) — Step 8 の宛先を implementation-reviewer + /security-review に変更 (D1・D5)、`--gate-mode` の効果消滅 (D6)
 - ADR-0018 (no-parallel-verify-and-review-in-implementer-flow) — Step 3〜7 と Step 8 を並走させない判断。ADR-0017 D3 (レビュワー側の並走) を implementer 側へ拡張しない理由
+- ADR-0019 (risk-based-agent-dispatch-budget) — Step 6 / Step 8 の dispatch を risk-tier + security trigger 条件付きにする本体決定
 - enhance-brainstorming SKILL.md (起点 skill)
 - enhance-executing-plans SKILL.md (前工程 skill、実装完了で本 skill に chain)
 - write-review-response SKILL.md (次工程 sub-skill)

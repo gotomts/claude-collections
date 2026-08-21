@@ -4,7 +4,8 @@ description: |
   enhance-superpowers コレクションの起点 skill。superpowers:brainstorming + writing-plans を内部 invoke し、
   Spec フェーズで 5 成果物 (summary / spec / gwt / pr-description / plan) を plan-last 順序で確定
   (spec / gwt / pr-description は Phase 3 で連続生成、3 file 揃って user 承認 1 回、ADR-0011 + ADR-0015)。
-  各 Phase で specialist agent (software-architect / qa-engineer / security-engineer) を能動 dispatch、
+  各 Phase で specialist agent (software-architect / qa-engineer / security-engineer 等) を risk-tier に応じて能動 dispatch
+  (chore/docs/カタログ整理は budget 0、security/architecture 系は trigger 条件付き、ADR-0019)、
   dispatch log は 5 成果物のレビュー履歴セクションに追記 (ADR-0007)。
   Phase 3 で機微情報チェック (ADR-0008)、Phase 4 でライセンスチェック (ADR-0009) を組み込む。
   Step 0 で状態判定 (出力先の既存 file から現在 Phase を判定、ADR-0012)。
@@ -74,32 +75,37 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
    - **中間状態で未 commit の書きかけ file 検出時** (`git status --porcelain {出力先}` で untracked or unstaged 判定): user に「Phase 3 差し戻し中の状態のようです、どの file から再開しますか?」と 1 問確認して分岐
 6. 判定結果を user に「現在 Phase = X、Step Y-{semantic} から再開します」と明示 (例: 「Phase 3、spec.md 生成から」)、user 1 問確認 (誤検出時の catch)
 
-### Step 1: 前提確認 + AI 利用ポリシー案内 (ADR-0010)
+### Step 1: 前提確認 + AI 利用ポリシー案内 (ADR-0010) + risk-tier 自己判定 (ADR-0019)
 
 1. `git rev-parse --show-toplevel` で git repo を確認、失敗なら error 中断
 2. `git rev-parse --abbrev-ref HEAD` で現ブランチ取得 → サニタイズ (`/` → `-`)
 3. `{出力先}` ディレクトリを作成 (commit 前提、worktree 退避なし)
 4. **プロジェクトルートの `.ai-restrictions.md` を Read** (存在すれば内容を user に案内、無ければ skip)
+5. **risk-tier を自己判定** (ADR-0019 D1・D5): topic (argument 経由 or 会話で取得予定の内容) から、対象が chore/docs/catalog (ドキュメント・コメントのみ / 未使用ファイル・story・fixture・生成物・カタログエントリの削除整理 / フォーマッタ適用のみ / 依存の機械的 bump / typo 修正に限られる) か、あるいは security trigger (auth/authz・秘密情報・外部入出力・決済・破壊操作) や architecture trigger (境界再設計・移行・複数 slice 束ね・高影響) に該当するかを確認する。topic だけでは判定材料が不足する場合は standard にフォールバックする (chore への安全でないフォールバックも high-impact への一律フォールバックも避ける)。判定根拠 1 行を保持し、Step 3 で summary.md 生成時に frontmatter とレビュー履歴へ記録する。user への追加質問はしない (決定表による自律分岐)
 
 ### Step 2: Phase 1 — 会話で問題理解 + 2-3 アプローチ提示
 
 1. user の topic (argument 経由 or 会話で取得) から議論を開始
 2. 1 ターン 1 問の質問で要件・制約・成功基準を詰める
 3. 2-3 アプローチを推奨案 + メリデメで提示
-4. `shared:software-architect` を能動 dispatch (ADR-0005) — アプローチ案の Clean Architecture + SOLID 整合性レビュー
-5. **`shared:reviewer` を能動 dispatch** (2026-07-04 追加) — アプローチの妥当性を独立観点で評価 (真実源整合 / カバレッジ逆引き / 内部一貫性、必要なら反証可能性 3 行併記 Steelman / Fails if / Kill criteria を skill 側から use 宣言)
-6. dispatch log (時刻 / agent / 目的 / 回答要約) を保持 (Phase 2 の summary.md に追記する)
+4. **risk-tier に応じて dispatch する (ADR-0019 D3、Step 1-5 の判定を使う)**:
+   - tier chore・local: dispatch しない (skip)
+   - tier standard: `shared:software-architect` のみ (ADR-0005) — アプローチ案の Clean Architecture + SOLID 整合性レビュー
+   - tier high-impact: `shared:software-architect` + **`shared:reviewer`** — アプローチの妥当性を独立観点で評価 (真実源整合 / カバレッジ逆引き / 内部一貫性、必要なら反証可能性 3 行併記 Steelman / Fails if / Kill criteria を skill 側から use 宣言)
+5. dispatch log (時刻 / agent / 目的 / 回答要約、dispatch しなかった場合は risk-tier 行のみ) を保持 (Phase 2 の summary.md に追記する)
 
 ### Step 3: Phase 2 — summary.md 生成 (認識齟齬検出 ①)
 
 1. user 合意済みアプローチを base に、`${CLAUDE_PLUGIN_ROOT}/templates/summary.md` を Read
 2. テンプレのプレースホルダー (`{機能名}` / `{slug}` / `{方式 1}` 等) を埋めて summary.md を生成
 3. ファイル名: `{YYYY-MM-DD}-{slug}-summary.md`、配置: `{出力先}`
-4. frontmatter の `spec: ./{date}-{slug}-spec.md` を先行記載 (実 spec.md は Phase 3 で生成)
-5. `shared:software-architect` を能動 dispatch — 方式の要点 / 効いている設計判断を SOLID/YAGNI 観点でレビュー
-6. **`shared:reviewer` を能動 dispatch** (2026-07-04 追加) — summary の反証可能性観点 (Steelman / Fails if / Kill criteria の 3 行併記が summary の "効いている設計判断" に埋まっているか、真実源整合)
-7. **summary.md 末尾「## レビュー履歴」セクションに Phase 1 + Phase 2 の dispatch log を追記** (ADR-0007)
-8. user 承認 → commit (Conventional Commits 形式)
+4. frontmatter の `spec: ./{date}-{slug}-spec.md` を先行記載 (実 spec.md は Phase 3 で生成)。**`risk-tier:` に Step 1-5 で判定した tier を記載** (ADR-0019 D6。Phase 1〜3 の合意内容から tier が変わっていないか再確認し、変わっていれば D5 のとおり上方エスカレーションのみ反映)
+5. **risk-tier に応じて dispatch する (ADR-0019 D3)**:
+   - tier chore・local: dispatch しない (skip)
+   - tier standard: `shared:software-architect` のみ — 方式の要点 / 効いている設計判断を SOLID/YAGNI 観点でレビュー
+   - tier high-impact: `shared:software-architect` + **`shared:reviewer`** — summary の反証可能性観点 (Steelman / Fails if / Kill criteria の 3 行併記が summary の "効いている設計判断" に埋まっているか、真実源整合)
+6. **summary.md 末尾「## レビュー履歴」セクションに risk-tier 判定行 + Phase 1 + Phase 2 の dispatch log を追記** (ADR-0007、tier 行の形式は ADR-0019 D7)
+7. user 承認 → commit (Conventional Commits 形式)
    - **`--gate-mode=aggregate` 時**: user 承認を取らずに commit して Phase 3 へ進む (承認は Step 6-A の一括提示にまとめる。ADR-0014 E3)
 
 ### Step 4: Phase 3 — spec + gwt + pr-description まとめ生成 (認識齟齬検出 ② ③ 統合、ADR-0011)
@@ -110,18 +116,20 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 
 1. 合意済み summary.md を context として `superpowers:brainstorming` を invoke (Y 方式 / ADR-0006)
 2. superpowers:brainstorming に「以下が合意済み summary、実装仕様として詳細展開して」と委譲 (**生成ファイル名は `{date}-{slug}-spec.md`** と明示する。superpowers:brainstorming 自身は `design.md` の名前で書こうとするため、渡さないと改名前の名前で出力される)
-3. spec.md が生成されたら、`shared:software-architect` を能動 dispatch — 実装仕様全体の SOLID / モジュール境界レビュー
-4. 続けて `shared:security-engineer` を **常時能動 dispatch** — 実装仕様のセキュリティレビュー (認証 / 認可 / データ取扱 / 外部入力 / シークレット / 通信 / コード実行 等の観点)
-5. **`shared:principal-engineer` を能動 dispatch** (2026-07-04 追加) — 技術設計の独立評価 (architecture 規約整合 / 真実源整合 / 機能識別子カバレッジ / 内部一貫性、差し戻し protocol を skill 側から use 宣言)
-6. **機微情報チェックリスト** (ADR-0008): 個人情報 / 決済データ / 医療データ / 認証情報を扱う設計か? 該当したら適用規制 (GDPR / 個人情報保護法 / PCI-DSS / HIPAA 等) を提示 → user に「適用規制を確認の上、本 PR スコープで対応 / 別 PR / Skip のいずれかを判断してください」と促す
-7. spec.md 末尾「## レビュー履歴」セクションに Phase 3 (spec 関連) の dispatch log を追記 (機微情報チェック結果含む、ADR-0007)
+3. spec.md が生成されたら、**risk-tier を再確認する** (ADR-0019 D5)。spec.md の詳細化で summary.md 時点より高い tier が妥当と判明したら上方エスカレーションのみ行い、理由を dispatch log に残す (D5 / D7)
+4. **risk-tier + trigger に応じて dispatch する (ADR-0019 D3・D2)**:
+   - tier chore・local: dispatch しない (skip)
+   - tier standard: `shared:software-architect` (SOLID / モジュール境界レビュー) + `shared:security-engineer` (**security trigger** — 認証・認可 / 秘密情報 / 外部入出力 / 決済 / 破壊的操作のいずれかに該当する場合のみ)
+   - tier high-impact: `shared:software-architect` + `shared:security-engineer` **常時** (認証 / 認可 / データ取扱 / 外部入力 / シークレット / 通信 / コード実行 等の観点) + **`shared:principal-engineer`** (architecture 規約整合 / 真実源整合 / 機能識別子カバレッジ / 内部一貫性、差し戻し protocol を skill 側から use 宣言)
+5. **機微情報チェックリスト** (ADR-0008、risk-tier に関わらず常時実施): 個人情報 / 決済データ / 医療データ / 認証情報を扱う設計か? 該当したら適用規制 (GDPR / 個人情報保護法 / PCI-DSS / HIPAA 等) を提示 → user に「適用規制を確認の上、本 PR スコープで対応 / 別 PR / Skip のいずれかを判断してください」と促す
+6. spec.md 末尾「## レビュー履歴」セクションに risk-tier 判定行 + Phase 3 (spec 関連) の dispatch log を追記 (機微情報チェック結果含む、ADR-0007・ADR-0019 D7)
 
 **4-b. gwt.md 生成**
 
 1. `${CLAUDE_PLUGIN_ROOT}/templates/gwt.md` を Read
 2. `{実装仕様}` + summary.md の内容から AC (Given-When-Then 形式) を生成
-3. `shared:qa-engineer` を能動 dispatch — AC の網羅性 (異常系 / 境界値 / 空状態) レビュー
-4. gwt.md 末尾「## レビュー履歴」セクションに Phase 3 (gwt 関連) の dispatch log を追記 (ADR-0007)
+3. **risk-tier local 以上で `shared:qa-engineer` を能動 dispatch** — AC の網羅性 (異常系 / 境界値 / 空状態) レビュー。tier chore は skip (ADR-0019 D3)
+4. gwt.md 末尾「## レビュー履歴」セクションに risk-tier 判定行 + Phase 3 (gwt 関連) の dispatch log を追記 (ADR-0007・ADR-0019 D7)
 
 **4-c. pr-description.md 生成**
 
@@ -142,19 +150,20 @@ enhance-superpowers コレクションの起点 skill。ユーザーが意識的
 ### Step 5: Phase 4 — plan.md 生成 + ライセンスチェック
 
 1. `superpowers:writing-plans` を invoke
-2. plan.md が生成されたら、`shared:qa-engineer` を能動 dispatch — plan のテスト戦略の段取り妥当性レビュー
-3. 続けて `shared:security-engineer` を **常時能動 dispatch** — plan のセキュリティ観点 (セキュリティテスト / 脅威モデリングの段取り / 機微データ取扱の手順) レビュー
-4. **`shared:tech-lead` を能動 dispatch** (2026-07-04 追加) — plan のスタック / テスト戦略 / build vs buy 判断 (呼び出し元 skill 指定 mode = 開発体制準備)
-5. **`shared:engineering-manager` を能動 dispatch** (2026-07-04 追加) — plan の slice 分解の妥当性 (垂直スライス / 依存順 / capability 束ね / タグ体系)
-6. **`shared:principal-engineer` を能動 dispatch** (2026-07-04 追加) — 分解の独立評価 (機能識別子カバレッジ / 分解単位 / capability 束ね妥当性、差し戻し protocol を skill 側から use 宣言)
-7. **ライセンスチェック** (ADR-0009): plan で追加予定の依存ライブラリ一覧を抽出、各ライブラリのライセンスを確認 (license-checker 等を推奨案内)、制限ライセンス (GPL / AGPL / SSPL / 商用制限) が含まれる場合は user に警告 + 1 問確認
-8. plan.md 末尾「## レビュー履歴」セクションに Phase 4 の dispatch log を追記 (ADR-0007)
-9. user 承認 → commit
-   - **`--gate-mode=aggregate` 時**: user 承認を取らずに commit し、Step 6-A へ進む。**ライセンスチェック (7) の user 確認は集約対象外で従来どおり実施する** (コンプライアンス trigger のため。ADR-0014 E3)
+2. plan.md が生成されたら、slice 分解の実態 (単一 slice か複数 slice か、境界を跨ぐか) から **risk-tier を再確認する** (ADR-0019 D5)。summary.md 時点より高い tier が妥当と判明したら上方エスカレーションのみ行う
+3. **risk-tier + trigger に応じて dispatch する (ADR-0019 D3・D2)**:
+   - tier chore: dispatch しない (skip)
+   - tier local: `shared:qa-engineer` のみ — plan のテスト戦略の段取り妥当性レビュー
+   - tier standard: `shared:qa-engineer` + `shared:security-engineer` (**security trigger** 該当時のみ — セキュリティテスト / 脅威モデリングの段取り / 機微データ取扱の手順)
+   - tier high-impact: `shared:qa-engineer` + `shared:security-engineer` **常時** + **`shared:tech-lead`** (plan のスタック / テスト戦略 / build vs buy 判断、呼び出し元 skill 指定 mode = 開発体制準備) + **`shared:engineering-manager`** (plan の slice 分解の妥当性 — 垂直スライス / 依存順 / capability 束ね / タグ体系) + **`shared:principal-engineer`** (分解の独立評価 — 機能識別子カバレッジ / 分解単位 / capability 束ね妥当性、差し戻し protocol を skill 側から use 宣言)
+4. **ライセンスチェック** (ADR-0009、risk-tier に関わらず常時実施): plan で追加予定の依存ライブラリ一覧を抽出、各ライブラリのライセンスを確認 (license-checker 等を推奨案内)、制限ライセンス (GPL / AGPL / SSPL / 商用制限) が含まれる場合は user に警告 + 1 問確認
+5. plan.md 末尾「## レビュー履歴」セクションに risk-tier 判定行 + Phase 4 の dispatch log を追記 (ADR-0007・ADR-0019 D7)
+6. user 承認 → commit
+   - **`--gate-mode=aggregate` 時**: user 承認を取らずに commit し、Step 6-A へ進む。**ライセンスチェック (4) の user 確認は集約対象外で従来どおり実施する** (コンプライアンス trigger のため。ADR-0014 E3)
 
 ### Step 6: Phase 1 / 2 の任意セキュリティ dispatch
 
-Phase 1 / 2 でセキュリティ箇所が検出されたら `shared:security-engineer` を任意 dispatch (Phase 3 / 4 の常時 dispatch とは別)。dispatch log は該当 Phase の成果物 (summary.md) のレビュー履歴に追記。Phase 3 は既に security-engineer 常時 dispatch が spec / gwt / pr-description を包含するため、追加の任意 dispatch は不要。
+Phase 1 / 2 でセキュリティ箇所が検出されたら `shared:security-engineer` を任意 dispatch (Phase 3 / 4 の trigger 条件付き dispatch とは別)。dispatch log は該当 Phase の成果物 (summary.md) のレビュー履歴に追記。Phase 3 で security trigger 該当により既に security-engineer が dispatch 済みの場合、追加の任意 dispatch は不要。
 
 ### Step 6-A: 5 成果物の一括承認 (`--gate-mode=aggregate` 時のみ、ADR-0014 E3)
 
@@ -174,7 +183,7 @@ Phase 1 / 2 でセキュリティ箇所が検出されたら `shared:security-en
 3. 続行する場合、`Skill` tool で `enhance-superpowers:enhance-executing-plans` skill を **chain invoke** (ADR-0012 D1 redesign 2026-07-04)。`--output-dir` / `--gate-mode` を受け取っていれば**そのまま引き継いで渡す**:
    - 実装前 = `shared:software-architect` 能動 dispatch (実装方針 review)
    - 実装本体 = skill 側から **executor agent (backend/frontend/mobile/infrastructure-engineer) を直接 dispatch** (superpowers:executing-plans 委譲は D1 redesign で廃止 = silent failure の言い換えだった)
-   - slice 単位 = `shared:implementation-reviewer` (常時、ローカル diff のコードレビュー本体・ADR-0016 D1) + `shared:security-engineer` (該当 slice で常時) + `shared:performance-engineer` (該当 slice で)
+   - slice 単位 = `shared:implementation-reviewer` (risk-tier local 以上は常時、tier chore は診断的 1 回、ローカル diff のコードレビュー本体・ADR-0016 D1) + `shared:security-engineer` (該当 slice で trigger 条件時) + `shared:performance-engineer` (該当 slice で)、密度は ADR-0019
    - dispatch log は plan.md 末尾レビュー履歴に追記 (ADR-0007)
    - 完了後 = `gwt-test` skill に自動連鎖
 4. 中断時の再開方法を案内: 「(a) `enhance-brainstorming` を再 invoke (Step 0 で状態判定して続きから)、(b) `enhance-superpowers:enhance-executing-plans` を直接 invoke、または (c) `enhance-superpowers:gwt-test` skill を直接 invoke」(**いずれも `--output-dir` / `--gate-mode` を同じ値で渡すこと**。渡さないと既定ディレクトリを走査して「未着手」と誤判定する)
@@ -187,8 +196,9 @@ Phase 1 / 2 でセキュリティ箇所が検出されたら `shared:security-en
 - 設計思想: Clean Architecture + Modular Monolith / YAGNI/DRY/KISS/SOLID / SOLID 最優先 / テスト DRY 一部許容
 - コードコメント方針: WHY のみ、JSDoc 抑制
 - pr-description Spec フェーズ先行作成の意義 (動作確認方法を Spec で確定 = 認識齟齬を実装後に検出する手戻りを防ぐ)
-- 各 Phase で agent を能動 dispatch (silent failure 回避、取り込むだけで使わない pattern を作らない)
-- agent dispatch log は該当 5 成果物の「## レビュー履歴」セクションに必ず追記 (ADR-0007)
+- 各 Phase で risk-tier に応じて agent を能動 dispatch (silent failure 回避、取り込むだけで使わない pattern を作らない。tier chore/local は dispatch 自体を省略してよい、ADR-0019)
+- **risk-tier は Step 1 で自己判定し、各 Phase で判定材料が増えるたびに再確認する。上方エスカレーションのみ許可** (一度 high-impact と判定したものを chore に格下げしない、ADR-0019 D5)。user への追加質問はしない (決定表による自律分岐)
+- agent dispatch log は該当 5 成果物の「## レビュー履歴」セクションに必ず追記 (ADR-0007)。dispatch の有無に関わらず risk-tier 判定行を追記する (ADR-0019 D7)
 - Phase 3 で機微情報チェックリスト + 適用規制 trigger を提示 (ADR-0008)
 - Phase 4 で依存ライブラリのライセンスチェックを実施 (ADR-0009)
 - Step 1 で `.ai-restrictions.md` を Read して AI 利用ポリシーを案内 (ADR-0010、ファイル無ければスキップ)
@@ -221,5 +231,6 @@ Phase 1 / 2 でセキュリティ箇所が検出されたら `shared:security-en
 - ADR-0012 (implementation-phase-skill-and-state-detection) — Step 0 状態判定と Step 7 の enhance-executing-plans chain
 - ADR-0014 (output-dir-arg-chain-suppression-gate-aggregation) — 本 skill の 3 引数 (E1 出力先 / E2 chain 抑止 / E3 gate 集約)
 - ADR-0015 (spec-file-suffix-rename) — 実装仕様の suffix を `design` → `spec` に改名 + legacy 検出
+- ADR-0019 (risk-based-agent-dispatch-budget) — Step 1〜5 の agent dispatch を risk-tier + trigger 条件付きにする本体決定
 - CONTEXT.md (ユビキタス言語、indie-studio 禁止語彙)
 - enhance-executing-plans SKILL.md: Step 7 で chain invoke する後工程 skill
