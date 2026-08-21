@@ -4,7 +4,7 @@ description: |
   enhance-superpowers コレクションの実装フェーズ skill (ADR-0012 で新設)。
   STOP POINT 1 (実装フェーズ) を skill 化し、実装前後で agent 能動 dispatch を強制。
   実装本体は skill 側から executor agent (backend/frontend/mobile/infrastructure-engineer) を **直接 dispatch** (2026-07-04 D1 redesign、superpowers 委譲は silent failure 回避のため廃止)。
-  実装前 = software-architect (実装方針 review)、slice ごと = implementation-reviewer (常時) + security-engineer + performance-engineer 能動 dispatch。
+  実装前 = software-architect (実装方針 review、risk-tier standard 以上のみ)、slice ごと = implementation-reviewer (常時、tier chore は診断的 1 回) + security-engineer + performance-engineer 能動 dispatch (risk-tier + trigger 条件、ADR-0019)。
   dispatch log は plan.md のレビュー履歴に集約 (ADR-0007)。
   Step 0 で状態判定 (ADR-0012 D2)、Step 1 で .ai-restrictions.md を Read して AI 利用ポリシー案内 (ADR-0010)。
   引数 --output-dir / --gate-mode で出力先・gate 集約を制御 (省略時は従来挙動、ADR-0014)。
@@ -41,9 +41,9 @@ enhance-superpowers コレクションの実装フェーズ skill (ADR-0012 で�
 | Phase | 前提 file | 出力 | 出力条件 |
 |---|---|---|---|
 | 0 | `{出力先}/*-plan.md` 存在 | (判定) | 状態判定完了、Step 番号を確定 |
-| 1 | plan.md | 実装前 review 記録 | shared:software-architect dispatch 完了、plan.md レビュー履歴に追記 |
+| 1 | plan.md | 実装前 review 記録 | risk-tier standard 以上のみ shared:software-architect dispatch (tier chore・local は skip)、plan.md レビュー履歴に risk-tier 判定行を追記 (ADR-0019) |
 | 2 | plan.md | 実装コード | enhance-executing-plans が対象 executor agent (`shared:{backend,frontend,mobile,infrastructure}-engineer`) を skill 側から **直接 dispatch** して slice 実装 (2026-07-04 OD1 fix、superpowers 委譲廃止) |
-| 3 | 実装スライスごと | slice review 記録 | shared:implementation-reviewer (常時) + shared:security-engineer + shared:performance-engineer dispatch 完了、plan.md レビュー履歴に追記 |
+| 3 | 実装スライスごと | slice review 記録 | shared:implementation-reviewer (tier chore は診断的 1 回、tier local 以上は常時) + shared:security-engineer + shared:performance-engineer (既存条件不変) dispatch 完了、plan.md レビュー履歴に追記 (ADR-0019) |
 | 4 | 実装済み全 slice | gwt-test skill chain 起動 | 全 slice review 完了 |
 
 ## 動作 (6 ステップ)
@@ -61,16 +61,17 @@ enhance-superpowers コレクションの実装フェーズ skill (ADR-0012 で�
 6. `handoff.md` が同ディレクトリにあれば Read して state summary を取得、上記判定と突き合わせ (handoff 情報が優先されるとは限らない、あくまで補助)
 7. 判定結果を user に「現在 Phase = X、Step Y から再開します」と明示、user 1 問確認 (誤検出時の catch)
 
-### Step 1: 前提確認 + AI 利用ポリシー案内 (ADR-0010)
+### Step 1: 前提確認 + AI 利用ポリシー案内 (ADR-0010) + risk-tier 解決 (ADR-0019)
 
 1. `git rev-parse --show-toplevel` で git repo を確認、失敗なら error 中断
 2. プロジェクトルートの `.ai-restrictions.md` を Read (存在すれば内容を user に案内、無ければ skip)
 3. argument 経由 or `{出力先}/*-plan.md` から plan.md を確定
+4. **risk-tier を解決する** (ADR-0019 D5): 同ディレクトリの summary.md frontmatter に `risk-tier:` があればそれを起点にする。無ければ (indie-studio S5 等、`enhance-brainstorming` を経由しない直接 invoke の場合、indie-studio ADR-0032) plan.md の slice 構成 (単一 slice か複数か、境界を跨ぐか) と security trigger (auth/authz・秘密・外部入出力・決済・破壊操作) の有無から自己判定する。判定不能なら standard にフォールバックする。判定根拠 1 行を保持し、Step 2 以降の dispatch log に添える
 
-### Step 2: 実装前 software-architect 能動 dispatch (ADR-0012 D1)
+### Step 2: 実装前 software-architect 能動 dispatch (ADR-0012 D1、risk-tier 条件は ADR-0019 D3)
 
-1. `shared:software-architect` を能動 dispatch — plan.md の実装方針が Clean Architecture / SOLID / モジュール境界と整合しているかを pre-flight review
-2. dispatch log を plan.md 末尾「## レビュー履歴」セクションに追記 (ADR-0007)
+1. **risk-tier standard・high-impact のみ** `shared:software-architect` を能動 dispatch — plan.md の実装方針が Clean Architecture / SOLID / モジュール境界と整合しているかを pre-flight review。**tier chore・local は skip**
+2. dispatch log (risk-tier 判定行を含む) を plan.md 末尾「## レビュー履歴」セクションに追記 (ADR-0007・ADR-0019 D7)
 3. software-architect が方針修正を提案した場合、user に 1 問確認 → 承認されたら plan.md を Edit で更新 → commit
 
 ### Step 3: slice 単位で対象 executor agent を能動 dispatch (ADR-0012 D1、redesign 2026-07-04)
@@ -94,24 +95,24 @@ plan.md 内の各 slice について、以下を順次実行:
    - **architecture 規約**: spec.md / plan.md で指定される規約 (例: Clean Architecture + DDD 等)
    - **テスト戦略**: plan.md 指定、または spec.md セクション参照
    - **進行 protocol**: 停止可否 / 仮定の記録方法 / 未決事項マーカー
-4. executor が担当実装 (該当担当範囲、テスト含む)
+4. executor が担当実装 (該当担当範囲、テスト含む)。**実装完了時にリポジトリ既存の lint/test/build コマンドを実行し、機械的に検出できる問題は先に解消する** (`package.json` scripts / `Makefile` / CI 設定等から検出、risk-tier に関わらず適用。agent レビューは機械的チェックで拾えない観点に絞る、ADR-0019 D8)
 5. dispatch log を plan.md 末尾「## レビュー履歴」セクションに追記 (ADR-0007)
 6. slice 実装完了 → Step 4 (review) へ
 
 **superpowers:executing-plans との関係**: 本 skill は superpowers:executing-plans に「丸投げ」しない (silent failure 回避)。enhance-superpowers 側で executor 能動 dispatch を保証。superpowers 直線フロー (brainstorming → writing-plans → executing-plans) の 3 段目相当を、enhance-superpowers 側で silent failure なく実装する形。
 
-### Step 4: slice ごとの review dispatch (ADR-0012 D1、宛先は ADR-0016 D1)
+### Step 4: slice ごとの review dispatch (ADR-0012 D1、宛先は ADR-0016 D1、tier 別密度は ADR-0019 D4)
 
 各 slice の実装完了時に以下を実行。**ローカル diff のコードレビュー activity は `shared:implementation-reviewer` が担う** (ADR-0016 D1)。ローカルで CodeRabbit / `code-review` 系 skill は呼ばない (CodeRabbit は GitHub 上の PR レビューだけで使う):
 
-1. **`shared:implementation-reviewer` を常時能動 dispatch** (評価 mode、課金なし)。invocation prompt に以下を渡す (中立 agent への起動 context、root ADR-0010 / indie-studio ADR-0031 と同じ形):
+1. **`shared:implementation-reviewer` を dispatch** (評価 mode、課金なし)。**risk-tier local・standard・high-impact は常時 dispatch**。**tier chore は診断的 1 回**にする — まず対象 diff のファイル一覧を確認し、Phase 1 で分類した chore/docs/catalog スコープを超えるファイル (ロジックファイル・挙動に影響しうる設定ファイル) が含まれるかを機械的に確認する。超えていなければ軽量 1 round (fresh dispatch、continuation ラウンドは想定しない) で dispatch。超えていれば **risk-tier を standard に自己エスカレーション**し、以下の通常密度で dispatch する (ADR-0019 D4)。invocation prompt に以下を渡す (中立 agent への起動 context、root ADR-0010 / indie-studio ADR-0031 と同じ形):
    - **評価対象**: 本 slice の変更差分 / 対象 file 群 / 評価ラウンド番号
    - **答え合わせ材料**: gwt.md の該当 AC / 実装仕様 `*-spec.md` (architecture 規約・モジュール境界・ドメインモデル。ADR-0015 以前の branch では `*-design.md`、Step 0-2 で確定した path を使う) / リポジトリの `AGENTS.md` (無ければ `CLAUDE.md`)
    - **評価観点**: agent 側デフォルト (受入条件充足 / テスト網羅 / 設計 docs 整合 / 可読性・規約・silent failure) を採用
-   - **進行 protocol**: **差し戻し protocol を use 宣言する** — round1 = fresh で完全な findings マニフェスト、round2-3 = 同一インスタンスの continuation で解消のみ検証 (スコープ凍結)、**各 slice 最大 3 ラウンド**、3R 未達は decide-record-proceed
-2. 実装対象 slice に auth / crypto / データ取扱 / 外部入力等の変更があれば、`shared:security-engineer` を **常時能動 dispatch** (評価 mode、security-focused な実装 review)
-3. 大規模 UI / 大量データ処理等で性能影響が想定される slice なら、`shared:performance-engineer` を能動 dispatch (評価 mode)
-4. dispatch log (implementation-reviewer の合否とラウンド数、security-engineer / performance-engineer 実行結果) を plan.md 末尾「## レビュー履歴」セクションに追記 (ADR-0007)
+   - **進行 protocol**: **差し戻し protocol を use 宣言する** — round1 = fresh で完全な findings マニフェスト、round2-3 = 同一インスタンスの continuation で解消のみ検証 (スコープ凍結)、**各 slice 最大 3 ラウンド**、3R 未達は decide-record-proceed (tier chore の診断的 1 回はこの限りではない)
+2. 実装対象 slice に auth / crypto / データ取扱 / 外部入力等の変更があれば、`shared:security-engineer` を **常時能動 dispatch** (評価 mode、security-focused な実装 review)。**この条件付きロジックは risk-tier の narrow 対象ではなく既存のまま不変** (ADR-0019 の対象は元々無条件だった dispatch のみ)
+3. 大規模 UI / 大量データ処理等で性能影響が想定される slice なら、`shared:performance-engineer` を能動 dispatch (評価 mode)。同じく既存のまま不変
+4. dispatch log (risk-tier 判定行、implementation-reviewer の合否とラウンド数、security-engineer / performance-engineer 実行結果) を plan.md 末尾「## レビュー履歴」セクションに追記 (ADR-0007・ADR-0019 D7)
 5. review 指摘がある場合、user に 1 問確認 → 該当 executor に修正 dispatch (再実装) → **同一 implementation-reviewer インスタンスへ continuation** で再 review → 収束
 6. slice 収束 → 次 slice へ (Step 3 に戻る)
 
@@ -128,7 +129,8 @@ plan.md 内の各 slice について、以下を順次実行:
 ## 規律明示
 
 - **agent の `subagent_type` は `plugin:agent` 形式の修飾名を使う** (例: `shared:software-architect`)。bare name は解決されない。engineering 系 13 職種は `shared` plugin が提供する (root ADR-0010)
-- 実装前後の agent 能動 dispatch を必ず実行 (silent failure 回避、ADR-0001 コンセプト、ADR-0012)
+- 実装前後の agent 能動 dispatch は risk-tier に応じて実行 (silent failure 回避と fan-out 抑制の両立、ADR-0001 コンセプト、ADR-0012、tier 条件は ADR-0019)。tier chore・local は実装前 software-architect を skip、implementation-reviewer は tier chore のみ診断的 1 回に軽量化
+- risk-tier は Step 1 で summary.md frontmatter から解決、無ければ plan.md 内容から自己判定 (ADR-0019 D5)。既存の lint/test/build/CI を agent dispatch より優先する (ADR-0019 D8)
 - **ローカル diff のコードレビューは `shared:implementation-reviewer`**。ローカルで CodeRabbit / `code-review` 系 skill を呼ばない (ADR-0016 D1)。課金を伴うレビューは GitHub 上の PR に一本化する
 - dispatch log は plan.md の「## レビュー履歴」セクションに集約 (ADR-0007)
 - 実装本体は skill 側から executor agent (backend/frontend/mobile/infrastructure-engineer) を直接 dispatch (2026-07-04 D1 redesign)。superpowers:executing-plans への委譲は silent failure の言い換えだったため廃止
@@ -158,6 +160,7 @@ plan.md 内の各 slice について、以下を順次実行:
 - ADR-0014 (output-dir-arg-chain-suppression-gate-aggregation): 本 skill の 2 引数 (E1 出力先 / E3 gate 集約)。`--gate-mode` の効果は ADR-0016 D6 で Step 5 のみに縮小
 - ADR-0015 (spec-file-suffix-rename): 実装仕様の suffix は `spec` (旧 `design`)。executor へ渡す参照 docs の名前
 - ADR-0016 (local-review-to-implementation-reviewer-and-builtin-review-after-pr): Step 4 の宛先を code-review skill から `shared:implementation-reviewer` に変更 (D1)
+- ADR-0019 (risk-based-agent-dispatch-budget): Step 2 / Step 4 の dispatch を risk-tier 条件付きにする本体決定。Step 1 の risk-tier 解決順位 (D5) と既存 lint/test/build 優先 (D8) も本 ADR
 - enhance-brainstorming SKILL.md: 前工程 skill、実装フェーズ chain 起動元
 - gwt-test SKILL.md: 後工程 skill、Step 5 で chain invoke
 - `superpowers:executing-plans` skill: 従来 Step 3 で invoke していたが D1 redesign で廃止 (2026-07-04)。参考として名前のみ残置

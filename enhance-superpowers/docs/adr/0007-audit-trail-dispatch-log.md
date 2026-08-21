@@ -4,6 +4,8 @@
 
 Accepted (2026-06-25). Updated (2026-07-02): ADR-0011 で 5 成果物の生成順が plan-last (`summary → design → gwt → pr-description → plan`) に変わったため、下記 Phase → 追記先 mapping の Phase 番号を更新 (追記先の file 単位マッピング自体は不変)。 Updated (2026-07-04): ADR-0012 で実装フェーズが skill 化 (`enhance-executing-plans`) されたため、実装 slice 単位の dispatch を plan.md に集約する行を mapping に追加。ADR-0013 で gwt-test の qa-engineer 常時 dispatch (AC 検証完了時) を追加したため、gwt-test 行の細分を更新。
 
+> ※ [ADR-0019](0019-risk-based-agent-dispatch-budget.md) で dispatch log のフォーマットが拡張された（D7）。各 dispatch 判定のたびに risk-tier とその根拠を 1 行追記する形式が加わる。**下記 mapping（追記先 file）自体は不変**。
+
 ## Context
 
 各 skill で agent を能動 dispatch (ADR-0005 関連) する設計だが、「いつ / 誰を / 何のために dispatch したか + 回答要約」を残さないと、後から「なぜこの設計を採ったか」「なぜこの採用/Skip 判定にしたか」を追跡できない。AI セッション / agent dispatch の監査ログが要る。

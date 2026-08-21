@@ -115,4 +115,6 @@ issue が無いのは 2 通りあり、扱いを分ける。
 - ADR-0007（五大枠ゲート）：issue 精緻化は自律操作
 - ADR-0008（適応 PR ゲート）：G5 の merge 判断は委譲先の PR に対して適用する
 - root ADR-0010（shared plugin 化）：plugin 間参照の前提
+
+> ※ 委譲先 (`enhance-superpowers`) は enhance-superpowers [ADR-0019](../../../enhance-superpowers/docs/adr/0019-risk-based-agent-dispatch-budget.md) で dispatch 判定を risk-tier ベースに変更した。**本 ADR が定めた「enhance-superpowers 側のファイルは編集しない」制約は indie-studio 側の commitment であり、委譲先自身の進化を止める約束ではない**（ADR-0016 D6 が `--gate-mode` の効果変更で既に同型の前例を作っている）。ADR-0019 は skill 名・引数契約・Phase 構造を変えず dispatch 判定の内部だけを narrow するため、indie-studio 側のアダプタ改修は不要。summary.md 相当の frontmatter が無い（S5 は `enhance-brainstorming` を経由しない）場合、委譲先は standard tier にフォールバックする（ADR-0019 D5）。
 - enhance-superpowers ADR-0011（plan-last / Phase 3 まとめ生成）：D1 の生成順と D2 の形式契約の出所。**本 ADR は enhance-superpowers を変更しない**

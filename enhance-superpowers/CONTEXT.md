@@ -12,15 +12,15 @@ enhance-superpowers の起点 skill。`superpowers:brainstorming` の責任を�
 
 **STOP POINT**:
 skill 連鎖の中で agent 能動 dispatch を強制する境目。本コレクションは 2 つ持つ:
-- **STOP POINT 1 (実装フェーズ)**: ADR-0012 で `enhance-executing-plans` skill 化。実装前 software-architect + slice ごと executor 能動 dispatch + review (implementation-reviewer 常時 / security-engineer / performance-engineer) を強制 dispatch。ローカル diff のコードレビュー本体は `shared:implementation-reviewer` (ADR-0016 D1)。
-- **STOP POINT 2 (セルフレビュー)**: ADR-0013 D2 で**停止せず能動 dispatch** し user 手動依存を廃止。宛先は `shared:implementation-reviewer` + `shared:security-engineer` + `/security-review` (ADR-0016 D1・D5)。いずれも課金を伴わないため課金前 1 問確認は廃止。write-review-response chain は独立 = 常時実行 (silent failure 回避)。**ローカルで CodeRabbit / `code-review` 系 skill は呼ばない**。
+- **STOP POINT 1 (実装フェーズ)**: ADR-0012 で `enhance-executing-plans` skill 化。実装前 software-architect (risk-tier standard 以上) + slice ごと executor 能動 dispatch + review (implementation-reviewer / security-engineer / performance-engineer、密度は risk-tier + trigger 条件、ADR-0019) を dispatch。ローカル diff のコードレビュー本体は `shared:implementation-reviewer` (ADR-0016 D1)。
+- **STOP POINT 2 (セルフレビュー)**: ADR-0013 D2 で**停止せず能動 dispatch** し user 手動依存を廃止。宛先は `shared:implementation-reviewer` + `shared:security-engineer` + `/security-review` (ADR-0016 D1・D5)、dispatch の有無・密度は risk-tier + security trigger で決まる (ADR-0019)。いずれも課金を伴わないため課金前 1 問確認は廃止。write-review-response chain は dispatch の有無に関わらず常時実行 (silent failure 回避)。**ローカルで CodeRabbit / `code-review` 系 skill は呼ばない**。
 
 **skill 一覧** (6 skill、ADR-0012 で `enhance-executing-plans`、ADR-0017 で `pr-review` を追加):
 
 implementer 側 (1〜5) — 自分が書くコードの Spec を決めて実装し、PR を出すまで:
 1. `enhance-brainstorming` — 起点、Spec 5 成果物確定
 2. `enhance-executing-plans` — 実装フェーズ (2026-07-04 redesign: skill 側から executor agent を直接 dispatch、superpowers 委譲は廃止 = silent failure の言い換えだった)
-3. `gwt-test` — AC 検証 + qa-engineer 常時 dispatch (ADR-0013) + STOP POINT 2 実行 (implementation-reviewer 常時 + security-engineer + `/security-review`、ADR-0016 D1・D5)
+3. `gwt-test` — AC 検証 + qa-engineer dispatch (risk-tier local 以上、ADR-0013) + STOP POINT 2 実行 (implementation-reviewer + security-engineer + `/security-review`、密度は risk-tier + trigger 条件、ADR-0016 D1・D5・ADR-0019)
 4. `write-review-response` — CodeRabbit 指摘の採用/Skip 判定
 5. `finish-spec-pr` — PR 作成 (mechanical)
 
@@ -35,22 +35,25 @@ implementer 側 (1〜5) — 自分が書くコードの Spec を決めて実装�
 **認識齟齬検出ポイント**:
 Spec フェーズで設計の認識ズレを早期検出する 3 重の関所 — ① summary 合意 (大枠ズレ、Phase 2) / ② gwt 合意 (AC ズレ、Phase 3) / ③ pr-description 合意 (動作確認方法ズレ、Phase 3)。② と ③ は Phase 3 の 3 file 一括レビューに集約される (ADR-0011)。
 
-**agent dispatch matrix** (2026-07-04 更新):
+**risk-tier**:
+変更規模・影響範囲を 4 段階 (chore/docs/catalog・local・standard・high-impact) に自己分類し、下記 dispatch matrix の budget をその tier に応じて narrow する仕組み (ADR-0019)。分類は各 skill step がその時点で読める成果物 (トピック文 / summary.md / spec.md / plan.md / 実際の diff) から都度自己判定し、user への追加質問は発生しない (決定表による自律分岐)。security trigger (auth/authz・秘密・外部入出力・決済・破壊操作) に該当すると tier は最低でも high-impact として扱う。判定できない場合は standard にフォールバックする (chore への安全でないフォールバックも high-impact への一律フォールバックも避ける)。tier の判定基準・skill step ごとの budget 全表は ADR-0019 参照。
+
+**agent dispatch matrix** (2026-08-21 更新、risk-tier 条件を反映。ADR-0019 の D3 表が詳細版):
 各 skill ステップで能動 dispatch する agent / skill と目的の一覧。`import するだけで使わない` silent failure pattern を回避するための明示的な対応表。engineering 系 13 agent は `shared` plugin が提供し、**dispatch は `shared:<agent>` の修飾名で行う** (bare name は解決されない・root ADR-0010。vendoring は廃止、ADR-0005 は supersede 済):
 
 | skill / step | 能動 dispatch (agent / skill) | 目的 |
 |---|---|---|
-| enhance-brainstorming Phase 1 | shared:software-architect + shared:reviewer | アプローチの Clean Architecture / SOLID + 独立観点評価 (真実源整合 / 反証可能性) |
-| enhance-brainstorming Phase 2 (summary) | shared:software-architect + shared:reviewer | SOLID / YAGNI + summary 反証可能性 |
-| enhance-brainstorming Phase 3 (spec) | shared:software-architect + shared:security-engineer + shared:principal-engineer + 機微情報チェック | SOLID / モジュール境界 / セキュリティ / 独立技術設計評価 / 機微情報 (ADR-0008) |
-| enhance-brainstorming Phase 3 (gwt) | shared:qa-engineer | AC 網羅性 |
-| enhance-brainstorming Phase 4 (plan) | shared:qa-engineer + shared:security-engineer + shared:tech-lead + shared:engineering-manager + shared:principal-engineer + ライセンスチェック | テスト戦略 / セキュリティ / スタック判断 / slice 分解 / 分解評価 / ライセンス (ADR-0009) |
-| enhance-executing-plans Step 2 (実装前) | shared:software-architect | 実装方針 pre-flight review (ADR-0012) |
-| enhance-executing-plans Step 3 (実装本体) | shared:{backend,frontend,mobile,infrastructure}-engineer (slice 対応で選定) | executor 能動 dispatch (ADR-0012 D1 redesign) |
-| enhance-executing-plans Step 4 (slice review) | **shared:implementation-reviewer (常時)** + shared:security-engineer + shared:performance-engineer | ローカル diff の code review activity は implementation-reviewer が担う (ADR-0016 D1) |
+| enhance-brainstorming Phase 1 | tier standard: shared:software-architect のみ / tier high-impact: + shared:reviewer / tier chore・local: skip | アプローチの Clean Architecture / SOLID + 独立観点評価 (真実源整合 / 反証可能性)、budget は ADR-0019 |
+| enhance-brainstorming Phase 2 (summary) | tier standard: shared:software-architect のみ / tier high-impact: + shared:reviewer / tier chore・local: skip | SOLID / YAGNI + summary 反証可能性、budget は ADR-0019。判定した risk-tier を summary.md frontmatter に記録 (ADR-0019 D6) |
+| enhance-brainstorming Phase 3 (spec) | tier standard: shared:software-architect + shared:security-engineer (security trigger 時) / tier high-impact: + shared:principal-engineer + shared:security-engineer 常時 / tier chore・local: skip。機微情報チェックは tier 不問で常時 | SOLID / モジュール境界 / セキュリティ / 独立技術設計評価 / 機微情報 (ADR-0008)、budget は ADR-0019 |
+| enhance-brainstorming Phase 3 (gwt) | tier local 以上: shared:qa-engineer / tier chore: skip | AC 網羅性、budget は ADR-0019 |
+| enhance-brainstorming Phase 4 (plan) | tier local: shared:qa-engineer のみ / tier standard: + shared:security-engineer (trigger 時) / tier high-impact: + shared:tech-lead + shared:engineering-manager + shared:principal-engineer + shared:security-engineer 常時 / tier chore: skip。ライセンスチェックは tier 不問で常時 | テスト戦略 / セキュリティ / スタック判断 / slice 分解 / 分解評価 / ライセンス (ADR-0009)、budget は ADR-0019 |
+| enhance-executing-plans Step 2 (実装前) | tier standard・high-impact: shared:software-architect / tier chore・local: skip | 実装方針 pre-flight review (ADR-0012)、budget は ADR-0019 |
+| enhance-executing-plans Step 3 (実装本体) | shared:{backend,frontend,mobile,infrastructure}-engineer (slice 対応で選定)、tier 不問 | executor 能動 dispatch (ADR-0012 D1 redesign)。実装完了時に既存 lint/test/build を優先実行 (ADR-0019 D8) |
+| enhance-executing-plans Step 4 (slice review) | **shared:implementation-reviewer** (tier chore は診断的 1 回、tier local 以上は常時) + shared:security-engineer + shared:performance-engineer (既存の条件付きロジック不変) | ローカル diff の code review activity は implementation-reviewer が担う (ADR-0016 D1)。tier 別密度は ADR-0019 D4 |
 | gwt-test Step 5 (AC 未達時) | shared:qa-engineer | 差し戻し findings 言語化 |
-| gwt-test Step 6 (AC 完了時) | shared:qa-engineer 常時 | AC 網羅性 review (ADR-0013 D1) |
-| gwt-test Step 8 (STOP POINT 2) | **shared:implementation-reviewer (常時)** + shared:security-engineer 能動 + **`/security-review` invoke** | ローカル diff の code review + security-focused review 2 層 (ADR-0013 D2、宛先は ADR-0016 D1・D5)。課金なしのため 1 問確認は廃止 |
+| gwt-test Step 6 (AC 完了時) | tier local 以上: shared:qa-engineer 常時 / tier chore: skip | AC 網羅性 review (ADR-0013 D1)、budget は ADR-0019 |
+| gwt-test Step 8 (STOP POINT 2) | **shared:implementation-reviewer** (tier chore は診断的 1 回、tier local 以上は常時) + shared:security-engineer (tier high-impact は常時、他 tier は security trigger 時) + **`/security-review`** (同条件) | ローカル diff の code review + security-focused review 2 層 (ADR-0013 D2、宛先は ADR-0016 D1・D5)。課金なしのため 1 問確認は廃止。tier 別密度は ADR-0019 |
 | write-review-response Step 2 (判定迷い / セキュリティ / 大規模 refactor) | shared:implementation-reviewer (判定 aid) / shared:security-engineer / shared:reviewer | 判定補助 |
 | write-review-response Step 4 (再 push 前) | **shared:implementation-reviewer (常時)** | 採用分の解消検証と回帰チェック (ADR-0016 D1) |
 | finish-spec-pr Step 6 (PR 作成後) | **builtin `/review` invoke** (CodeRabbit は扱わない) | PR レビュー。指摘があれば user 1 問確認のうえ write-review-response へ折り返す。**実行記録は 0 件・折り返し無し・skip でも review-response.md に残す** (ADR-0016 D2) |
@@ -68,7 +71,7 @@ Spec フェーズで設計の認識ズレを早期検出する 3 重の関所 �
 - bundled `/code-review` は採らない — モデルから起動できず (v2.1.215 以降)、かつ同名 personal skill にシャドウされて consumer 環境依存になるため (ADR-0016 D3)
 - `/review` は AI の自己レビューであり、**根幹変更の人間レビュー / 人間 merge を代替しない** (ADR-0016 D4、indie-studio ADR-0008)
 
-dispatch log の追記先 mapping は ADR-0007 参照。
+dispatch log の追記先 mapping は ADR-0007 参照。risk-tier 判定ロジックと skill step ごとの budget 全表は ADR-0019 参照。
 
 **レビュー履歴セクション**:
 5 成果物の末尾に追加される `## レビュー履歴` セクション。agent dispatch log (時刻 / agent / 目的 / 回答要約) をここに集約 (B = 監査ログ)。形式は ADR-0007 で定める。

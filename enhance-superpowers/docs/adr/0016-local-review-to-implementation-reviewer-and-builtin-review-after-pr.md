@@ -6,6 +6,8 @@ Accepted (2026-08-06)。[ADR-0013](0013-gwt-test-qa-engineer-always-dispatch-and
 
 ADR-0013 の Decision（D1 = gwt-test の qa-engineer 常時 dispatch / D2 = STOP POINT 2 で機械的レビューを auto-invoke して user 手動依存を廃止する）は**そのまま有効**で、本 ADR は D2 の**宛先**だけを変える。
 
+> ※ [ADR-0019](0019-risk-based-agent-dispatch-budget.md) で D1（ローカル 3 サイトの `shared:implementation-reviewer`）・D5（`shared:security-engineer` 常時 dispatch）が risk-tier / trigger 条件付きになった。implementation-reviewer は chore tier で診断的 1 回に軽量化、security-engineer は chore/local/standard tier では security trigger（auth/authz・秘密・外部入出力・決済・破壊操作）該当時のみ dispatch する。**high-impact tier では本 ADR の決定どおり無条件 dispatch を維持**する。
+
 ただし ADR-0013 の Status 行にある `Updated (2026-07-04)` の運用 —「コードレビュー activity 全体で `code-review` skill を default とし、`code-reviewer`（現 `implementation-reviewer`）は判定 aid 専用に予約する」— は、本 ADR が**置き換える**。ローカルでは `shared:implementation-reviewer` がコードレビュー活動の本体に戻る。
 
 ## Context

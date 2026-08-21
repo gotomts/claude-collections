@@ -8,6 +8,8 @@ Supersedes ADR-0003.
 
 > ※ 本文中の `code-reviewer` は root [ADR-0011](../../../docs/adr/0011-external-plugin-agent-name-collision.md) で **`implementation-reviewer` に改名**された（外部 plugin との agent 名衝突回避）。役割・決定内容は変わらず、dispatch 名が `shared:implementation-reviewer` になる。
 >
+> ※ [ADR-0019](0019-risk-based-agent-dispatch-budget.md) で、Step 2（実装前 software-architect pre-flight）の dispatch が risk-tier 条件付きになった（chore/local tier は skip）。**Phase / Step 構造自体は不変**、narrow されるのは dispatch の有無のみ。
+>
 > ※ 本文中の `design.md` / `design` は [ADR-0015](0015-spec-file-suffix-rename.md) で `spec.md` / `spec` に改名された。**D2 の状態判定ロジック自体は不変**で、判定に使う名前が変わるだけ。改名前の `*-design.md` は同 ADR D3 の legacy 検出で救済する。
 
 ## Context
